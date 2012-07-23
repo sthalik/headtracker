@@ -32,7 +32,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector)) {
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->haar_model, cvPoint3D32f(0, 0, 0));
 					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->haar_model, cvPoint3D32f(0, 0, 0));
-					float best_error;
+					error_t best_error;
 					int best_cnt;
 					int* best_indices = new int[ctx->tracking_model.count];
 					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= HT_MIN_TRACK_START_POINTS)
@@ -48,7 +48,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				break;
 			} case HT_STATE_TRACKING: {
 				ht_track_features(*ctx);
-				float best_error;
+				error_t best_error;
 				int best_cnt;
 				int* best_indices = new int[ctx->tracking_model.count];
 				CvPoint3D32f offset;
@@ -56,11 +56,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					ht_estimate_pose(*ctx, rotation_matrix, translation_vector, best_indices, best_cnt, &offset))
 				{
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
-					int ticks = GetTickCount();
-					if (ticks / HT_GET_FEATURES_INTERVAL_MS != ctx->ticks_last_features / HT_GET_FEATURES_INTERVAL_MS) {
-						ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(0, 0, 0));
-						ctx->ticks_last_features = ticks;
-					}
+					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
 					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model);
 					ht_draw_features(*ctx);
 				} else {
@@ -81,7 +77,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 #endif
 				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				printf("%f | %f %f %f | %f %f %f\n", best_error, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
+				printf("%.2f/%.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, best_error.max, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;

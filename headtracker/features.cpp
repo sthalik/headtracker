@@ -60,7 +60,7 @@ void ht_track_features(headtracker_t& ctx) {
 		HT_PYRLK_PYRAMIDS,
 		features_found,
 		NULL,
-		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 50, 0.5 ),
+		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 25, 0.5 ),
 		(got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
 
 	ctx.restarted = 0;
@@ -96,15 +96,31 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (!model.projection)
 		return;
 
-	CvPoint2D32f left_brow = ht_point_to_screen(cvPoint3D32f(-34 + origin.x, -62 + origin.y, -19 + origin.z), rotation_matrix, translation_vector);
-	CvPoint2D32f right_brow = ht_point_to_screen(cvPoint3D32f(34 + origin.x, -62 + origin.y, -19 + origin.z), rotation_matrix, translation_vector);
-	CvPoint2D32f left_bottom = ht_point_to_screen(cvPoint3D32f(-20 + origin.x, 71 + origin.y, -13 + origin.z), rotation_matrix, translation_vector);
-	CvPoint2D32f right_bottom = ht_point_to_screen(cvPoint3D32f(20 + origin.x, 71 + origin.y, -13 + origin.z), rotation_matrix, translation_vector);
+	float min_x = ctx.grayscale->width, max_x = 0;
+	float min_y = ctx.grayscale->height, max_y = 0;
 
-	CvRect roi = cvRect(min(left_brow.x, left_bottom.x),
-						min(left_brow.y, left_bottom.y),
-						max(right_bottom.x, right_brow.x) - min(left_brow.x, left_bottom.x),
-						max(right_bottom.y, left_bottom.y) - min(left_brow.y, right_brow.y));
+	int sz = model.count;
+
+	if (!ctx.features) {
+		ctx.features = new CvPoint2D32f[sz];
+		for (int i = 0; i < sz; i++)
+			ctx.features[i] = cvPoint2D32f(-1, -1);
+	}
+
+	for (int i = 0; i < ctx.tracking_model.count; i++) {
+		float x = (model.projection[i].p1.x + model.projection[i].p2.x + model.projection[i].p3.x) / 3;
+		float y = (model.projection[i].p1.x + model.projection[i].p2.y + model.projection[i].p3.y) / 3;
+		if (x > max_x)
+			max_x = x;
+		if (x < min_x)
+			min_x = x;
+		if (y > max_y)
+			max_y = y;
+		if (y < min_y)
+			min_y = y;
+	}
+
+	CvRect roi = cvRect(min_x, min_y, max_x - min_x, max_y - min_y);
 
 	roi.x = max(0, min(roi.x, ctx.grayscale->width - 1));
 	roi.y = max(0, min(roi.y, ctx.grayscale->height - 1));
@@ -114,25 +130,18 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (roi.width == 0 || roi.height == 0)
 		return;
 
-	int sz = model.count;
 	IplImage* eig_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 	IplImage* tmp_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 
-	CvPoint2D32f tmp_features[HT_MAX_DETECT_FEATURES];
-	CvPoint2D32f features_to_add[HT_MAX_DETECT_FEATURES];
+	CvPoint2D32f* tmp_features    = new CvPoint2D32f[HT_MAX_DETECT_FEATURES];
+	CvPoint2D32f* features_to_add = new CvPoint2D32f[HT_MAX_DETECT_FEATURES];
 	int k = 0;
-
-	if (!ctx.features) {
-		ctx.features = new CvPoint2D32f[sz];
-		for (int i = 0; i < sz; i++)
-			ctx.features[i] = cvPoint2D32f(-1, -1);
-	}
 
 	int cnt = HT_MAX_DETECT_FEATURES;
 
 	if (cnt > 0) {
 		cvSetImageROI(ctx.grayscale, roi);
-		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_POINT_DISTANCE, NULL, 3, 1);
+		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_POINT_DISTANCE, NULL, 3);
 		cvResetImageROI(ctx.grayscale);
 	}
 	for (int i = 0; i < cnt && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
@@ -158,9 +167,8 @@ end:
 		;
 	}
 
-	if (k > 0 && roi.width > 32 && roi.height > 32) {
-		cvFindCornerSubPix(ctx.grayscale, tmp_features, cnt, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 40, 0.025));
-	}
+	//if (k > 0 && roi.width > 32 && roi.height > 32)
+	//	cvFindCornerSubPix(ctx.grayscale, tmp_features, cnt, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.025));
 
 	for (int i = 0; i < k; i++) {
 		triangle_t t;
@@ -168,11 +176,17 @@ end:
 
 		if (!(ht_triangle_at(ctx, cvPoint(features_to_add[i].x, features_to_add[i].y), &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
-		ctx.features[idx] = features_to_add[i];
-	}
 
-	ctx.feature_count += k;
+		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
+			continue;
+
+		ctx.features[idx] = features_to_add[i];
+		ctx.feature_count++;
+		ht_project_model(ctx, rotation_matrix, translation_vector, model, origin);
+	}
 
 	cvReleaseImage(&eig_image);
 	cvReleaseImage(&tmp_image);
+	delete tmp_features;
+	delete features_to_add;
 }

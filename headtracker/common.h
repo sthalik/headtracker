@@ -5,13 +5,13 @@
 #define HT_MODEL_Z_SCALE 28.846153
 #define HT_CLASSIFICATION_DELAY_MS 200
 #define HT_PI 3.14159265
-#define HT_FEATURE_QUALITY_LEVEL 0.0000001
-#define HT_PYRLK_PYRAMIDS 3
-#define HT_PYRLK_WIN_SIZE 10
+#define HT_FEATURE_QUALITY_LEVEL 0.001
+#define HT_PYRLK_PYRAMIDS 5
+#define HT_PYRLK_WIN_SIZE 15
 
 #define HT_MAX_TRACKED_FEATURES 50
 
-#define HT_MODEL_MIN_DEPTH 2.5
+#define HT_MODEL_MIN_DEPTH 2.75
 
 #define HT_HAAR_MODEL_Y_OFFSET 0
 //#define HT_HAAR_MODEL_Z_OFFSET -4.5714285714285714285714285714286
@@ -21,19 +21,19 @@
 #define HT_MODEL_Z_OFFSET -4.1904761904761904761904761904762
 
 #define HT_RANSAC_MIN_CONSENSUS 12
-#define HT_RANSAC_MAX_ERROR 0.96f
-#define HT_RANSAC_ITER 150
-#define HT_RANSAC_MIN_POINTS 5
-#define HT_RANSAC_MAX_BEST_ERROR 3.5
+#define HT_RANSAC_MAX_ERROR 0.94f
+#define HT_RANSAC_ITER 100
+#define HT_RANSAC_MIN_POINTS 6
+#define HT_RANSAC_MAX_BEST_ERROR 13.0
+#define HT_RANSAC_AVG_BEST_ERROR 4.6
 
-#define HT_MIN_POINT_DISTANCE 9.1
-#define HT_DETECT_POINT_DISTANCE 7.9
+#define HT_MIN_POINT_DISTANCE 10.01
+#define HT_DETECT_POINT_DISTANCE 5.01
 
-#define HT_GET_FEATURES_INTERVAL_MS 25
-#define HT_MAX_DETECT_FEATURES 500
+#define HT_MAX_DETECT_FEATURES 600
 #define HT_MIN_TRACK_START_POINTS 20
 
-#define HT_MAX_INIT_RETRIES 15
+#define HT_MAX_INIT_RETRIES 16
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -145,7 +145,7 @@ void ht_project_model(headtracker_t& ctx,
 					  CvPoint3D32f origin);
 bool ht_triangle_at(headtracker_t& ctx, CvPoint pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model);
 void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model);
-void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model, CvPoint3D32f origin);
+void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model, CvPoint3D32f offset);
 void ht_track_features(headtracker_t& ctx);
 void ht_draw_features(headtracker_t& ctx);
 
@@ -157,7 +157,12 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 	return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
 }
 
-float ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt);
+typedef struct {
+	float max;
+	float avg;
+} error_t;
+
+error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt);
 
 bool ht_ransac(headtracker_t& ctx,
 			   int max_iter,
@@ -165,9 +170,9 @@ bool ht_ransac(headtracker_t& ctx,
 			   float max_error,
 			   int min_consensus,
 			   int* best_cnt,
-			   float* best_error,
+			   error_t* best_error,
 			   int* best_indices,
 			   model_t& model);
 
 bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, int* indices, int count, CvPoint3D32f* offset);
-bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, float* best_error, int* best_indices);
+bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices);

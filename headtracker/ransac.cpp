@@ -3,32 +3,33 @@
 using namespace std;
 using namespace cv;
 
-float ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
+error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
 	float rotation_matrix[9];
 	float translation_vector[3];
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.009)))
-		return 1e10;
+	error_t ret;
 
-	double avg = 0;
-	int cnt = 0;
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.009))) {
+		ret.avg = 1.0e10;
+		ret.max = 1.0e10;
+		return ret;
+	}
+
+	float max = 0;
+	float avg = 0;
 
 	for (int i = 0; i < point_cnt; i++) {
 		CvPoint2D32f p = ht_point_to_screen(model_points[i], rotation_matrix, translation_vector);
 		float dist = ht_distance2d_squared(p, image_points[i]);
-		avg += dist;
-		cnt++;
+		if (dist > max)
+			max = dist;
+		avg += sqrt(dist);
 	}
 
-	if (cnt == 0)
-		return 0;
-	
-	avg /= cnt;
+	ret.avg = avg / point_cnt;
+	ret.max = sqrt(max);
 
-	if (avg == 0)
-		return 0;
-
-	return sqrt(avg);
+	return ret;
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -48,7 +49,7 @@ bool ht_ransac(headtracker_t& ctx,
 			   float max_error,
 			   int min_consensus,
 			   int* best_cnt,
-			   float* best_error,
+			   error_t* best_error,
 			   int* best_indices,
 			   model_t& model)
 {
@@ -61,7 +62,8 @@ bool ht_ransac(headtracker_t& ctx,
 	int* model_indices = new int[mcnt];
 	bool ret = false;
 
-	*best_error = 1.0e9;
+	best_error->avg = 1.0e10;
+	best_error->max = 1.0e10;
 	*best_cnt = 0;
 
 	for (int i = 0; i < mcnt; i++) {
@@ -95,9 +97,9 @@ bool ht_ransac(headtracker_t& ctx,
 			pos++;
 		}
 
-		float cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
+		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
 
-		if (cur_error >= 1e9)
+		if (cur_error.max >= 1e9)
 			continue;
 
 		for (int i = iter_points; i < k; i++) {
@@ -109,16 +111,17 @@ bool ht_ransac(headtracker_t& ctx,
 			image_points[pos] = ctx.features[idx];
 			model_indices[pos] = idx;
 
-			float e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
+			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
 
-			if (e*max_error > cur_error)
+			if (e.avg*max_error > cur_error.avg || e.max*max_error > cur_error.max)
 				continue;
 
 			pos++;
 
-			cur_error = max(cur_error, e);
+			cur_error.avg = max(cur_error.avg, e.avg);
+			cur_error.max = max(cur_error.max, e.max);
 
-			if (pos > *best_cnt && pos >= min_consensus && e <= HT_RANSAC_MAX_BEST_ERROR) {
+			if (pos >= min_consensus && pos > *best_cnt && e.max <= HT_RANSAC_MAX_BEST_ERROR && e.avg <= HT_RANSAC_AVG_BEST_ERROR) {
 				ret = true;
 				*best_error = e;
 				*best_cnt = pos;
@@ -141,7 +144,7 @@ end:
 	return ret;
 }
 
-bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, float* best_error, int* best_indices) {
+bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
 	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, HT_RANSAC_MIN_CONSENSUS, best_cnt, best_error, best_indices, ctx.tracking_model)) {
 		char* usedp = new char[ctx.tracking_model.count];
 		for (int i = 0; i < ctx.tracking_model.count; i++)
