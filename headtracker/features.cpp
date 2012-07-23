@@ -152,7 +152,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		int idx;
 
 		for (int j = 0; j < model.count; j++) {
-			if (ht_distance2d_squared(tmp_features[i], ctx.features[j]) <= HT_MIN_POINT_DISTANCE * HT_MIN_POINT_DISTANCE)
+			if (ctx.features[j].x != -1 && ht_distance2d_squared(tmp_features[i], ctx.features[j]) < HT_MIN_POINT_DISTANCE * HT_MIN_POINT_DISTANCE)
 				goto end;
 		}
 
