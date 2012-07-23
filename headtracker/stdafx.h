@@ -1,0 +1,9 @@
+#pragma once
+#include "targetver.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
+#include <math.h>
+#include <opencv2/opencv.hpp>
+#include "common.h"
