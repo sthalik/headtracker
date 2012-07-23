@@ -57,13 +57,15 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
 					int ticks = GetTickCount();
-					if (ticks / HT_GET_FEATURES_INTERVAL_MS != ctx->ticks_last_features / HT_GET_FEATURES_INTERVAL_MS)
+					if (ticks / HT_GET_FEATURES_INTERVAL_MS != ctx->ticks_last_features / HT_GET_FEATURES_INTERVAL_MS) {
 						ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(0, 0, 0));
+						ctx->ticks_last_features = ticks;
+					}
+					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model);
+					ht_draw_features(*ctx);
 				} else {
 					ctx->state = HT_STATE_LOST;
 				}
-				ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model);
-				ht_draw_features(*ctx);
 				delete[] best_indices;
 				#if 1
 					if (ctx->mouse_x != mx || ctx->mouse_y != my) {
@@ -78,8 +80,8 @@ int _tmain(int argc, _TCHAR* argv[])
 						}
 					}
 #endif
-				//euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				//printf("%f | %f %f %f | %f %f %f\n", best_error, angles.rotx * 180.0 / HT_PI, best_error, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
+				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
+				printf("%f | %f %f %f | %f %f %f\n", best_error, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;
@@ -96,7 +98,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 
 		cvShowImage("capture", ctx->color);
-		cvWaitKey(10);
+		cvWaitKey(1);
 
 		if (!ctx->last_image)
 			ctx->last_image = cvCreateImage(cvGetSize(ctx->grayscale), IPL_DEPTH_8U, 1);

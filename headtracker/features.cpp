@@ -117,7 +117,10 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	int sz = model.count;
 	IplImage* eig_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 	IplImage* tmp_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
+
 	CvPoint2D32f tmp_features[HT_MAX_DETECT_FEATURES];
+	CvPoint2D32f features_to_add[HT_MAX_DETECT_FEATURES];
+	int k = 0;
 
 	if (!ctx.features) {
 		ctx.features = new CvPoint2D32f[sz];
@@ -129,9 +132,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 
 	if (cnt > 0) {
 		cvSetImageROI(ctx.grayscale, roi);
-		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_POINT_DISTANCE, NULL, 3);
-		if (roi.width > 40 && roi.height > 40)
-			cvFindCornerSubPix(ctx.grayscale, tmp_features, cnt, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 40, 0.02));
+		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_POINT_DISTANCE, NULL, 3, 1);
 		cvResetImageROI(ctx.grayscale);
 	}
 	for (int i = 0; i < cnt && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
@@ -152,11 +153,25 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
 			continue;
 
-		ctx.features[idx] = tmp_features[i];
-		ctx.feature_count++;
+		features_to_add[k++] = tmp_features[i];
 end:
 		;
 	}
+
+	if (k > 0 && roi.width > 32 && roi.height > 32) {
+		cvFindCornerSubPix(ctx.grayscale, tmp_features, cnt, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 40, 0.025));
+	}
+
+	for (int i = 0; i < k; i++) {
+		triangle_t t;
+		int idx;
+
+		if (!(ht_triangle_at(ctx, cvPoint(features_to_add[i].x, features_to_add[i].y), &t, &idx, rotation_matrix, translation_vector, model)))
+			continue;
+		ctx.features[idx] = features_to_add[i];
+	}
+
+	ctx.feature_count += k;
 
 	cvReleaseImage(&eig_image);
 	cvReleaseImage(&tmp_image);

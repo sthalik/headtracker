@@ -7,7 +7,7 @@ float ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, 
 	float rotation_matrix[9];
 	float translation_vector[3];
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 40, 0.008)))
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.009)))
 		return 1e10;
 
 	double avg = 0;
@@ -125,7 +125,7 @@ bool ht_ransac(headtracker_t& ctx,
 				for (int j = 0; j < pos; j++)
 					best_indices[j] = model_indices[j];
 				if (pos == k)
-					break;
+					goto end;
 			}
 		}
 	}
