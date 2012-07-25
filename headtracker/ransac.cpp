@@ -9,7 +9,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.012))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.01))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
@@ -119,7 +119,10 @@ bool ht_ransac(headtracker_t& ctx,
 			cur_error.avg = e.avg;
 			pos++;
 
-			if (pos >= min_consensus && pos > *best_cnt) {
+			if (cur_error.avg > HT_RANSAC_MAX_CONSENSUS_ERROR)
+				goto end2;
+
+			if (pos >= min_consensus && pos > *best_cnt * (0.5 + 0.5 * cur_error.avg / best_error->avg)) {
 				ret = true;
 				*best_error = e;
 				*best_cnt = pos;
@@ -127,6 +130,8 @@ bool ht_ransac(headtracker_t& ctx,
 					best_indices[j] = model_indices[j];
 			}
 		}
+end2:
+		;
 	}
 
 end:
@@ -152,7 +157,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 		error_scale /= ctx.depth_frame_count;
 	}
 
-	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, HT_RANSAC_MIN_CONSENSUS, best_cnt, best_error, best_indices, ctx.tracking_model, error_scale)) {
+	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, max(HT_RANSAC_ABS_MIN_POINTS, (int) (ctx.feature_count * HT_RANSAC_MIN_CONSENSUS) + 1), best_cnt, best_error, best_indices, ctx.tracking_model, error_scale)) {
 		char* usedp = new char[ctx.tracking_model.count];
 		for (int i = 0; i < ctx.tracking_model.count; i++)
 			usedp[i] = 0;
