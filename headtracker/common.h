@@ -1,4 +1,3 @@
-// todo only remove features if they fail several per-frame RANSAC calls!
 #pragma once
 #define HT_FOCAL_LENGTH 550
 #define HT_MODEL_X_SCALE 1.0
