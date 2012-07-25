@@ -61,7 +61,7 @@ void ht_draw_features(headtracker_t& ctx) {
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
 			size = 1;
-		} else if (ctx.feature_failed_iters[i] < 3) {
+		} else if (ctx.feature_failed_iters[i] == 1) {
 			size = 3;
 			color = CV_RGB(255, 255, 0);
 		} else {
