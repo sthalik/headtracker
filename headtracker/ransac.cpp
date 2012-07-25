@@ -9,7 +9,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.06))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.012))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
@@ -113,28 +113,20 @@ bool ht_ransac(headtracker_t& ctx,
 			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
 			e.avg *= error_scale;
 
-			if (e.avg*max_error * (pos+1) > cur_error.avg * pos)
+			if (e.avg*max_error > cur_error.avg)
 				continue;
 
-			cur_error.avg = max(e.avg, cur_error.avg);
+			cur_error.avg = e.avg;
 			pos++;
 
-			if (e.avg <= HT_RANSAC_AVG_BEST_ERROR) {
-				if (pos >= min_consensus && pos > *best_cnt) {
-					ret = true;
-					*best_error = e;
-					*best_cnt = pos;
-					for (int j = 0; j < pos; j++)
-						best_indices[j] = model_indices[j];
-					if (pos == k)
-						goto end;
-				}
-			} else {
-				goto end2;
+			if (pos >= min_consensus && pos > *best_cnt) {
+				ret = true;
+				*best_error = e;
+				*best_cnt = pos;
+				for (int j = 0; j < pos; j++)
+					best_indices[j] = model_indices[j];
 			}
 		}
-end2:
-		;
 	}
 
 end:
@@ -176,15 +168,19 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 					}
 				}
 			} else {
+#if 0
 				if (ctx.feature_failed_iters[i] != 0 && --ctx.feature_failed_iters[i] != 0) {
 					for (int j = i; j < *best_cnt-1; j++)
 						best_indices[j] = best_indices[j+1];
 					(*best_cnt)--;
 				}
+#else
+				ctx.feature_failed_iters[i] = 0;
+#endif
 			}
 		}
 		delete[] usedp;
-		return true;
+		return *best_cnt >= HT_RANSAC_MIN_CONSENSUS;
 	}
 	return false;
 }
