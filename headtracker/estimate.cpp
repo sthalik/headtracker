@@ -50,13 +50,18 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 				tmp_image_points[i] = image_points[i];
 			}
 
-			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 0.1 * HT_PI / 180.0));
+			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 0.1 * HT_PI / 180.0));
 
 			if (ret) {
 				*offset = c;
+				ctx.depths[ctx.depth_counter_pos] = translation_vector[2] / HT_RANSAC_STD_DEPTH;
+				ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % HT_DEPTH_AVG_FRAMES;
+				if (ctx.depth_frame_count < HT_DEPTH_AVG_FRAMES)
+					ctx.depth_frame_count++;
 			}
 		}
 	}
+
 	delete[] model_points;
 	delete[] image_points;
 	delete[] tmp_model_points;

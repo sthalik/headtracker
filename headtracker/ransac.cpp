@@ -9,9 +9,8 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.017))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.04))) {
 		ret.avg = 1.0e10;
-		ret.max = 1.0e10;
 		return ret;
 	}
 
@@ -27,7 +26,6 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 	}
 
 	ret.avg = avg / point_cnt;
-	ret.max = sqrt(max);
 
 	return ret;
 }
@@ -51,7 +49,8 @@ bool ht_ransac(headtracker_t& ctx,
 			   int* best_cnt,
 			   error_t* best_error,
 			   int* best_indices,
-			   model_t& model)
+			   model_t& model,
+			   float error_scale)
 {
 	int mcnt = model.count;
 	int* indices = new int[mcnt];
@@ -63,11 +62,10 @@ bool ht_ransac(headtracker_t& ctx,
 	bool ret = false;
 
 	best_error->avg = 1.0e10;
-	best_error->max = 1.0e10;
 	*best_cnt = 0;
 
 	for (int i = 0; i < mcnt; i++) {
-		if (!(ctx.features[i].x == -1 || ctx.features[i].y == -1))
+		if (ctx.features[i].x != -1)
 			indices[k++] = i;
 		model_centers[i] = cvPoint3D32f(
 			(model.triangles[i].p1.x + model.triangles[i].p2.x + model.triangles[i].p3.x) / 3,
@@ -99,7 +97,9 @@ bool ht_ransac(headtracker_t& ctx,
 
 		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
 
-		if (cur_error.max >= 1e9)
+		cur_error.avg *= error_scale;
+
+		if (cur_error.avg >= 1e9)
 			continue;
 
 		for (int i = iter_points; i < k; i++) {
@@ -113,24 +113,30 @@ bool ht_ransac(headtracker_t& ctx,
 
 			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
 
-			if (e.avg*max_error > cur_error.avg || e.max*max_error > cur_error.max)
+			e.avg *= error_scale;
+
+			if (e.avg*max_error > cur_error.avg)
 				continue;
 
+			cur_error.avg = max(e.avg, cur_error.avg);
 			pos++;
 
-			cur_error.avg = max(cur_error.avg, e.avg);
-			cur_error.max = max(cur_error.max, e.max);
-
-			if (pos >= min_consensus && pos > *best_cnt && e.max <= HT_RANSAC_MAX_BEST_ERROR && e.avg <= HT_RANSAC_AVG_BEST_ERROR) {
-				ret = true;
-				*best_error = e;
-				*best_cnt = pos;
-				for (int j = 0; j < pos; j++)
-					best_indices[j] = model_indices[j];
-				if (pos == k)
-					goto end;
+			if (e.avg <= HT_RANSAC_AVG_BEST_ERROR) {
+				if (pos >= min_consensus && pos > *best_cnt) {
+					ret = true;
+					*best_error = e;
+					*best_cnt = pos;
+					for (int j = 0; j < pos; j++)
+						best_indices[j] = model_indices[j];
+					if (pos == k)
+						goto end;
+				}
+			} else {
+				goto end2;
 			}
 		}
+end2:
+		;
 	}
 
 end:
@@ -145,7 +151,18 @@ end:
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
-	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, HT_RANSAC_MIN_CONSENSUS, best_cnt, best_error, best_indices, ctx.tracking_model)) {
+	float error_scale;
+
+	if (ctx.depth_frame_count == 0)
+		error_scale = 1.0f;
+	else {
+		error_scale = 0.0f;
+		for (int i = 0; i < ctx.depth_frame_count; i++)
+			error_scale += ctx.depths[i];
+		error_scale /= ctx.depth_frame_count;
+	}
+
+	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, HT_RANSAC_MIN_CONSENSUS, best_cnt, best_error, best_indices, ctx.tracking_model, error_scale)) {
 		char* usedp = new char[ctx.tracking_model.count];
 		for (int i = 0; i < ctx.tracking_model.count; i++)
 			usedp[i] = 0;
@@ -154,8 +171,10 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 		}
 		for (int i = 0; i < ctx.tracking_model.count; i++) {
 			if (!usedp[i] && ctx.features[i].x != -1 && ctx.features[i].y != -1) {
-				ctx.features[i] = cvPoint2D32f(-1, -1);
-				ctx.feature_count--;
+				if (++ctx.feature_failed_iters[i] > HT_FEATURE_MAX_FAILED_RANSAC) {
+					ctx.features[i] = cvPoint2D32f(-1, -1);
+					ctx.feature_count--;
+				}
 			}
 		}
 		delete[] usedp;

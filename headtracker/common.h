@@ -1,38 +1,41 @@
+// todo only remove features if they fail several per-frame RANSAC calls!
 #pragma once
-#define HT_FOCAL_LENGTH 602
-#define HT_MODEL_X_SCALE 28.846153
-#define HT_MODEL_Y_SCALE 28.846153
-#define HT_MODEL_Z_SCALE 28.846153
+#define HT_FOCAL_LENGTH 550
+#define HT_MODEL_X_SCALE 1.0
+#define HT_MODEL_Y_SCALE 1.0
+#define HT_MODEL_Z_SCALE 1.0
 #define HT_CLASSIFICATION_DELAY_MS 200
 #define HT_PI 3.14159265
-#define HT_FEATURE_QUALITY_LEVEL 0.004
-#define HT_PYRLK_PYRAMIDS 4
-#define HT_PYRLK_WIN_SIZE 12
+#define HT_FEATURE_QUALITY_LEVEL 0.008
+#define HT_PYRLK_PYRAMIDS 5
+#define HT_PYRLK_WIN_SIZE 15
 
-#define HT_MAX_TRACKED_FEATURES 50
+#define HT_MAX_TRACKED_FEATURES 60
 
-#define HT_MODEL_MIN_DEPTH 2.8
+#define HT_HAAR_MODEL_Y_OFFSET (0 / HT_MODEL_Y_SCALE)
+#define HT_HAAR_MODEL_Z_OFFSET (0.0 / HT_MODEL_Z_SCALE)
 
-#define HT_HAAR_MODEL_Y_OFFSET 0
-#define HT_HAAR_MODEL_Z_OFFSET -4.1904761904761904761904761904762
+#define HT_TRACKING_CENTER_POSITION_Z (-0)
+#define HT_TRACKING_CENTER_POSITION_Y (-0)
+#define HT_MODEL_Y_OFFSET (HT_HAAR_MODEL_Y_OFFSET + (HT_TRACKING_CENTER_POSITION_Y / HT_MODEL_Y_SCALE))
+#define HT_MODEL_Z_OFFSET (HT_HAAR_MODEL_Z_OFFSET + (HT_TRACKING_CENTER_POSITION_Z / HT_MODEL_Z_SCALE))
 
-#define HT_MODEL_Y_OFFSET 0
-#define HT_MODEL_Z_OFFSET -4.1904761904761904761904761904762
+#define HT_RANSAC_MIN_CONSENSUS 18
+#define HT_RANSAC_MAX_ERROR 0.95f
+#define HT_RANSAC_ITER 200
+#define HT_RANSAC_MIN_POINTS 4
+#define HT_RANSAC_AVG_BEST_ERROR 5.5
+#define HT_RANSAC_STD_DEPTH 700.0
+#define HT_USE_HARRIS 0
+#define HT_MIN_POINT_DISTANCE 7.001
+#define HT_DETECT_POINT_DISTANCE 6.001
 
-#define HT_RANSAC_MIN_CONSENSUS 15
-#define HT_RANSAC_MAX_ERROR 0.92f
-#define HT_RANSAC_ITER 100
-#define HT_RANSAC_MIN_POINTS 7
-#define HT_RANSAC_MAX_BEST_ERROR 13.0
-#define HT_RANSAC_AVG_BEST_ERROR 4.8
-
-#define HT_MIN_POINT_DISTANCE 20.01
-#define HT_DETECT_POINT_DISTANCE 5.01
-
-#define HT_MAX_DETECT_FEATURES 600
-#define HT_MIN_TRACK_START_POINTS 25
+#define HT_MAX_DETECT_FEATURES 200
+#define HT_MIN_TRACK_START_POINTS 22
 
 #define HT_MAX_INIT_RETRIES 30
+#define HT_DEPTH_AVG_FRAMES 20
+#define HT_FEATURE_MAX_FAILED_RANSAC 10
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -100,17 +103,21 @@ typedef struct {
 	state_t state;
 	int mouse_x, mouse_y;
 	CvPoint2D32f* features;
+	char* feature_failed_iters;
 	IplImage* pyr_a;
 	IplImage* pyr_b;
 	IplImage* last_image;
 	int feature_count;
 	int init_retries;
 	bool restarted;
+	float depths[HT_DEPTH_AVG_FRAMES];
+	int depth_frame_count;
+	unsigned char depth_counter_pos;
 } headtracker_t;
 
-model_t ht_load_model(const char* filename, CvPoint3D64f scale, CvPoint3D64f offset, float max_z);
+model_t ht_load_model(const char* filename, CvPoint3D64f scale, CvPoint3D64f offset);
 void ht_free_model(model_t& model);
-CvPoint3D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector);
+CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
 bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c, CvPoint2D32f point);
 
@@ -157,7 +164,6 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 }
 
 typedef struct {
-	float max;
 	float avg;
 } error_t;
 
@@ -171,7 +177,8 @@ bool ht_ransac(headtracker_t& ctx,
 			   int* best_cnt,
 			   error_t* best_error,
 			   int* best_indices,
-			   model_t& model);
+			   model_t& model,
+			   float error_scale);
 
 bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, int* indices, int count, CvPoint3D32f* offset);
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices);

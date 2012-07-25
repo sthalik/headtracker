@@ -37,8 +37,8 @@ headtracker_t* ht_make_context(int camera_idx) {
 	ctx->ticks_last_classification = GetTickCount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
-	ctx->tracking_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_MODEL_Y_OFFSET, HT_MODEL_Z_OFFSET), -7.5);
-	ctx->haar_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_HAAR_MODEL_Y_OFFSET, HT_HAAR_MODEL_Z_OFFSET), -7.5);
+	ctx->tracking_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_MODEL_Y_OFFSET, HT_MODEL_Z_OFFSET));
+	ctx->haar_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_HAAR_MODEL_Y_OFFSET, HT_HAAR_MODEL_Z_OFFSET));
 	ctx->features = NULL;
 	ctx->pyr_a = NULL;
 	ctx->pyr_b = NULL;
@@ -48,6 +48,10 @@ headtracker_t* ht_make_context(int camera_idx) {
 	ctx->mouse_x = ctx->mouse_y = -1;
 	ctx->init_retries = 0;
 	ctx->restarted = 1;
+	for (int i = 0; i < HT_DEPTH_AVG_FRAMES; i++)
+		ctx->depths[i] = 0;
+	ctx->depth_frame_count = 0;
+	ctx->depth_counter_pos = 0;
 	return ctx;
 }
 

@@ -44,6 +44,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					delete[] best_indices;
 				}
+				if (ctx->haar_model.projection)
+					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->haar_model);
 				ht_draw_features(*ctx);
 				break;
 			} case HT_STATE_TRACKING: {
@@ -63,26 +65,28 @@ int _tmain(int argc, _TCHAR* argv[])
 					ctx->state = HT_STATE_LOST;
 				}
 				delete[] best_indices;
-				#if 1
-					if (ctx->mouse_x != mx || ctx->mouse_y != my) {
+#if 0
+				if (ctx->mouse_x != mx || ctx->mouse_y != my) {
 						mx = ctx->mouse_x;
 						my = ctx->mouse_y;
 						triangle_t t;
 						int idx;
 						if (ht_triangle_at(*ctx, cvPoint(ctx->mouse_x, ctx->mouse_y), &t, &idx, rotation_matrix, translation_vector, ctx->tracking_model)) {
-							printf("MOUSE: %f %f %f\n", (t.p1.x + t.p2.x + t.p3.x) / 3, (t.p1.y + t.p2.y + t.p3.y) / 3, (t.p1.z + t.p2.z + t.p3.z) / 3);
+							printf("MOUSE: %d %f %f %f\n", idx+1, (t.p1.x + t.p2.x + t.p3.x) / 3, (t.p1.y + t.p2.y + t.p3.y) / 3, (t.p1.z + t.p2.z + t.p3.z) / 3);
 						} else {
 							printf("MOUSE: no triangle\n");
 						}
 					}
 #endif
 				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				printf("%.2f/%.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, best_error.max, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
+				printf("%.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;
-				for (int i = 0; i < ctx->tracking_model.count; i++)
+				for (int i = 0; i < ctx->tracking_model.count; i++) {
 					ctx->features[i] = cvPoint2D32f(-1, -1);
+					ctx->feature_failed_iters[i] = 0;
+				}
 				ctx->state = HT_STATE_INITIALIZING;
 				ctx->init_retries = 0;
 				ctx->restarted = 1;
