@@ -204,7 +204,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		cvResetImageROI(ctx.grayscale);
 	}
 
-	for (int i = 0; i < cnt && ctx.feature_count + i < HT_MAX_TRACKED_FEATURES; i++) {
+	for (int i = 0; i < cnt; i++) {
 		tmp_features[i].x += roi.x;
 		tmp_features[i].y += roi.y;
 		
@@ -223,7 +223,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (k > 0 && roi.width > 32 && roi.height > 32)
 		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.2));
 
-	for (int i = 0; i < k; i++) {
+	for (int i = 0; i < k && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
 		triangle_t t;
 		int idx;
 

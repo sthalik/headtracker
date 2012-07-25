@@ -50,7 +50,7 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 				tmp_image_points[i] = image_points[i];
 			}
 
-			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 0.1 * HT_PI / 180.0));
+			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 300, 0.01 * HT_PI / 180.0));
 
 			if (ret) {
 				*offset = c;
