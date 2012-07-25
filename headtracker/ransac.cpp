@@ -96,7 +96,6 @@ bool ht_ransac(headtracker_t& ctx,
 		}
 
 		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
-
 		cur_error.avg *= error_scale;
 
 		if (cur_error.avg >= 1e9)
@@ -112,10 +111,9 @@ bool ht_ransac(headtracker_t& ctx,
 			model_indices[pos] = idx;
 
 			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
-
 			e.avg *= error_scale;
 
-			if (e.avg*max_error > cur_error.avg)
+			if (e.avg*max_error * (pos+1) > cur_error.avg * pos)
 				continue;
 
 			cur_error.avg = max(e.avg, cur_error.avg);
@@ -170,10 +168,18 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 			usedp[best_indices[i]] = 1;
 		}
 		for (int i = 0; i < ctx.tracking_model.count; i++) {
-			if (!usedp[i] && ctx.features[i].x != -1 && ctx.features[i].y != -1) {
-				if (++ctx.feature_failed_iters[i] > HT_FEATURE_MAX_FAILED_RANSAC) {
-					ctx.features[i] = cvPoint2D32f(-1, -1);
-					ctx.feature_count--;
+			if (!usedp[i]) {
+				if (ctx.features[i].x != -1 && ctx.features[i].y != -1) {
+					if (++ctx.feature_failed_iters[i] > HT_FEATURE_MAX_FAILED_RANSAC) {
+						ctx.features[i] = cvPoint2D32f(-1, -1);
+						ctx.feature_count--;
+					}
+				}
+			} else {
+				if (ctx.feature_failed_iters[i] != 0 && --ctx.feature_failed_iters[i] != 0) {
+					for (int j = i; j < *best_cnt-1; j++)
+						best_indices[j] = best_indices[j+1];
+					(*best_cnt)--;
 				}
 			}
 		}

@@ -11,7 +11,18 @@ void ht_draw_features(headtracker_t& ctx) {
 		if (ctx.features[i].x == -1 || ctx.features[i].y == -1)
 			continue;
 
-		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), 1, CV_RGB(0, 255, 255), -1);
+		CvScalar color;
+		int size;
+
+		if (ctx.feature_failed_iters[i] == 0) {
+			color = CV_RGB(0, 255, 255);
+			size = 1;
+		} else {
+			color = CV_RGB(255, 0, 0);
+			size = 2;
+		}
+
+		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
 	}
 }
 
