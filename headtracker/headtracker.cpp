@@ -80,7 +80,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 #endif
 				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				printf("%.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
+				printf("%.2f %d | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, ctx->feature_count, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;

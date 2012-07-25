@@ -146,7 +146,7 @@ void ht_track_features(headtracker_t& ctx) {
 }
 
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model, CvPoint3D32f origin) {
-	if (ctx.feature_count >= HT_MAX_TRACKED_FEATURES)
+	if (ctx.feature_count >= HT_MAX_TRACKED_FEATURES * HT_DETECT_FEATURES_THRESHOLD)
 		return;
 
 	if (!model.projection)
@@ -204,7 +204,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		cvResetImageROI(ctx.grayscale);
 	}
 
-	for (int i = 0; i < cnt && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
+	for (int i = 0; i < cnt && ctx.feature_count + i < HT_MAX_TRACKED_FEATURES; i++) {
 		tmp_features[i].x += roi.x;
 		tmp_features[i].y += roi.y;
 		
