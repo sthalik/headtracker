@@ -9,7 +9,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.04))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.087222))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}

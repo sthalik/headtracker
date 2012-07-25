@@ -57,6 +57,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) &&
 					ht_estimate_pose(*ctx, rotation_matrix, translation_vector, best_indices, best_cnt, &offset))
 				{
+					ht_remove_lumps(*ctx);
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
 					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
 					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model);

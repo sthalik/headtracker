@@ -5,7 +5,7 @@
 #define HT_MODEL_Z_SCALE 1.0
 #define HT_CLASSIFICATION_DELAY_MS 200
 #define HT_PI 3.14159265
-#define HT_FEATURE_QUALITY_LEVEL 0.008
+#define HT_FEATURE_QUALITY_LEVEL 0.001
 #define HT_PYRLK_PYRAMIDS 5
 #define HT_PYRLK_WIN_SIZE 15
 
@@ -19,22 +19,25 @@
 #define HT_MODEL_Y_OFFSET (HT_HAAR_MODEL_Y_OFFSET + (HT_TRACKING_CENTER_POSITION_Y / HT_MODEL_Y_SCALE))
 #define HT_MODEL_Z_OFFSET (HT_HAAR_MODEL_Z_OFFSET + (HT_TRACKING_CENTER_POSITION_Z / HT_MODEL_Z_SCALE))
 
-#define HT_RANSAC_MIN_CONSENSUS 13
+#define HT_RANSAC_MIN_CONSENSUS 14
 #define HT_RANSAC_MAX_ERROR 0.962f
 #define HT_RANSAC_ITER 100
 #define HT_RANSAC_MIN_POINTS 4
-#define HT_RANSAC_AVG_BEST_ERROR 5.9
+#define HT_RANSAC_AVG_BEST_ERROR 5.88
 #define HT_RANSAC_STD_DEPTH 700.0
 #define HT_USE_HARRIS 0
-#define HT_MIN_POINT_DISTANCE 5.001
-#define HT_DETECT_POINT_DISTANCE 4.001
+#define HT_MIN_POINT_DISTANCE 6.001
+#define HT_DETECT_POINT_DISTANCE 3.001
 
 #define HT_MAX_DETECT_FEATURES 400
-#define HT_MIN_TRACK_START_POINTS 20
+#define HT_MIN_TRACK_START_POINTS 18
 
 #define HT_MAX_INIT_RETRIES 30
 #define HT_DEPTH_AVG_FRAMES 10
-#define HT_FEATURE_MAX_FAILED_RANSAC 4
+#define HT_FEATURE_MAX_FAILED_RANSAC 6
+
+#define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.9f
+#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.667
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -181,3 +184,4 @@ bool ht_ransac(headtracker_t& ctx,
 
 bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, int* indices, int count, CvPoint3D32f* offset);
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices);
+void ht_remove_lumps(headtracker_t& ctx);

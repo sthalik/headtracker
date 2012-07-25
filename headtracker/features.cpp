@@ -3,6 +3,50 @@
 using namespace std;
 using namespace cv;
 
+void ht_remove_lumps(headtracker_t& ctx) {
+	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
+		for (int i = 0; i < ctx.tracking_model.count; i++) {
+			if (ctx.features[i].x == -1 || ctx.feature_failed_iters == 0)
+				continue;
+			for (int j = 0; j < ctx.tracking_model.count; j++) {
+				if (i == j)
+					continue;
+				if (ctx.features[j].x == -1)
+					continue;
+				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
+				if (dist < HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD) {
+					if (ctx.feature_failed_iters[i] >= ctx.feature_failed_iters[j]) {
+						ctx.features[i] = cvPoint2D32f(-1, -1);
+						ctx.feature_failed_iters[i] = 0;
+					} else {
+						ctx.features[j] = cvPoint2D32f(-1, -1);
+						ctx.feature_failed_iters[j] = 0;
+					}
+					ctx.feature_count--;
+				}
+			}
+		}
+	}
+	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
+		for (int i = 0; i < ctx.tracking_model.count; i++) {
+			if (ctx.features[i].x == -1)
+				continue;
+			for (int j = 0; j < ctx.tracking_model.count; j++) {
+				if (i == j)
+					continue;
+				if (ctx.features[j].x == -1)
+					continue;
+				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
+				if (dist < HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD) {
+					ctx.features[i] = cvPoint2D32f(-1, -1);
+					ctx.feature_failed_iters[i] = 0;
+					ctx.feature_count--;
+				}
+			}
+		}
+	}
+}
+
 void ht_draw_features(headtracker_t& ctx) {
 	if (!ctx.features)
 		return;
@@ -174,8 +218,6 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 			continue;
 
 		features_to_add[k++] = tmp_features[i];
-end:
-		;
 	}
 
 	if (k > 0 && roi.width > 32 && roi.height > 32)
