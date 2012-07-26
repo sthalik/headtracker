@@ -215,7 +215,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		triangle_t t;
 		int idx;
 
-		if (!(ht_triangle_at(ctx, cvPoint(tmp_features[i].x, tmp_features[i].y), &t, &idx, rotation_matrix, translation_vector, model)))
+		if (!(ht_triangle_at(ctx, tmp_features[i], &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
 
 		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
@@ -233,7 +233,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		triangle_t t;
 		int idx;
 
-		if (!(ht_triangle_at(ctx, cvPoint(features_to_add[i].x, features_to_add[i].y), &t, &idx, rotation_matrix, translation_vector, model)))
+		if (!(ht_triangle_at(ctx, features_to_add[i], &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
 
 		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)

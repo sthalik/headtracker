@@ -150,7 +150,7 @@ void ht_project_model(headtracker_t& ctx,
 					  float* translation_vector,
 					  model_t& model,
 					  CvPoint3D32f origin);
-bool ht_triangle_at(headtracker_t& ctx, CvPoint pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model);
+bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model);
 void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model);
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model, CvPoint3D32f offset);
 void ht_track_features(headtracker_t& ctx);

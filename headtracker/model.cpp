@@ -31,7 +31,7 @@ void ht_project_model(headtracker_t& ctx,
 	}
 }
 
-bool ht_triangle_at(headtracker_t& ctx, CvPoint pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model) {
+bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model) {
 	if (!model.projection)
 		return false;
 
@@ -41,7 +41,7 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint pos, triangle_t* ret, int* idx, 
 	for (int i = 0; i < sz; i++) {
 		float depth = model.centers[i].x * rotation_matrix[6] + model.centers[i].y * rotation_matrix[7] + model.centers[i].z * rotation_matrix[8];
 		triangle2d_t& t = model.projection[i];
-		if (depth > min_depth && ht_point_inside_triangle_2d(cvPoint2D32f(t.p1.x, t.p1.y), cvPoint2D32f(t.p2.x, t.p2.y), cvPoint2D32f(t.p3.x, t.p3.y), cvPoint2D32f(pos.x, pos.y))) {
+		if (depth > min_depth && ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos)) {
 			*ret = model.triangles[i];
 			min_depth = depth;
 			*idx = i;
