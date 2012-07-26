@@ -9,7 +9,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.0174))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.02))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
@@ -106,7 +106,7 @@ bool ht_ransac(headtracker_t& ctx,
 			model_indices[pos] = idx;
 
 			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
-			e.avg *= error_scale;
+			e.avg *= error_scale * (pos+1) / pos;
 
 			if (e.avg*max_error > cur_error.avg)
 				continue;
