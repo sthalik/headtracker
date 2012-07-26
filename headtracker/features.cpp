@@ -227,7 +227,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (k > 0 && roi.width > 32 && roi.height > 32)
 		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
 
-	float max = HT_MIN_POINT_DISTANCE * HT_MIN_POINT_DISTANCE * ctx.zoom_ratio;
+	float max = HT_MIN_POINT_DISTANCE * ctx.zoom_ratio * HT_MIN_POINT_DISTANCE * ctx.zoom_ratio;
 
 	for (int i = 0; i < k && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
 		triangle_t t;
@@ -247,7 +247,6 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		ctx.features[idx] = features_to_add[i];
 		ctx.feature_count++;
 		//ht_project_model(ctx, rotation_matrix, translation_vector, model, origin);
-
 end2:
 		;
 	}
