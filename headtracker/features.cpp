@@ -156,8 +156,8 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (!model.projection)
 		return;
 
-	float min_x = ctx.grayscale->width, max_x = 0;
-	float min_y = ctx.grayscale->height, max_y = 0;
+	float min_x = (float) ctx.grayscale->width, max_x = 0.0f;
+	float min_y = (float) ctx.grayscale->height, max_y = 0.0f;
 
 	int sz = model.count;
 
@@ -246,7 +246,6 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 
 		ctx.features[idx] = features_to_add[i];
 		ctx.feature_count++;
-		//ht_project_model(ctx, rotation_matrix, translation_vector, model, origin);
 end2:
 		;
 	}

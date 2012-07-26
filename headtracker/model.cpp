@@ -35,7 +35,7 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* 
 	if (!model.projection)
 		return false;
 
-	float min_depth = -1e12;
+	float min_depth = -1e12f;
 	int sz = model.count;
 
 	for (int i = 0; i < sz; i++) {
@@ -64,7 +64,7 @@ void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translatio
 	}
 }
 
-model_t ht_load_model(const char* filename, CvPoint3D64f scale, CvPoint3D64f offset) {
+model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset) {
 	FILE* stream = fopen(filename, "r");
 	if (stream == NULL)
 		throw exception("can't open model");
@@ -141,9 +141,9 @@ void ht_free_model(model_t& model) {
 }
 
 CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector) {
-	double x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
-	double y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
-	double z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
+	float x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
+	float y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
+	float z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
 
 #if 0
 	CvPoint3D32f p3d;
@@ -158,8 +158,8 @@ CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float*
 	p3d.z = cos(ox)*(cos(oy)*z+sin(oy)*(sin(oz)*y+cos(oz)*x))-sin(ox)*(cos(oz)*y-sin(oz)*x);
 #endif
 
-	double bx = x * HT_FOCAL_LENGTH / z;
-	double by = y * HT_FOCAL_LENGTH / z;
+	float bx = x * HT_FOCAL_LENGTH / z;
+	float by = y * HT_FOCAL_LENGTH / z;
 	
 	return cvPoint2D32f(bx, by);
 }

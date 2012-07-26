@@ -2,40 +2,37 @@
 // todo locate head centroid and base tracking on it
 #pragma once
 #define HT_FOCAL_LENGTH 675
-#define HT_MODEL_X_SCALE 1.0
-#define HT_MODEL_Y_SCALE 1.0
-#define HT_MODEL_Z_SCALE 1.0
 #define HT_CLASSIFICATION_DELAY_MS 200
-#define HT_PI 3.14159265
-#define HT_FEATURE_QUALITY_LEVEL 0.00023
+#define HT_PI 3.14159265f
+#define HT_FEATURE_QUALITY_LEVEL 0.0003f
 #define HT_PYRLK_PYRAMIDS 5
 #define HT_PYRLK_WIN_SIZE 15
 
 #define HT_MAX_TRACKED_FEATURES 80
 
-#define HT_RANSAC_ABS_MIN_POINTS 15
-#define HT_RANSAC_MIN_CONSENSUS 0.334
-#define HT_RANSAC_MAX_ERROR 0.96
+#define HT_RANSAC_ABS_MIN_POINTS 20
+#define HT_RANSAC_MIN_CONSENSUS 0.334f
+#define HT_RANSAC_MAX_ERROR 0.96f
 #define HT_RANSAC_ITER 100
 #define HT_RANSAC_MIN_POINTS 4
-#define HT_RANSAC_STD_DEPTH 700.0
-#define HT_RANSAC_MAX_CONSENSUS_ERROR 13.0
+#define HT_RANSAC_STD_DEPTH 700.0f
+#define HT_RANSAC_MAX_CONSENSUS_ERROR 13.0f
 #define HT_USE_HARRIS 0
-#define HT_MIN_POINT_DISTANCE 8.236
-#define HT_DETECT_POINT_DISTANCE 8.1
+#define HT_MIN_POINT_DISTANCE 8.236f
+#define HT_DETECT_POINT_DISTANCE 8.1f
 
 #define HT_MAX_DETECT_FEATURES (HT_MAX_TRACKED_FEATURES)
 #define HT_MIN_TRACK_START_POINTS 22
 
 #define HT_MAX_INIT_RETRIES 30
-#define HT_DEPTH_AVG_FRAMES 10
+#define HT_DEPTH_AVG_FRAMES 8
 #define HT_FEATURE_MAX_FAILED_RANSAC 3
-#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.31
+#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.35f
 
-#define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.94
-#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.7
+#define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.94f
+#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.7f
 
-#define HT_DETECT_FEATURES_THRESHOLD 0.93
+#define HT_DETECT_FEATURES_THRESHOLD 0.93f
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -44,10 +41,10 @@ typedef enum {
 } state_t;
 
 typedef struct {
-	double x, y, w, h;
+	float x, y, w, h;
 } rect_t;
 
-static __inline rect_t ht_make_rect(double x, double y, double w, double h) {
+static __inline rect_t ht_make_rect(float x, float y, float w, float h) {
 	rect_t ret;
 
 	ret.x = x;
@@ -116,7 +113,7 @@ typedef struct {
 	float zoom_ratio;
 } headtracker_t;
 
-model_t ht_load_model(const char* filename, CvPoint3D64f scale, CvPoint3D64f offset);
+model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
 void ht_free_model(model_t& model);
 CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
