@@ -17,4 +17,7 @@
     <ClCompile Include="classify.cpp" />
     <ClCompile Include="estimate.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\thirdparty\bin\head.raw" />
+  </ItemGroup>
 </Project>
