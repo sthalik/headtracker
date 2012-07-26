@@ -30,11 +30,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			case HT_STATE_INITIALIZING: {
 				ht_track_features(*ctx);
 				if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector)) {
-					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->haar_model, cvPoint3D32f(0, 0, 0));
-					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->haar_model, cvPoint3D32f(0, 0, 0));
+					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
+					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
 					error_t best_error;
 					int best_cnt;
-					int* best_indices = new int[ctx->tracking_model.count];
+					int* best_indices = new int[ctx->model.count];
 					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= HT_MIN_TRACK_START_POINTS)
 						ctx->state = HT_STATE_TRACKING;
 					else {
@@ -44,23 +44,23 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					delete[] best_indices;
 				}
-				if (ctx->haar_model.projection)
-					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->haar_model);
+				if (ctx->model.projection)
+					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
 				ht_draw_features(*ctx);
 				break;
 			} case HT_STATE_TRACKING: {
 				ht_track_features(*ctx);
 				error_t best_error;
 				int best_cnt;
-				int* best_indices = new int[ctx->tracking_model.count];
+				int* best_indices = new int[ctx->model.count];
 				CvPoint3D32f offset;
 				if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) &&
 					ht_estimate_pose(*ctx, rotation_matrix, translation_vector, best_indices, best_cnt, &offset))
 				{
 					ht_remove_lumps(*ctx);
-					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
-					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->tracking_model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
-					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->tracking_model);
+					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
+					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
+					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
 					ht_draw_features(*ctx);
 				} else {
 					ctx->state = HT_STATE_LOST;
@@ -72,7 +72,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						my = ctx->mouse_y;
 						triangle_t t;
 						int idx;
-						if (ht_triangle_at(*ctx, cvPoint(ctx->mouse_x, ctx->mouse_y), &t, &idx, rotation_matrix, translation_vector, ctx->tracking_model)) {
+						if (ht_triangle_at(*ctx, cvPoint(ctx->mouse_x, ctx->mouse_y), &t, &idx, rotation_matrix, translation_vector, ctx->model)) {
 							printf("MOUSE: %d %f %f %f\n", idx+1, (t.p1.x + t.p2.x + t.p3.x) / 3, (t.p1.y + t.p2.y + t.p3.y) / 3, (t.p1.z + t.p2.z + t.p3.z) / 3);
 						} else {
 							printf("MOUSE: no triangle\n");
@@ -84,7 +84,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;
-				for (int i = 0; i < ctx->tracking_model.count; i++) {
+				for (int i = 0; i < ctx->model.count; i++) {
 					ctx->features[i] = cvPoint2D32f(-1, -1);
 					ctx->feature_failed_iters[i] = 0;
 				}

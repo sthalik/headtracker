@@ -37,8 +37,7 @@ headtracker_t* ht_make_context(int camera_idx) {
 	ctx->ticks_last_classification = GetTickCount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
-	ctx->tracking_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_MODEL_Y_OFFSET, HT_MODEL_Z_OFFSET));
-	ctx->haar_model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, HT_HAAR_MODEL_Y_OFFSET, HT_HAAR_MODEL_Z_OFFSET));
+	ctx->model = ht_load_model("head.raw", cvPoint3D64f(HT_MODEL_X_SCALE, HT_MODEL_Y_SCALE, HT_MODEL_Z_SCALE), cvPoint3D64f(0, 0, 0));
 	ctx->features = NULL;
 	ctx->pyr_a = NULL;
 	ctx->pyr_b = NULL;
@@ -52,16 +51,17 @@ headtracker_t* ht_make_context(int camera_idx) {
 		ctx->depths[i] = 0;
 	ctx->depth_frame_count = 0;
 	ctx->depth_counter_pos = 0;
+	ctx->zoom_ratio = 1.0;
 	return ctx;
 }
 
 void ht_free_context(headtracker_t* ctx) {
-	if (ctx->tracking_model.triangles)
-		delete ctx->tracking_model.triangles;
-	if (ctx->tracking_model.projection)
-		delete ctx->tracking_model.projection;
-	if (ctx->haar_model.projection)
-		delete ctx->haar_model.projection;
+	if (ctx->model.triangles)
+		delete ctx->model.triangles;
+	if (ctx->model.projection)
+		delete ctx->model.projection;
+	if (ctx->model.centers)
+		delete ctx->model.centers;
 	cvReleaseCapture(&ctx->camera);
 	for (int i = 0; i < HT_CLASSIFIER_COUNT; i++)
 		ht_free_classifier(&ctx->classifiers[i]);

@@ -4,17 +4,18 @@ using namespace std;
 using namespace cv;
 
 void ht_remove_lumps(headtracker_t& ctx) {
+	float max = HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD * ctx.zoom_ratio;
 	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
-		for (int i = 0; i < ctx.tracking_model.count; i++) {
+		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1 || ctx.feature_failed_iters == 0)
 				continue;
-			for (int j = 0; j < ctx.tracking_model.count; j++) {
+			for (int j = 0; j < ctx.model.count; j++) {
 				if (i == j)
 					continue;
 				if (ctx.features[j].x == -1)
 					continue;
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
-				if (dist < HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD) {
+				if (dist < max) {
 					if (ctx.feature_failed_iters[i] >= ctx.feature_failed_iters[j]) {
 						ctx.features[i] = cvPoint2D32f(-1, -1);
 						ctx.feature_failed_iters[i] = 0;
@@ -28,16 +29,16 @@ void ht_remove_lumps(headtracker_t& ctx) {
 		}
 	}
 	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
-		for (int i = 0; i < ctx.tracking_model.count; i++) {
+		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1)
 				continue;
-			for (int j = 0; j < ctx.tracking_model.count; j++) {
+			for (int j = 0; j < ctx.model.count; j++) {
 				if (i == j)
 					continue;
 				if (ctx.features[j].x == -1)
 					continue;
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
-				if (dist < HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD) {
+				if (dist < max) {
 					ctx.features[i] = cvPoint2D32f(-1, -1);
 					ctx.feature_failed_iters[i] = 0;
 					ctx.feature_count--;
@@ -51,7 +52,7 @@ void ht_draw_features(headtracker_t& ctx) {
 	if (!ctx.features)
 		return;
 
-	for (int i = 0; i < ctx.tracking_model.count; i++) {
+	for (int i = 0; i < ctx.model.count; i++) {
 		if (ctx.features[i].x == -1 || ctx.features[i].y == -1)
 			continue;
 
@@ -61,7 +62,7 @@ void ht_draw_features(headtracker_t& ctx) {
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
 			size = 1;
-		} else if (ctx.feature_failed_iters[i] < 3) {
+		} else if (ctx.feature_failed_iters[i] < HT_FEATURE_MAX_FAILED_RANSAC - 1) {
 			size = 3;
 			color = CV_RGB(255, 255, 0);
 		} else {
@@ -90,8 +91,8 @@ void ht_track_features(headtracker_t& ctx) {
 		ctx.pyr_b = cvCreateImage(pyr_size, IPL_DEPTH_32F, 1);
 	}
 
-	int sz = 0, max = ctx.tracking_model.count;
-	CvPoint2D32f* old_features = new CvPoint2D32f[ctx.tracking_model.count];
+	int sz = 0, max = ctx.model.count;
+	CvPoint2D32f* old_features = new CvPoint2D32f[ctx.model.count];
 
 	for (int i = 0; i < max; i++) {
 		if (ctx.features[i].x != -1 || ctx.features[i].y != -1)
@@ -103,8 +104,8 @@ void ht_track_features(headtracker_t& ctx) {
 		return;
 	}
 
-	char* features_found = new char[ctx.tracking_model.count];
-	CvPoint2D32f* new_features = new CvPoint2D32f[ctx.tracking_model.count];
+	char* features_found = new char[ctx.model.count];
+	CvPoint2D32f* new_features = new CvPoint2D32f[ctx.model.count];
 	
 	cvCalcOpticalFlowPyrLK(
 		ctx.last_image,
@@ -118,17 +119,17 @@ void ht_track_features(headtracker_t& ctx) {
 		HT_PYRLK_PYRAMIDS,
 		features_found,
 		NULL,
-		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.3 ),
+		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.251 ),
 		(got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
 
 	ctx.restarted = 0;
 
 	for (int i = 0, j = 0; i < sz; i++, j++) {
-		for (; j < ctx.tracking_model.count; j++)
+		for (; j < ctx.model.count; j++)
 			if (ctx.features[j].x != -1 || ctx.features[j].y != -1)
 				break;
 
-		if (j == ctx.tracking_model.count)
+		if (j == ctx.model.count)
 			break;
 
 		if (!features_found[i]) {
@@ -169,7 +170,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 			ctx.feature_failed_iters[i] = 0;
 	}
 
-	for (int i = 0; i < ctx.tracking_model.count; i++) {
+	for (int i = 0; i < ctx.model.count; i++) {
 		float x = (model.projection[i].p1.x + model.projection[i].p2.x + model.projection[i].p3.x) / 3;
 		float y = (model.projection[i].p1.x + model.projection[i].p2.y + model.projection[i].p3.y) / 3;
 		if (x > max_x)
@@ -195,8 +196,8 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	IplImage* eig_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 	IplImage* tmp_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 
-	CvPoint2D32f* tmp_features    = new CvPoint2D32f[HT_MAX_DETECT_FEATURES];
-	CvPoint2D32f* features_to_add = new CvPoint2D32f[HT_MAX_DETECT_FEATURES];
+	CvPoint2D32f* tmp_features    = new CvPoint2D32f[(int) HT_MAX_DETECT_FEATURES];
+	CvPoint2D32f* features_to_add = new CvPoint2D32f[(int) HT_MAX_DETECT_FEATURES];
 	int k = 0;
 
 	int cnt = HT_MAX_DETECT_FEATURES;
@@ -224,7 +225,9 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	}
 
 	if (k > 0 && roi.width > 32 && roi.height > 32)
-		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.2));
+		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
+
+	float max = HT_MIN_POINT_DISTANCE * HT_MIN_POINT_DISTANCE * ctx.zoom_ratio;
 
 	for (int i = 0; i < k && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
 		triangle_t t;
@@ -237,7 +240,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 			continue;
 
 		for (int j = 0; j < model.count; j++) {
-			if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < HT_MIN_POINT_DISTANCE * HT_MIN_POINT_DISTANCE)
+			if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max)
 				goto end2;
 		}
 

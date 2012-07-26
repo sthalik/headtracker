@@ -13,10 +13,7 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 
 	for (int i = 0; i < count; i++) {
 		int idx = indices[i];
-		model_points[k] = cvPoint3D32f(
-			(ctx.tracking_model.triangles[idx].p1.x + ctx.tracking_model.triangles[idx].p2.x + ctx.tracking_model.triangles[idx].p3.x) / 3,
-			(ctx.tracking_model.triangles[idx].p1.y + ctx.tracking_model.triangles[idx].p2.y + ctx.tracking_model.triangles[idx].p3.y) / 3,
-			(ctx.tracking_model.triangles[idx].p1.z + ctx.tracking_model.triangles[idx].p2.z + ctx.tracking_model.triangles[idx].p3.z) / 3);
+		model_points[k] = ctx.model.centers[idx];
 		image_points[k] = ctx.features[idx];
 		k++;
 	}
@@ -50,14 +47,11 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 				tmp_image_points[i] = image_points[i];
 			}
 
-			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 300, 0.01 * HT_PI / 180.0));
+			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 100, 0.01 * HT_PI / 180.0));
 
 			if (ret) {
 				*offset = c;
-				ctx.depths[ctx.depth_counter_pos] = translation_vector[2] / HT_RANSAC_STD_DEPTH;
-				ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % HT_DEPTH_AVG_FRAMES;
-				if (ctx.depth_frame_count < HT_DEPTH_AVG_FRAMES)
-					ctx.depth_frame_count++;
+				ht_update_zoom_scale(ctx, translation_vector[2]);
 			}
 		}
 	}
@@ -68,4 +62,16 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 	delete[] tmp_image_points;
 
 	return ret;
+}
+
+void ht_update_zoom_scale(headtracker_t& ctx, float translation_2) {
+	ctx.depths[ctx.depth_counter_pos] = translation_2;
+	ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % HT_DEPTH_AVG_FRAMES;
+	if (ctx.depth_frame_count < HT_DEPTH_AVG_FRAMES)
+		ctx.depth_frame_count++;
+	float zoom_scale = 0.0f;
+	for (int i = 0; i < ctx.depth_frame_count; i++)
+		zoom_scale += ctx.depths[i];
+	zoom_scale /= ctx.depth_frame_count * HT_RANSAC_STD_DEPTH;
+	ctx.zoom_ratio = zoom_scale;
 }

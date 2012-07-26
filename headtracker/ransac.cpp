@@ -9,7 +9,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.01))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.0174))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
@@ -57,7 +57,6 @@ bool ht_ransac(headtracker_t& ctx,
 	CvPoint2D32f* image_points = new CvPoint2D32f[mcnt];
 	CvPoint3D32f* model_points = new CvPoint3D32f[mcnt];
 	int k = 0;
-	CvPoint3D32f* model_centers = new CvPoint3D32f[mcnt];
 	int* model_indices = new int[mcnt];
 	bool ret = false;
 
@@ -67,10 +66,6 @@ bool ht_ransac(headtracker_t& ctx,
 	for (int i = 0; i < mcnt; i++) {
 		if (ctx.features[i].x != -1)
 			indices[k++] = i;
-		model_centers[i] = cvPoint3D32f(
-			(model.triangles[i].p1.x + model.triangles[i].p2.x + model.triangles[i].p3.x) / 3,
-			(model.triangles[i].p1.y + model.triangles[i].p2.y + model.triangles[i].p3.y) / 3,
-			(model.triangles[i].p1.z + model.triangles[i].p2.z + model.triangles[i].p3.z) / 3);
 	}
 
 	if (k < min_consensus || k < 4 || iter_points < 4)
@@ -81,12 +76,12 @@ bool ht_ransac(headtracker_t& ctx,
 
 		int pos = 0;
 
-		CvPoint3D32f first_point = model_centers[indices[0]];
+		CvPoint3D32f first_point = model.centers[indices[0]];
 
 		for (int i = 0; i < iter_points; i++) {
 			int idx = indices[i];
 
-			model_points[pos] = model_centers[idx];
+			model_points[pos] = model.centers[idx];
 			model_points[pos].x -= first_point.x;
 			model_points[pos].y -= first_point.y;
 			model_points[pos].z -= first_point.z;
@@ -103,7 +98,7 @@ bool ht_ransac(headtracker_t& ctx,
 
 		for (int i = iter_points; i < k; i++) {
 			int idx = indices[i];
-			model_points[pos] = model_centers[idx];
+			model_points[pos] = model.centers[idx];
 			model_points[pos].x -= first_point.x;
 			model_points[pos].y -= first_point.y;
 			model_points[pos].z -= first_point.z;
@@ -139,35 +134,25 @@ end:
 	delete[] indices;
 	delete[] image_points;
 	delete[] model_points;
-	delete[] model_centers;
 	delete[] model_indices;
 
 	return ret;
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
-	float error_scale;
+	float error_scale = ctx.zoom_ratio;
 
-	if (ctx.depth_frame_count == 0)
-		error_scale = 1.0f;
-	else {
-		error_scale = 0.0f;
-		for (int i = 0; i < ctx.depth_frame_count; i++)
-			error_scale += ctx.depths[i];
-		error_scale /= ctx.depth_frame_count;
-	}
-
-	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, max(HT_RANSAC_ABS_MIN_POINTS, (int) (ctx.feature_count * HT_RANSAC_MIN_CONSENSUS) + 1), best_cnt, best_error, best_indices, ctx.tracking_model, error_scale)) {
-		char* usedp = new char[ctx.tracking_model.count];
-		for (int i = 0; i < ctx.tracking_model.count; i++)
+	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_POINTS, HT_RANSAC_MAX_ERROR, max(HT_RANSAC_ABS_MIN_POINTS, (int) (ctx.feature_count * HT_RANSAC_MIN_CONSENSUS) + 1), best_cnt, best_error, best_indices, ctx.model, error_scale)) {
+		char* usedp = new char[ctx.model.count];
+		for (int i = 0; i < ctx.model.count; i++)
 			usedp[i] = 0;
 		for (int i = 0; i < *best_cnt; i++) {
 			usedp[best_indices[i]] = 1;
 		}
-		for (int i = 0; i < ctx.tracking_model.count; i++) {
+		for (int i = 0; i < ctx.model.count; i++) {
 			if (!usedp[i]) {
 				if (ctx.features[i].x != -1 && ctx.features[i].y != -1) {
-					if (++ctx.feature_failed_iters[i] > HT_FEATURE_MAX_FAILED_RANSAC) {
+					if (++ctx.feature_failed_iters[i] >= HT_FEATURE_MAX_FAILED_RANSAC) {
 						ctx.features[i] = cvPoint2D32f(-1, -1);
 						ctx.feature_count--;
 					}

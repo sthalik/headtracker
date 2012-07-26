@@ -39,9 +39,7 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint pos, triangle_t* ret, int* idx, 
 	int sz = model.count;
 
 	for (int i = 0; i < sz; i++) {
-		float depth = (model.triangles[i].p1.x * rotation_matrix[6] + model.triangles[i].p1.y * rotation_matrix[7] + model.triangles[i].p1.z * rotation_matrix[8] +
-					   model.triangles[i].p2.x * rotation_matrix[6] + model.triangles[i].p2.y * rotation_matrix[7] + model.triangles[i].p3.z * rotation_matrix[8] +
-					   model.triangles[i].p3.x * rotation_matrix[6] + model.triangles[i].p3.y * rotation_matrix[7] + model.triangles[i].p3.z * rotation_matrix[8]) / 3.0f;
+		float depth = model.centers[i].x * rotation_matrix[6] + model.centers[i].y * rotation_matrix[7] + model.centers[i].z * rotation_matrix[8];
 		triangle2d_t& t = model.projection[i];
 		if (depth > min_depth && ht_point_inside_triangle_2d(cvPoint2D32f(t.p1.x, t.p1.y), cvPoint2D32f(t.p2.x, t.p2.y), cvPoint2D32f(t.p3.x, t.p3.y), cvPoint2D32f(pos.x, pos.y))) {
 			*ret = model.triangles[i];
@@ -124,8 +122,14 @@ model_t ht_load_model(const char* filename, CvPoint3D64f scale, CvPoint3D64f off
 	int sz = triangles.size();
 	ret.count = sz;
 	ret.triangles = new triangle_t[sz];
-	for (int i = 0; i < sz; i++)
+	ret.centers = new CvPoint3D32f[sz];
+	for (int i = 0; i < sz; i++) {
 		ret.triangles[i] = triangles[i];
+		ret.centers[i] = cvPoint3D32f(
+			(triangles[i].p1.x + triangles[i].p2.x + triangles[i].p3.x) / 3,
+			(triangles[i].p1.y + triangles[i].p2.y + triangles[i].p3.y) / 3,
+			(triangles[i].p1.z + triangles[i].p2.z + triangles[i].p3.z) / 3);
+	}
 
 	ret.projection = NULL;
 
