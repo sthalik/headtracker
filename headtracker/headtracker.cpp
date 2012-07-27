@@ -14,7 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	float rotation_matrix[9];
 	float translation_vector[3];
-	srand(GetTickCount());
+	srand(getTickCount());
 	headtracker_t* ctx = ht_make_context(0);
 
 	cvNamedWindow("capture", CV_WINDOW_AUTOSIZE | CV_GUI_EXPANDED);

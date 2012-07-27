@@ -7,17 +7,6 @@ bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_
 	if (point_cnt < 4)
 		return false;
 
-	float dx = 0, dy = 0, dz = 0;
-
-	for (int i = 1; i < point_cnt; i++) {
-		dx += fabs(model_points[i].x);
-		dy += fabs(model_points[i].y);
-		dz += fabs(model_points[i].z);
-	}
-
-	if (dx <= 1.0e-2 || dy <= 1.0e-2 || dz <= 1.0e-2)
-		return false;
-
 	CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
 	cvPOSIT(posit_obj, image_points, HT_FOCAL_LENGTH, term_crit, rotation_matrix, translation_vector);
 	cvReleasePOSITObject(&posit_obj);

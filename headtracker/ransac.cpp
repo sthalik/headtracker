@@ -9,23 +9,19 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 50, 0.02))) {
+	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 100, 0.1))) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
 
-	float max = 0;
 	float avg = 0;
 
 	for (int i = 0; i < point_cnt; i++) {
-		CvPoint2D32f p = ht_point_to_screen(model_points[i], rotation_matrix, translation_vector);
-		float dist = ht_distance2d_squared(p, image_points[i]);
-		if (dist > max)
-			max = dist;
-		avg += sqrt(dist);
+		avg += ht_distance2d_squared(ht_point_to_screen(model_points[i], rotation_matrix, translation_vector),
+									      image_points[i]);
 	}
 
-	ret.avg = avg / point_cnt;
+	ret.avg = sqrt(avg / point_cnt);
 
 	return ret;
 }
@@ -93,7 +89,7 @@ bool ht_ransac(headtracker_t& ctx,
 		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
 		cur_error.avg *= error_scale;
 
-		if (cur_error.avg >= 1e9)
+		if (cur_error.avg >= HT_RANSAC_MAX_CONSENSUS_ERROR)
 			continue;
 
 		for (int i = iter_points; i < k; i++) {

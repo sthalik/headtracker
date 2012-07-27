@@ -63,11 +63,11 @@ void ht_draw_features(headtracker_t& ctx) {
 			color = CV_RGB(0, 255, 255);
 			size = 1;
 		} else if (ctx.feature_failed_iters[i] < HT_FEATURE_MAX_FAILED_RANSAC) {
-			size = 3;
+			size = 2;
 			color = CV_RGB(255, 255, 0);
 		} else {
 			color = CV_RGB(255, 0, 0);
-			size = 4;
+			size = 2;
 		}
 
 		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
