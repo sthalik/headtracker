@@ -4,8 +4,9 @@ using namespace std;
 using namespace cv;
 
 void ht_remove_lumps(headtracker_t& ctx) {
-	float max = HT_MIN_FEATURE_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD * ctx.zoom_ratio;
-	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
+	float max = ctx.config.min_feature_distance * ctx.config.filter_lumps_distance_threshold * ctx.zoom_ratio;
+	float threshold = ctx.config.max_tracked_features * ctx.config.filter_lumps_feature_count_threshold;
+	if (ctx.feature_count > threshold) {
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1 || ctx.feature_failed_iters == 0)
 				continue;
@@ -28,7 +29,7 @@ void ht_remove_lumps(headtracker_t& ctx) {
 			}
 		}
 	}
-	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
+	if (ctx.feature_count > threshold) {
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1)
 				continue;
@@ -62,7 +63,7 @@ void ht_draw_features(headtracker_t& ctx) {
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
 			size = 1;
-		} else if (ctx.feature_failed_iters[i] < HT_FEATURE_MAX_FAILED_RANSAC) {
+		} else if (ctx.feature_failed_iters[i] < ctx.config.feature_max_failed_ransac) {
 			size = 2;
 			color = CV_RGB(255, 255, 0);
 		} else {
@@ -115,8 +116,8 @@ void ht_track_features(headtracker_t& ctx) {
 		old_features,
 		new_features,
 		sz,
-		cvSize(HT_PYRLK_WIN_SIZE_W, HT_PYRLK_WIN_SIZE_H),
-		HT_PYRLK_PYRAMIDS,
+		cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+		ctx.config.pyrlk_pyramids,
 		features_found,
 		NULL,
 		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.251 ),
@@ -150,7 +151,7 @@ void ht_track_features(headtracker_t& ctx) {
 }
 
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model) {
-	if (ctx.feature_count >= HT_MAX_TRACKED_FEATURES * HT_DETECT_FEATURES_THRESHOLD)
+	if (ctx.feature_count >= ctx.config.max_tracked_features * ctx.config.features_detect_threshold)
 		return;
 
 	if (!model.projection)
@@ -196,19 +197,24 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	IplImage* eig_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 	IplImage* tmp_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
 
-	CvPoint2D32f* tmp_features    = new CvPoint2D32f[(int) HT_MAX_DETECT_FEATURES];
-	CvPoint2D32f* features_to_add = new CvPoint2D32f[(int) HT_MAX_DETECT_FEATURES];
+	int to_detect = (int) ctx.config.max_detect_features * ctx.config.max_tracked_features;
+
+	CvPoint2D32f* tmp_features    = new CvPoint2D32f[to_detect];
+	CvPoint2D32f* features_to_add = new CvPoint2D32f[to_detect];
 	int k = 0;
 
-	int cnt = HT_MAX_DETECT_FEATURES;
+	cvSetImageROI(ctx.grayscale, roi);
+	cvGoodFeaturesToTrack(ctx.grayscale,
+						  eig_image,
+						  tmp_image,
+						  tmp_features,
+						  &to_detect,
+						  ctx.config.feature_quality_level,
+						  ctx.config.detect_feature_distance,
+						  NULL, 3, ctx.config.use_harris);
+	cvResetImageROI(ctx.grayscale);
 
-	if (cnt > 0) {
-		cvSetImageROI(ctx.grayscale, roi);
-		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_FEATURE_DISTANCE, NULL, 3, HT_USE_HARRIS);
-		cvResetImageROI(ctx.grayscale);
-	}
-
-	for (int i = 0; i < cnt; i++) {
+	for (int i = 0; i < to_detect; i++) {
 		tmp_features[i].x += roi.x;
 		tmp_features[i].y += roi.y;
 		
@@ -218,7 +224,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		if (!(ht_triangle_at(ctx, tmp_features[i], &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
 
-		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
+		if (ctx.features[idx].x != -1)
 			continue;
 
 		features_to_add[k++] = tmp_features[i];
@@ -227,9 +233,9 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (k > 0 && roi.width > 32 && roi.height > 32)
 		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(10, 10), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 15, 0.4));
 
-	float max = HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio * HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio;
+	float max = ctx.config.min_feature_distance * ctx.zoom_ratio * ctx.config.min_feature_distance * ctx.zoom_ratio;
 
-	for (int i = 0; i < k && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
+	for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
 		triangle_t t;
 		int idx;
 

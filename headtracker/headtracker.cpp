@@ -35,11 +35,11 @@ int _tmain(int argc, _TCHAR* argv[])
 					error_t best_error;
 					int best_cnt;
 					int* best_indices = new int[ctx->feature_count];
-					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= HT_MIN_TRACK_START_FEATURES)
+					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= ctx->config.min_track_start_features)
 						ctx->state = HT_STATE_TRACKING;
 					else {
 						printf("retries: %d; feature count=%d\n", ctx->init_retries, ctx->feature_count);
-						if (++ctx->init_retries > HT_MAX_INIT_RETRIES)
+						if (++ctx->init_retries > ctx->config.max_init_retries)
 							ctx->state = HT_STATE_LOST;
 					}
 					delete[] best_indices;

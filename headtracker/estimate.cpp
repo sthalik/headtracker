@@ -47,7 +47,13 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 				tmp_image_points[i] = image_points[i];
 			}
 
-			ret = ht_posit(tmp_image_points, tmp_model_points, k, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 100, 0.01 * HT_PI / 180.0));
+			ret = ht_posit(tmp_image_points,
+						   tmp_model_points,
+						   k,
+						   rotation_matrix,
+						   translation_vector,
+						   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 0.01 * HT_PI / 180.0),
+						   ctx.config.focal_length);
 
 			if (ret) {
 				*offset = c;
@@ -65,13 +71,14 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 }
 
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2) {
-	ctx.depths[ctx.depth_counter_pos] = (float) tan(HT_STD_FACE_WIDTH / HT_RANSAC_STD_DEPTH);
-	ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % HT_DEPTH_AVG_FRAMES;
-	if (ctx.depth_frame_count < HT_DEPTH_AVG_FRAMES)
+	int sz = ctx.config.depth_avg_frames;
+	ctx.depths[ctx.depth_counter_pos] = (float) tan(HT_STD_FACE_WIDTH / HT_STD_DEPTH);
+	ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % sz;
+	if (ctx.depth_frame_count < sz)
 		ctx.depth_frame_count++;
 	float zoom_scale = 0.0f;
 	for (int i = 0; i < ctx.depth_frame_count; i++)
 		zoom_scale += ctx.depths[i];
-	zoom_scale /= ctx.depth_frame_count * tan(HT_STD_FACE_WIDTH / HT_RANSAC_STD_DEPTH);
+	zoom_scale /= ctx.depth_frame_count * tan(HT_STD_FACE_WIDTH / translation_2);
 	ctx.zoom_ratio = zoom_scale;
 }

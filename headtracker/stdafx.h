@@ -3,8 +3,11 @@
 #include <intrin.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <tchar.h>
 #include <windows.h>
 #include <math.h>
 #include <opencv2/opencv.hpp>
+#include "config.h"
+#include "internal.h"
 #include "common.h"

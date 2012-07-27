@@ -6,7 +6,7 @@ using namespace cv;
 bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matrix, float* translation_vector) {
 	int ticks = GetTickCount();
 
-	if (ctx.ticks_last_classification / HT_CLASSIFICATION_DELAY_MS == ticks / HT_CLASSIFICATION_DELAY_MS)
+	if (ctx.ticks_last_classification / ctx.config.classification_delay == ticks / ctx.config.classification_delay)
 		return false;
 
 	ctx.ticks_last_classification = ticks;
@@ -32,5 +32,11 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(30, -15, -38);
 	object_points[HT_CLASSIFIER_MOUTH-1] = cvPoint3D32f(0, 58, -21);
 
-	return ht_posit(image_points, object_points, HT_CLASSIFIER_COUNT-1, rotation_matrix, translation_vector);
+	return ht_posit(image_points,
+					object_points,
+					HT_CLASSIFIER_COUNT-1,
+					rotation_matrix,
+					translation_vector,
+					cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 0.01 * HT_PI / 180.0f),
+					ctx.config.focal_length);
 }

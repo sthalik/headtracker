@@ -6,10 +6,17 @@ using namespace cv;
 error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
 	float rotation_matrix[9];
 	float translation_vector[3];
+	float focal_length = ctx.config.focal_length;
 
 	error_t ret;
 
-	if (!ht_posit(image_points, model_points, point_cnt, rotation_matrix, translation_vector, cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, HT_RANSAC_POSIT_ITER, HT_RANSAC_POSIT_EPS))) {
+	if (!ht_posit(image_points,
+				  model_points,
+				  point_cnt,
+				  rotation_matrix,
+				  translation_vector,
+				  cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, ctx.config.ransac_posit_iter, ctx.config.ransac_posit_eps),
+				  focal_length)) {
 		ret.avg = 1.0e10;
 		return ret;
 	}
@@ -17,8 +24,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 	float avg = 0;
 
 	for (int i = 0; i < point_cnt; i++)
-		avg += ht_distance2d_squared(ht_point_to_screen(model_points[i], rotation_matrix, translation_vector),
-									      image_points[i]);
+		avg += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, focal_length), image_points[i]);
 
 	ret.avg = (float) sqrt(avg / point_cnt);
 
@@ -54,6 +60,8 @@ bool ht_ransac(headtracker_t& ctx,
 	int k = 0;
 	int* model_indices = new int[mcnt];
 	bool ret = false;
+	float max_consensus_error = ctx.config.ransac_max_consensus_error;
+	float importance = ctx.config.ransac_best_error_importance;
 
 	best_error->avg = 1.0e10;
 	*best_cnt = 0;
@@ -88,7 +96,7 @@ bool ht_ransac(headtracker_t& ctx,
 		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
 		cur_error.avg *= error_scale;
 
-		if (cur_error.avg >= HT_RANSAC_MAX_CONSENSUS_ERROR)
+		if (cur_error.avg >= max_consensus_error)
 			continue;
 
 		for (int i = iter_points; i < k; i++) {
@@ -109,10 +117,10 @@ bool ht_ransac(headtracker_t& ctx,
 			cur_error.avg = e.avg;
 			pos++;
 
-			if (cur_error.avg > HT_RANSAC_MAX_CONSENSUS_ERROR)
+			if (cur_error.avg > max_consensus_error)
 				goto end2;
 
-			if (pos >= min_consensus && pos > *best_cnt * ((1.0 - HT_RANSAC_BEST_ERROR_IMPORTANCE) + HT_RANSAC_BEST_ERROR_IMPORTANCE * cur_error.avg / best_error->avg)) {
+			if (pos >= min_consensus && pos > *best_cnt * ((1.0 - importance) + importance * cur_error.avg / best_error->avg)) {
 				ret = true;
 				*best_error = e;
 				*best_cnt = pos;
@@ -135,9 +143,16 @@ end:
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
-	float error_scale = ctx.zoom_ratio;
-
-	if (ht_ransac(ctx, HT_RANSAC_ITER, HT_RANSAC_MIN_FEATURES, HT_RANSAC_MAX_ERROR, (int) (ctx.feature_count * HT_RANSAC_MIN_CONSENSUS) + 1, best_cnt, best_error, best_indices, ctx.model, error_scale)) {
+	if (ht_ransac(ctx,
+				  ctx.config.ransac_iter,
+				  ctx.config.ransac_min_features,
+				  ctx.config.ransac_max_error,
+				  (int) (ctx.feature_count * ctx.config.ransac_min_consensus) + 1,
+				  best_cnt,
+				  best_error,
+				  best_indices,
+				  ctx.model,
+				  ctx.zoom_ratio)) {
 		char* usedp = new char[ctx.model.count];
 		for (int i = 0; i < ctx.model.count; i++)
 			usedp[i] = 0;
@@ -147,25 +162,17 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (!usedp[i]) {
 				if (ctx.features[i].x != -1 && ctx.features[i].y != -1) {
-					if (++ctx.feature_failed_iters[i] >= HT_FEATURE_MAX_FAILED_RANSAC) {
+					if (++ctx.feature_failed_iters[i] >= ctx.config.feature_max_failed_ransac) {
 						ctx.features[i] = cvPoint2D32f(-1, -1);
 						ctx.feature_count--;
 					}
 				}
 			} else {
-#if 0
-				if (ctx.feature_failed_iters[i] != 0 && --ctx.feature_failed_iters[i] != 0) {
-					for (int j = i; j < *best_cnt-1; j++)
-						best_indices[j] = best_indices[j+1];
-					(*best_cnt)--;
-				}
-#else
 				ctx.feature_failed_iters[i] = 0;
-#endif
 			}
 		}
 		delete[] usedp;
-		return *best_cnt >= HT_RANSAC_MIN_CONSENSUS * ctx.feature_count;
+		return *best_cnt >= ctx.config.ransac_min_consensus * ctx.feature_count;
 	}
 	return false;
 }

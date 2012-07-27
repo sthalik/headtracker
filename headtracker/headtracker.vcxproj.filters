@@ -3,7 +3,10 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="headtracker.h" />
+    <ClInclude Include="internal.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="config.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -16,6 +19,7 @@
     <ClCompile Include="ransac.cpp" />
     <ClCompile Include="classify.cpp" />
     <ClCompile Include="estimate.cpp" />
+    <ClCompile Include="config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\thirdparty\bin\head.raw" />

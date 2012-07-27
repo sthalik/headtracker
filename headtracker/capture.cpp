@@ -20,8 +20,10 @@ bool ht_get_image(headtracker_t& ctx) {
 	return true;
 }
 
-headtracker_t* ht_make_context(int camera_idx) {
+headtracker_t* ht_make_context(int camera_idx, const ht_config_t* config) {
 	headtracker_t* ctx = new headtracker_t;
+	memset(ctx, 0, sizeof(headtracker_t));
+	ctx->config = config == NULL ? ht_make_config() : *config;
 
 	ctx->grayscale = NULL;
 	ctx->camera = cvCreateCameraCapture(camera_idx);
@@ -47,11 +49,12 @@ headtracker_t* ht_make_context(int camera_idx) {
 	ctx->mouse_x = ctx->mouse_y = -1;
 	ctx->init_retries = 0;
 	ctx->restarted = 1;
-	for (int i = 0; i < HT_DEPTH_AVG_FRAMES; i++)
-		ctx->depths[i] = 0;
 	ctx->depth_frame_count = 0;
 	ctx->depth_counter_pos = 0;
 	ctx->zoom_ratio = 1.0;
+	ctx->depths = new float[ctx->config.depth_avg_frames];
+	for (int i = 0; i < ctx->config.depth_avg_frames; i++)
+		ctx->depths[i] = 0;
 	return ctx;
 }
 
@@ -75,5 +78,7 @@ void ht_free_context(headtracker_t* ctx) {
 		cvReleaseImage(&ctx->pyr_b);
 	if (ctx->last_image)
 		cvReleaseImage(&ctx->last_image);
+	if (ctx->depths)
+		delete ctx->depths;
 	delete ctx;
 }

@@ -1,0 +1,29 @@
+#pragma once
+typedef struct ht_config {
+	float focal_length;
+	float classification_delay;
+	float feature_quality_level;
+	int   pyrlk_pyramids;
+	int   pyrlk_win_size_w;
+	int   pyrlk_win_size_h;
+	int   max_tracked_features;
+	float ransac_min_consensus;
+	int   ransac_iter;
+	int   ransac_min_features;
+	float ransac_max_consensus_error;
+	bool  use_harris;
+	float max_detect_features;
+	int   min_track_start_features;
+	int   max_init_retries;
+	float features_detect_threshold;
+	float filter_lumps_feature_count_threshold;
+	int   feature_max_failed_ransac;
+	int   ransac_posit_iter;
+	float ransac_posit_eps;
+	int   depth_avg_frames;
+	float min_feature_distance;
+	float detect_feature_distance;
+	float filter_lumps_distance_threshold;
+	float ransac_best_error_importance;
+	float ransac_max_error;
+} ht_config_t;

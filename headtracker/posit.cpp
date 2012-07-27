@@ -3,12 +3,12 @@
 using namespace std;
 using namespace cv;
 
-bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit) {
+bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, float focal_length) {
 	if (point_cnt < 4)
 		return false;
 
 	CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
-	cvPOSIT(posit_obj, image_points, HT_FOCAL_LENGTH, term_crit, rotation_matrix, translation_vector);
+	cvPOSIT(posit_obj, image_points, focal_length, term_crit, rotation_matrix, translation_vector);
 	cvReleasePOSITObject(&posit_obj);
 
 	for (int i = 0; i < 9; i++)
