@@ -32,7 +32,7 @@
 #define HT_RANSAC_POSIT_ITER 100
 #define HT_RANSAC_POSIT_EPS 0.2f
 #define HT_STD_FACE_WIDTH 95.0f
- 
+
 // these ones will be trainable
 // maybe even more after training.cpp is written and sample video(s) made
 // the basic idea is to make a video of doing something(s) the tracker has
@@ -40,11 +40,11 @@
 // the fitness is problematic, but will probably be measured by
 // how a freshly-computed pose differs from the 'continuing'
 // also, the reprojection error of the present pose
-#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.32f
-#define HT_RANSAC_MAX_ERROR 0.95f
+#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.36f
+#define HT_RANSAC_MAX_ERROR 0.955f
 // these will be probably tested later, but are pretty optimal as of now
-#define HT_MIN_FEATURE_DISTANCE 8.000001f
-#define HT_DETECT_FEATURE_DISTANCE 7.000001f
+#define HT_MIN_FEATURE_DISTANCE 7.800001f
+#define HT_DETECT_FEATURE_DISTANCE 6.000001f
 #define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.94f
 #define HT_DEPTH_AVG_FRAMES 12
 
