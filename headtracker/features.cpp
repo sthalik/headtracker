@@ -123,8 +123,6 @@ void ht_track_features(headtracker_t& ctx) {
 		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.251 ),
 		(got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
 
-	ctx.restarted = 0;
-
 	for (int i = 0, j = 0; i < sz; i++, j++) {
 		for (; j < ctx.model.count; j++)
 			if (ctx.features[j].x != -1 || ctx.features[j].y != -1)

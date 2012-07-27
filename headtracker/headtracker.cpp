@@ -32,6 +32,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector)) {
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
 					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
+					ctx->restarted = false;
 					error_t best_error;
 					int best_cnt;
 					int* best_indices = new int[ctx->feature_count];
@@ -92,8 +93,10 @@ int _tmain(int argc, _TCHAR* argv[])
 				}
 				ctx->state = HT_STATE_INITIALIZING;
 				ctx->init_retries = 0;
-				ctx->restarted = 1;
+				ctx->restarted = true;
 				ctx->depth_frame_count = 0;
+				ctx->depth_counter_pos = 0;
+				ctx->zoom_ratio = 1.0f;
 				break;
 			}
 			default: {
