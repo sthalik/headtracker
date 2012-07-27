@@ -31,7 +31,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				ht_track_features(*ctx);
 				if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector)) {
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
-					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
+					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
 					error_t best_error;
 					int best_cnt;
 					int* best_indices = new int[ctx->feature_count];
@@ -56,12 +56,11 @@ int _tmain(int argc, _TCHAR* argv[])
 				{
 					ht_remove_lumps(*ctx);
 					ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
-					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
+					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
 					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
 					ht_draw_features(*ctx);
-				} else {
+				} else
 					ctx->state = HT_STATE_LOST;
-				}
 				delete[] best_indices;
 #if 0
 				if (ctx->mouse_x != mx || ctx->mouse_y != my) {
@@ -76,17 +75,14 @@ int _tmain(int argc, _TCHAR* argv[])
 						}
 					}
 #endif
-				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				printf("%.2f %d %.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n",
-					   best_error.avg,
-					   ctx->feature_count,
-					   best_cnt / (float) ctx->feature_count,
-					   angles.rotx * 180.0 / HT_PI,
-					   angles.roty * 180.0 / HT_PI,
-					   angles.rotz * 180.0 / HT_PI,
-					   angles.tx,
-					   angles.ty,
-					   angles.tz);
+				if (ctx->state == HT_STATE_TRACKING) {
+					printf("%.2f %.2f %d\n",
+						   best_error.avg,
+						   // this happens because of remove_lumps() and friends
+						   // don't be alarmed
+						   max(0.0f, 1.0f - best_cnt / (float) ctx->feature_count),
+						   ctx->feature_count);
+				}
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;

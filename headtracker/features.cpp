@@ -115,7 +115,7 @@ void ht_track_features(headtracker_t& ctx) {
 		old_features,
 		new_features,
 		sz,
-		cvSize(HT_PYRLK_WIN_SIZE, HT_PYRLK_WIN_SIZE),
+		cvSize(HT_PYRLK_WIN_SIZE_W, HT_PYRLK_WIN_SIZE_H),
 		HT_PYRLK_PYRAMIDS,
 		features_found,
 		NULL,
@@ -149,7 +149,7 @@ void ht_track_features(headtracker_t& ctx) {
 	delete[] old_features;
 }
 
-void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model, CvPoint3D32f origin) {
+void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model) {
 	if (ctx.feature_count >= HT_MAX_TRACKED_FEATURES * HT_DETECT_FEATURES_THRESHOLD)
 		return;
 
@@ -225,7 +225,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	}
 
 	if (k > 0 && roi.width > 32 && roi.height > 32)
-		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
+		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(10, 10), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 15, 0.4));
 
 	float max = HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio * HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio;
 

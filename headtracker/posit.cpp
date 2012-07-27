@@ -39,9 +39,12 @@ euler_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector) {
 		ret.rotz = (float) atan2(-rotation_matrix[0 * 3 + 1], rotation_matrix[0 * 3 + 0]);
 	}
 
-	ret.tx = translation_vector[0];
-	ret.ty = translation_vector[1];
-	ret.tz = translation_vector[2];
+	ret.roty += 60.0f * HT_PI / 180.0f;
+	ret.rotz -= 30.0f * HT_PI / 180.0f;
+
+	ret.tx = translation_vector[0] / 10.0f;
+	ret.ty = translation_vector[1] / 10.0f;
+	ret.tz = translation_vector[2] / 10.0f;
 
 	return ret;
 }

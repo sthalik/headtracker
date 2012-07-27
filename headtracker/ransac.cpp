@@ -14,7 +14,7 @@ error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points
 		return ret;
 	}
 
-	double avg = 0;
+	float avg = 0;
 
 	for (int i = 0; i < point_cnt; i++)
 		avg += ht_distance2d_squared(ht_point_to_screen(model_points[i], rotation_matrix, translation_vector),
@@ -101,7 +101,7 @@ bool ht_ransac(headtracker_t& ctx,
 			model_indices[pos] = idx;
 
 			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
-			e.avg *= error_scale * (pos+1) / pos;
+			e.avg *= error_scale;
 
 			if (e.avg*max_error > cur_error.avg)
 				continue;
