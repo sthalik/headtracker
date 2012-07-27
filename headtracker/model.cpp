@@ -182,7 +182,7 @@ bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c,
 	float denom = dot00 * dot11 - dot01 * dot01;
 	if (denom == 0)
 		return false;
-	float invDenom = 1 / denom;
+	float invDenom = 1.0f / denom;
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 

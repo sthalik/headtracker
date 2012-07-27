@@ -97,6 +97,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				ctx->state = HT_STATE_INITIALIZING;
 				ctx->init_retries = 0;
 				ctx->restarted = 1;
+				ctx->depth_frame_count = 0;
 				break;
 			}
 			default: {
