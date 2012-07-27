@@ -17,13 +17,11 @@ void ht_remove_lumps(headtracker_t& ctx) {
 					continue;
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
 				if (dist < max) {
-					if (ctx.feature_failed_iters[i] >= ctx.feature_failed_iters[j]) {
-						ctx.features[i] = cvPoint2D32f(-1, -1);
-						ctx.feature_failed_iters[i] = 0;
-					} else {
-						ctx.features[j] = cvPoint2D32f(-1, -1);
-						ctx.feature_failed_iters[j] = 0;
-					}
+					int idx = ctx.feature_failed_iters[i] >= ctx.feature_failed_iters[j]
+									? i
+									: j;
+					ctx.features[idx] = cvPoint2D32f(-1, -1);
+					ctx.feature_failed_iters[idx] = 0;
 					ctx.feature_count--;
 				}
 			}
