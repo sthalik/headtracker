@@ -22,8 +22,8 @@ bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_
 	return true;
 }
 
-euler_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector) {
-	euler_t ret;
+ht_euler_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector) {
+	ht_euler_t ret;
 
 	if (rotation_matrix[0 * 3 + 2] > 0.9998) {
 		ret.rotx = (float) (HT_PI/2.0);

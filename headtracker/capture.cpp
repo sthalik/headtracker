@@ -20,7 +20,8 @@ bool ht_get_image(headtracker_t& ctx) {
 	return true;
 }
 
-headtracker_t* ht_make_context(int camera_idx, const ht_config_t* config) {
+HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config) {
+	srand((int) getTickCount());
 	headtracker_t* ctx = new headtracker_t;
 	memset(ctx, 0, sizeof(headtracker_t));
 	ctx->config = config == NULL ? ht_make_config() : *config;
@@ -55,10 +56,11 @@ headtracker_t* ht_make_context(int camera_idx, const ht_config_t* config) {
 	ctx->depths = new float[ctx->config.depth_avg_frames];
 	for (int i = 0; i < ctx->config.depth_avg_frames; i++)
 		ctx->depths[i] = 0;
+	ctx->bgr_frame = NULL;
 	return ctx;
 }
 
-void ht_free_context(headtracker_t* ctx) {
+HT_API(void) ht_free_context(headtracker_t* ctx) {
 	if (ctx->model.triangles)
 		delete ctx->model.triangles;
 	if (ctx->model.projection)
@@ -80,5 +82,17 @@ void ht_free_context(headtracker_t* ctx) {
 		cvReleaseImage(&ctx->last_image);
 	if (ctx->depths)
 		delete ctx->depths;
+	if (ctx->bgr_frame)
+		delete ctx->bgr_frame;
 	delete ctx;
+}
+
+HT_API(ht_frame_t) ht_get_bgr_frame(headtracker_t* ctx) {
+	ht_frame_t ret;
+
+	ret.width = ctx->color->width;
+	ret.height = ctx->color->height;
+	ret.data = ctx->bgr_frame;
+
+	return ret;
 }

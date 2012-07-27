@@ -52,7 +52,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Minimum RANSAC consensus size, with regards to the amount of presently tracked features"),
 	F(ransac_min_features, int, 4, 4, 6,
 		"Minimum amount of features to start start RANSAC. Don't increase this to 5 unless RANSAC iterations is set to 5! = 120, etc."),
-	F(ransac_posit_eps, float, 0.2f, 0.001f, 1.0f,
+	F(ransac_posit_eps, float, 0.01f, 0.001f, 1.0f,
 		"cvPOSIT epsilon for the purpose of estimating a feature set in RANSAC."),
 	F(ransac_posit_iter, int, 100, 10, 500,
 		"cvPOSIT max iteration count for estimating a RANSAC feature set."),
@@ -67,9 +67,9 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum error of one RANSAC iteration compared to the previous one."),
 	F(filter_lumps_distance_threshold, float, 0.94f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
-	F(detect_feature_distance, float, 6.000001f, 3.00001f, 10.00001f,
+	F(detect_feature_distance, float, 5.000001f, 3.00001f, 10.00001f,
 		"Distance in pixels, adjusted for distance from the screen, between two features detected in a cvGoodFeaturesToTrack iteration."),
-	F(min_feature_distance, float, 7.800001f, 4.00001f, 15.00001f,
+	F(min_feature_distance, float, 8.00001f, 4.00001f, 15.00001f,
 		"Distance between two features at the time of their detection, including already detected ones."),
 	FIELD_END
 };
@@ -82,7 +82,7 @@ ht_reflection_t ht_find_config_entry(const char* name) {
 	throw exception("wrong config entry name");
 }
 
-ht_config_t ht_make_config() {
+HT_API(ht_config_t) ht_make_config() {
 	ht_config_t ret;
 
 	for (int i = 0; ht_reflection_info[i].name; i++) {
@@ -105,7 +105,7 @@ ht_config_t ht_make_config() {
 	return ret;
 }
 
-ht_config_t ht_load_config(FILE* stream) {
+HT_API(ht_config_t) ht_load_config(FILE* stream) {
 	char buf[256];
 	ht_config_t cfg = ht_make_config();
 
@@ -143,7 +143,7 @@ ht_config_t ht_load_config(FILE* stream) {
 	return cfg;
 }
 
-ht_config_t ht_load_config(const char* filename) {
+HT_API(ht_config_t) ht_load_config(const char* filename) {
 	FILE* stream = fopen(filename, "r");
 
 	if (stream == NULL)

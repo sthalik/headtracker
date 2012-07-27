@@ -1,4 +1,5 @@
 #pragma once
+#define HT_API(t) __declspec(dllexport) t __cdecl
 #include "targetver.h"
 #include <intrin.h>
 #include <stdlib.h>
@@ -8,6 +9,5 @@
 #include <windows.h>
 #include <math.h>
 #include <opencv2/opencv.hpp>
-#include "config.h"
-#include "internal.h"
 #include "common.h"
+#include "internal.h"

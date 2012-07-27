@@ -44,11 +44,6 @@ typedef struct {
 } classifier_t;
 
 typedef struct {
-	float rotx, roty, rotz;
-	float tx, ty, tz;
-} euler_t;
-
-typedef struct {
 	CvPoint3D32f p1;
 	CvPoint3D32f p2;
 	CvPoint3D32f p3;
@@ -94,6 +89,7 @@ typedef struct ht_context {
 	unsigned char depth_counter_pos;
 	float zoom_ratio;
 	ht_config_t config;
+	char* bgr_frame;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
@@ -120,7 +116,7 @@ typedef enum {
 bool ht_get_image(headtracker_t& ctx);
 
 bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matrix, float* translation_vector);
-euler_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector);
+ht_euler_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector);
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight);
 void ht_project_model(headtracker_t& ctx,
 					  float* rotation_matrix,
@@ -163,4 +159,3 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 void ht_remove_lumps(headtracker_t& ctx);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 
-ht_config_t ht_make_config();
