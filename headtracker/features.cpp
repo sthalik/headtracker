@@ -4,7 +4,7 @@ using namespace std;
 using namespace cv;
 
 void ht_remove_lumps(headtracker_t& ctx) {
-	float max = HT_MIN_POINT_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD * ctx.zoom_ratio;
+	float max = HT_MIN_FEATURE_DISTANCE * HT_FILTER_LUMPS_DISTANCE_THRESHOLD * ctx.zoom_ratio;
 	if (ctx.feature_count > HT_MAX_TRACKED_FEATURES * HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD) {
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1 || ctx.feature_failed_iters == 0)
@@ -104,8 +104,8 @@ void ht_track_features(headtracker_t& ctx) {
 		return;
 	}
 
-	char* features_found = new char[ctx.model.count];
-	CvPoint2D32f* new_features = new CvPoint2D32f[ctx.model.count];
+	char* features_found = new char[sz];
+	CvPoint2D32f* new_features = new CvPoint2D32f[sz];
 	
 	cvCalcOpticalFlowPyrLK(
 		ctx.last_image,
@@ -204,7 +204,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 
 	if (cnt > 0) {
 		cvSetImageROI(ctx.grayscale, roi);
-		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_POINT_DISTANCE, NULL, 3, HT_USE_HARRIS);
+		cvGoodFeaturesToTrack(ctx.grayscale, eig_image, tmp_image, tmp_features, &cnt, HT_FEATURE_QUALITY_LEVEL, HT_DETECT_FEATURE_DISTANCE, NULL, 3, HT_USE_HARRIS);
 		cvResetImageROI(ctx.grayscale);
 	}
 
@@ -227,7 +227,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (k > 0 && roi.width > 32 && roi.height > 32)
 		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(15, 15), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
 
-	float max = HT_MIN_POINT_DISTANCE * ctx.zoom_ratio * HT_MIN_POINT_DISTANCE * ctx.zoom_ratio;
+	float max = HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio * HT_MIN_FEATURE_DISTANCE * ctx.zoom_ratio;
 
 	for (int i = 0; i < k && ctx.feature_count < HT_MAX_TRACKED_FEATURES; i++) {
 		triangle_t t;

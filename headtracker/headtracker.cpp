@@ -14,7 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	float rotation_matrix[9];
 	float translation_vector[3];
-	srand(getTickCount());
+	srand((int) getTickCount());
 	headtracker_t* ctx = ht_make_context(0);
 
 	cvNamedWindow("capture", CV_WINDOW_AUTOSIZE | CV_GUI_EXPANDED);
@@ -34,8 +34,8 @@ int _tmain(int argc, _TCHAR* argv[])
 					ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
 					error_t best_error;
 					int best_cnt;
-					int* best_indices = new int[ctx->model.count];
-					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= HT_MIN_TRACK_START_POINTS)
+					int* best_indices = new int[ctx->feature_count];
+					if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) && ctx->feature_count >= HT_MIN_TRACK_START_FEATURES)
 						ctx->state = HT_STATE_TRACKING;
 					else {
 						printf("retries: %d; feature count=%d\n", ctx->init_retries, ctx->feature_count);
@@ -44,15 +44,12 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 					delete[] best_indices;
 				}
-				if (ctx->model.projection)
-					ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
-				ht_draw_features(*ctx);
 				break;
 			} case HT_STATE_TRACKING: {
 				ht_track_features(*ctx);
 				error_t best_error;
 				int best_cnt;
-				int* best_indices = new int[ctx->model.count];
+				int* best_indices = new int[ctx->feature_count];
 				CvPoint3D32f offset;
 				if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) &&
 					ht_estimate_pose(*ctx, rotation_matrix, translation_vector, best_indices, best_cnt, &offset))
@@ -80,7 +77,16 @@ int _tmain(int argc, _TCHAR* argv[])
 					}
 #endif
 				euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-				printf("%.2f %d | %.1f %.1f %.1f | %.1f %.1f %.1f\n", best_error.avg, ctx->feature_count, angles.rotx * 180.0 / HT_PI, angles.roty * 180.0 / HT_PI, angles.rotz * 180.0 / HT_PI, angles.tx, angles.ty, angles.tz);
+				printf("%.2f %d %.2f | %.1f %.1f %.1f | %.1f %.1f %.1f\n",
+					   best_error.avg,
+					   ctx->feature_count,
+					   best_cnt / (float) ctx->feature_count,
+					   angles.rotx * 180.0 / HT_PI,
+					   angles.roty * 180.0 / HT_PI,
+					   angles.rotz * 180.0 / HT_PI,
+					   angles.tx,
+					   angles.ty,
+					   angles.tz);
 				break;
 			} case HT_STATE_LOST: {
 				ctx->feature_count = 0;

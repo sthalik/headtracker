@@ -5,28 +5,30 @@
 #define HT_CLASSIFICATION_DELAY_MS 200
 #define HT_PI 3.14159265f
 #define HT_FEATURE_QUALITY_LEVEL 0.0006f
-#define HT_PYRLK_PYRAMIDS 5
+#define HT_PYRLK_PYRAMIDS 8
 #define HT_PYRLK_WIN_SIZE 15
 
 #define HT_MAX_TRACKED_FEATURES 80
 
-#define HT_RANSAC_ABS_MIN_POINTS 20
-#define HT_RANSAC_MIN_CONSENSUS 0.51f
+#define HT_RANSAC_MIN_CONSENSUS 0.3f
 #define HT_RANSAC_ITER 100
-#define HT_RANSAC_MIN_POINTS 4
+#define HT_RANSAC_MIN_FEATURES 4
 #define HT_RANSAC_STD_DEPTH 700.0f
-#define HT_RANSAC_MAX_CONSENSUS_ERROR 7.0f
+#define HT_RANSAC_MAX_CONSENSUS_ERROR 10.0f
 #define HT_USE_HARRIS 0
 
 #define HT_MAX_DETECT_FEATURES ((int) (HT_MAX_TRACKED_FEATURES * 1.15f))
-#define HT_MIN_TRACK_START_POINTS 30
+#define HT_MIN_TRACK_START_FEATURES 30
 
-#define HT_MAX_INIT_RETRIES 10
+#define HT_MAX_INIT_RETRIES 30
 
 #define HT_DETECT_FEATURES_THRESHOLD 0.95f
 #define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.96f
 
 #define HT_FEATURE_MAX_FAILED_RANSAC 2
+
+#define HT_RANSAC_POSIT_ITER 100
+#define HT_RANSAC_POSIT_EPS 0.9
 
 // these ones will be trainable
 // maybe even more after training.cpp is written and sample video(s) made
@@ -35,13 +37,13 @@
 // the fitness is problematic, but will probably be measured by
 // how a freshly-computed pose differs from the 'continuing'
 // also, the reprojection error of the present pose
-#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.4f
+#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.3f
 #define HT_RANSAC_MAX_ERROR 0.96f
-#define HT_DEPTH_AVG_FRAMES 8
-// these will be tested later, but are pretty optimal as of now
-#define HT_MIN_POINT_DISTANCE 7.5f
-#define HT_DETECT_POINT_DISTANCE 7.001f
-#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.6f
+// these will be probably tested later, but are pretty optimal as of now
+#define HT_MIN_FEATURE_DISTANCE 7.5f
+#define HT_DETECT_FEATURE_DISTANCE 7.001f
+#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.7f
+#define HT_DEPTH_AVG_FRAMES 12
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
