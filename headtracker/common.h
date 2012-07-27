@@ -12,27 +12,34 @@
 
 #define HT_RANSAC_ABS_MIN_POINTS 20
 #define HT_RANSAC_MIN_CONSENSUS 0.49f
-#define HT_RANSAC_MAX_ERROR 0.96f
 #define HT_RANSAC_ITER 100
 #define HT_RANSAC_MIN_POINTS 4
 #define HT_RANSAC_STD_DEPTH 700.0f
 #define HT_RANSAC_MAX_CONSENSUS_ERROR 7.0f
 #define HT_USE_HARRIS 0
-#define HT_MIN_POINT_DISTANCE 8.4f
-#define HT_DETECT_POINT_DISTANCE 8.1f
 
 #define HT_MAX_DETECT_FEATURES (HT_MAX_TRACKED_FEATURES)
 #define HT_MIN_TRACK_START_POINTS 30
 
 #define HT_MAX_INIT_RETRIES 30
-#define HT_DEPTH_AVG_FRAMES 8
-#define HT_FEATURE_MAX_FAILED_RANSAC 3
-#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.4f
-
-#define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.96f
-#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.6f
 
 #define HT_DETECT_FEATURES_THRESHOLD 0.95f
+#define HT_FILTER_LUMPS_FEATURE_COUNT_THRESHOLD 0.96f
+
+// these ones will be trainable
+// maybe even more after training.cpp is written and sample video(s) made
+// the basic idea is to make a video of doing something(s) the tracker has
+// problems with, then change random parameters until it's more fit
+// the fitness is problematic, but will probably be measured by
+// how a freshly-computed pose differs from the 'continuing'
+// also, the reprojection error of the present pose
+#define HT_FILTER_LUMPS_DISTANCE_THRESHOLD 0.6f
+#define HT_FEATURE_MAX_FAILED_RANSAC 2
+#define HT_RANSAC_BEST_ERROR_IMPORTANCE 0.4f
+#define HT_RANSAC_MAX_ERROR 0.96f
+#define HT_DEPTH_AVG_FRAMES 8
+#define HT_MIN_POINT_DISTANCE 8.4f
+#define HT_DETECT_POINT_DISTANCE 8.1f
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
