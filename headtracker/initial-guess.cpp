@@ -4,7 +4,7 @@ using namespace std;
 using namespace cv;
 
 bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matrix, float* translation_vector) {
-	int ticks = GetTickCount();
+	int ticks = ht_tickcount();
 
 	if (ctx.ticks_last_classification / ctx.config.classification_delay == ticks / ctx.config.classification_delay)
 		return false;

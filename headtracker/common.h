@@ -36,7 +36,8 @@ typedef struct {
 	float tx, ty, tz;
 	bool filled;
 	float confidence;
-} ht_euler_t;
+	float feature_ratio;
+} ht_result_t;
 
 typedef enum {
 	cfg_type_float = 0,
@@ -71,7 +72,7 @@ HT_API(ht_config_t) ht_load_config(const char* filename);
 HT_API(void) ht_free_context(headtracker_t* ctx);
 HT_API(ht_frame_t) ht_get_bgr_frame(headtracker_t* ctx);
 HT_API(ht_config_t) ht_make_config();
-HT_API(bool) ht_cycle(headtracker_t* ctx, ht_euler_t* euler);
+HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
 
 HT_API(void) ht_store_config(const headtracker_t* ctx, FILE* stream);
 HT_API(void) ht_store_config(const headtracker_t* ctx, const char* filename);

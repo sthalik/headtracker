@@ -56,20 +56,16 @@ void ht_draw_features(headtracker_t& ctx) {
 			continue;
 
 		CvScalar color;
-		int size;
 
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
-			size = 1;
 		} else if (ctx.feature_failed_iters[i] < ctx.config.feature_max_failed_ransac) {
-			size = 2;
 			color = CV_RGB(255, 255, 0);
 		} else {
 			color = CV_RGB(255, 0, 0);
-			size = 2;
 		}
 
-		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
+		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), 1, color, -1);
 	}
 }
 
@@ -227,7 +223,7 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	}
 
 	if (k > 0 && roi.width > 32 && roi.height > 32)
-		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(10, 10), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 15, 0.4));
+		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(4, 3), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
 
 	float max = ctx.config.min_feature_distance * ctx.zoom_ratio * ctx.config.min_feature_distance * ctx.zoom_ratio;
 

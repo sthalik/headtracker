@@ -3,9 +3,11 @@
 using namespace std;
 using namespace cv;
 
-HT_API(bool) ht_cycle(headtracker_t* ctx, ht_euler_t* euler) {
+HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	float rotation_matrix[9];
 	float translation_vector[3];
+	float rotation_matrix2[9];
+	float translation_vector2[3];
 
 	euler->filled = false;
 
@@ -37,17 +39,20 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_euler_t* euler) {
 		int best_cnt;
 		int* best_indices = new int[ctx->feature_count];
 		CvPoint3D32f offset;
+		CvPoint2D32f centroid;
 		if (ht_ransac_best_indices(*ctx, &best_cnt, &best_error, best_indices) &&
-			ht_estimate_pose(*ctx, rotation_matrix, translation_vector, best_indices, best_cnt, &offset))
+			ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, best_indices, best_cnt, &offset, &centroid))
 		{
 			ht_remove_lumps(*ctx);
-			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(-offset.x, -offset.y, -offset.z));
+			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
 			ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
 			ht_draw_features(*ctx);
-			*euler = ht_matrix_to_euler(rotation_matrix, translation_vector);
+			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
 			euler->confidence = (ctx->config.ransac_max_consensus_error - best_error.avg) / ctx->config.ransac_max_consensus_error;
+			euler->feature_ratio = best_cnt / (float) ctx->config.max_tracked_features;
+			cvCircle(ctx->color, cvPoint(centroid.x, centroid.y), 3, CV_RGB(0, 255, 0), -1);
 		} else
 			ctx->state = HT_STATE_LOST;
 		delete[] best_indices;
@@ -67,7 +72,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_euler_t* euler) {
 		break;
 	}
 	default:
-		throw exception("unknown state");
+		throw exception();
 	}
 
 	if (!ctx->last_image)

@@ -120,7 +120,9 @@ bool ht_ransac(headtracker_t& ctx,
 			if (cur_error.avg > max_consensus_error)
 				goto end2;
 
-			if (pos >= min_consensus && pos > *best_cnt * ((1.0 - importance) + importance * cur_error.avg / best_error->avg)) {
+			float measure = (1.0 - importance) + importance * best_error->avg / cur_error.avg;
+
+			if (pos >= min_consensus && pos * measure * measure > *best_cnt) {
 				ret = true;
 				*best_error = e;
 				*best_cnt = pos;

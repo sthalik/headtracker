@@ -9,7 +9,7 @@ classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f m
 
 	ret.cascade = (CvHaarClassifierCascade*) cvLoad(filename);
 	if (ret.cascade == NULL)
-		throw exception("classifier load failed");
+		throw exception();
 	ret.rect = rect;
 	ret.min_size = min_size;
 

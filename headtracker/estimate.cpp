@@ -3,11 +3,20 @@
 using namespace std;
 using namespace cv;
 
-bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, int* indices, int count, CvPoint3D32f* offset) {
+bool ht_estimate_pose(headtracker_t& ctx,
+					  float* rotation_matrix,
+					  float* translation_vector,
+					  float* rotation_matrix2,
+					  float* translation_vector2,
+					  int* indices,
+					  int count,
+					  CvPoint3D32f* offset,
+					  CvPoint2D32f* image_centroid)
+{
 	CvPoint3D32f* model_points = new CvPoint3D32f[count];
 	CvPoint2D32f* image_points = new CvPoint2D32f[count];
-	CvPoint3D32f* tmp_model_points = new CvPoint3D32f[count];
-	CvPoint2D32f* tmp_image_points = new CvPoint2D32f[count];
+	CvPoint3D32f* tmp_model_points = new CvPoint3D32f[count+1];
+	CvPoint2D32f* tmp_image_points = new CvPoint2D32f[count+1];
 	int k = 0;
 	bool ret = false;
 
@@ -52,12 +61,29 @@ bool ht_estimate_pose(headtracker_t& ctx, float* rotation_matrix, float* transla
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-						   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 0.01 * HT_PI / 180.0),
+						   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 400, 0.01 * HT_PI / 180.0),
 						   ctx.config.focal_length);
 
 			if (ret) {
 				*offset = c;
-				ht_update_zoom_scale(ctx, translation_vector[2]);
+				tmp_model_points[0] = cvPoint3D32f(0, 0, 0);
+				tmp_image_points[0] = *image_centroid = ht_project_point(cvPoint3D32f(-c.x, -c.y + HT_CENTROID_Y, -c.z - HT_CENTROID_DEPTH),
+																		 rotation_matrix,
+																		 translation_vector,
+																		 ctx.config.focal_length);
+				for (int i = 0; i < k; i++) {
+					tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x, model_points[i].y, model_points[i].z + HT_CENTROID_DEPTH);
+					tmp_image_points[i+1] = image_points[i];
+				}
+				ret = ht_posit(tmp_image_points,
+							   tmp_model_points,
+							   k+1,
+							   rotation_matrix2,
+							   translation_vector2,
+							   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 400, 0.01 * HT_PI / 180.0),
+							   ctx.config.focal_length);
+				if (ret)
+					ht_update_zoom_scale(ctx, translation_vector[2]);
 			}
 		}
 	}

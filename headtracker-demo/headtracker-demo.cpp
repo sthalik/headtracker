@@ -8,22 +8,25 @@ using namespace cv;
 int main(int argc, char** argv)
 {
 	headtracker_t* ctx = ht_make_context(0);
-	ht_euler_t euler;
+	ht_result_t result;
+
+	srand((int) getTickCount());
 
 	cvNamedWindow("capture");
 
 	IplImage* image = NULL;
 
-	while (ht_cycle(ctx, &euler)) {
-		if (euler.filled) {
-			printf("%.3f | %.1f %.1f %.1f | %.1f %.1f %.1f\n",
-				   euler.confidence,
-				   euler.rotx * 180.0f / HT_PI,
-				   euler.roty * 180.0f / HT_PI,
-				   euler.rotz * 180.0f / HT_PI,
-				   euler.tx,
-				   euler.ty,
-				   euler.tz);
+	while (ht_cycle(ctx, &result)) {
+		if (result.filled) {
+			printf("%.3f %.2f | %.2f %.2f %.2f | %.1f %.1f %.1f\n",
+				   result.confidence,
+				   result.feature_ratio,
+				   result.rotx * 180.0f / HT_PI,
+				   result.roty * 180.0f / HT_PI,
+				   result.rotz * 180.0f / HT_PI,
+				   result.tx,
+				   result.ty,
+				   result.tz);
 		}
 		ht_frame_t frame = ht_get_bgr_frame(ctx);
 		if (!image)

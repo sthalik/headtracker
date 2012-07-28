@@ -1,12 +1,15 @@
 #pragma once
-#define HT_API(t) __declspec(dllexport) t __cdecl
+#if defined(_WIN32) && !defined(MINGW)
+#  define HT_API(t) __declspec(dllexport) t __cdecl
+#else
+#  define HT_API(t) t
+#endif
+#if defined(_WIN32) && !defined(MINGW)
 #include "targetver.h"
-#include <intrin.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <tchar.h>
-#include <windows.h>
 #include <math.h>
 #include <opencv2/opencv.hpp>
 #include "common.h"

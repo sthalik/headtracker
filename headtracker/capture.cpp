@@ -21,7 +21,6 @@ bool ht_get_image(headtracker_t& ctx) {
 }
 
 HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config) {
-	srand((int) getTickCount());
 	headtracker_t* ctx = new headtracker_t;
 	memset(ctx, 0, sizeof(headtracker_t));
 	ctx->config = config == NULL ? ht_make_config() : *config;
@@ -37,7 +36,7 @@ HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config
 	ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.33f, 0.35f, 0.34f, 0.4f), cvSize2D32f(0.2f, 0.1f));
 	ctx->classifiers[HT_CLASSIFIER_MOUTH] = ht_make_classifier("haarcascade_mcs_mouth.xml", ht_make_rect(0.15f, 0.6f, 0.7f, 0.39f), cvSize2D32f(0.3f, 0.1f));
 
-	ctx->ticks_last_classification = GetTickCount();
+	ctx->ticks_last_classification = ht_tickcount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
 	ctx->model = ht_load_model("head.raw", cvPoint3D32f(1, 1, 1), cvPoint3D32f(0, 0, 0));
@@ -47,7 +46,6 @@ HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config
 	ctx->last_image = NULL;
 	ctx->feature_count = 0;
 	ctx->state = HT_STATE_INITIALIZING;
-	ctx->mouse_x = ctx->mouse_y = -1;
 	ctx->init_retries = 0;
 	ctx->restarted = 1;
 	ctx->depth_frame_count = 0;

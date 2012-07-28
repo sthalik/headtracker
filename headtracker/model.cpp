@@ -20,9 +20,9 @@ void ht_project_model(headtracker_t& ctx,
 	for (int i = 0; i < sz; i++) {
 		triangle_t& t = model.triangles[i];
 		triangle2d_t t2d;
-		t2d.p1 = ht_project_point(cvPoint3D32f(t.p1.x + origin.x, t.p1.y + origin.y, t.p1.z + origin.z), rotation_matrix, translation_vector, focal_length);
-		t2d.p2 = ht_project_point(cvPoint3D32f(t.p2.x + origin.x, t.p2.y + origin.y, t.p2.z + origin.z), rotation_matrix, translation_vector, focal_length);
-		t2d.p3 = ht_project_point(cvPoint3D32f(t.p3.x + origin.x, t.p3.y + origin.y, t.p3.z + origin.z), rotation_matrix, translation_vector, focal_length);
+		t2d.p1 = ht_project_point(cvPoint3D32f(t.p1.x - origin.x, t.p1.y - origin.y, t.p1.z - origin.z), rotation_matrix, translation_vector, focal_length);
+		t2d.p2 = ht_project_point(cvPoint3D32f(t.p2.x - origin.x, t.p2.y - origin.y, t.p2.z - origin.z), rotation_matrix, translation_vector, focal_length);
+		t2d.p3 = ht_project_point(cvPoint3D32f(t.p3.x - origin.x, t.p3.y - origin.y, t.p3.z - origin.z), rotation_matrix, translation_vector, focal_length);
 
 		model.projection[i] = t2d;
 	}
@@ -64,7 +64,7 @@ void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translatio
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset) {
 	FILE* stream = fopen(filename, "r");
 	if (stream == NULL)
-		throw exception("can't open model");
+		throw exception();
 	char line[256];
 	line[255] = '\0';
 	vector<triangle_t> triangles;
@@ -82,7 +82,7 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 			break;
 
 		if (ret != 9)
-			throw new exception("parse error in model");
+			throw new exception();
 
 		triangle.p1.x += offset.x;
 		triangle.p1.y += offset.y;
@@ -135,30 +135,6 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 
 void ht_free_model(model_t& model) {
 	delete model.triangles;
-}
-
-CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector, float focal_length) {
-	float x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
-	float y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
-	float z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
-
-#if 0
-	CvPoint3D32f p3d;
-	euler_t angles = ht_matrix_to_euler(rotation_matrix, translation_vector);
-
-	double ox = angles.rotx;
-	double oy = angles.roty;
-	double oz = -angles.rotz;
-
-	p3d.x = cos(oy)*(sin(oz)*y+cos(oz)*x)-sin(oy)*z;
-	p3d.y = sin(ox)*(cos(oy)*z+sin(oy)*(sin(oz)*y+cos(oz)*x))+cos(ox)*(cos(oz)*y-sin(oz)*x);
-	p3d.z = cos(ox)*(cos(oy)*z+sin(oy)*(sin(oz)*y+cos(oz)*x))-sin(ox)*(cos(oz)*y-sin(oz)*x);
-#endif
-
-	float bx = x * focal_length / z;
-	float by = y * focal_length / z;
-	
-	return cvPoint2D32f(bx, by);
 }
 
 bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c, CvPoint2D32f point) {
