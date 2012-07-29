@@ -142,7 +142,7 @@ void ht_track_features(headtracker_t& ctx) {
 	delete[] old_features;
 }
 
-static bool ht_feature_quality_level(KeyPoint& x, KeyPoint& y) {
+static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 	return x.response < y.response;
 }
 
