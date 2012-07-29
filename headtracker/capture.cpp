@@ -31,9 +31,9 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config) {
 	ctx->color = NULL;
 	
 	ctx->classifiers[HT_CLASSIFIER_HEAD] = ht_make_classifier("haarcascade_frontalface_alt2.xml", ht_make_rect(0, 0, 1, 1), cvSize2D32f(0.1, 0.1));
-	ctx->classifiers[HT_CLASSIFIER_EYE1] = ht_make_classifier("haarcascade_lefteye_2splits.xml", ht_make_rect(0.08f, 0.15f, 0.38f, 0.4f), cvSize2D32f(0.15f, 0.10f));
-	ctx->classifiers[HT_CLASSIFIER_EYE2] = ht_make_classifier("haarcascade_righteye_2splits.xml", ht_make_rect(0.58f, 0.15f, 0.38f, 0.4f), cvSize2D32f(0.15f, 0.10f));
-	ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.33f, 0.35f, 0.34f, 0.4f), cvSize2D32f(0.2f, 0.1f));
+	ctx->classifiers[HT_CLASSIFIER_EYE1] = ht_make_classifier("haarcascade_lefteye_2splits.xml", ht_make_rect(0.00f, 0.01f, 0.48f, 0.5f), cvSize2D32f(0.15f, 0.10f));
+	ctx->classifiers[HT_CLASSIFIER_EYE2] = ht_make_classifier("haarcascade_righteye_2splits.xml", ht_make_rect(0.52f, 0.01f, 0.48f, 0.5f), cvSize2D32f(0.15f, 0.10f));
+	ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.25f, 0.3f, 0.5f, 0.55f), cvSize2D32f(0.2f, 0.1f));
 	ctx->classifiers[HT_CLASSIFIER_MOUTH] = ht_make_classifier("haarcascade_mcs_mouth.xml", ht_make_rect(0.15f, 0.6f, 0.7f, 0.39f), cvSize2D32f(0.3f, 0.1f));
 
 	ctx->ticks_last_classification = ht_tickcount();
