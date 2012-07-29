@@ -8,26 +8,35 @@ bool ht_estimate_pose(headtracker_t& ctx,
 					  float* translation_vector,
 					  float* rotation_matrix2,
 					  float* translation_vector2,
-					  int* indices,
-					  int count,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid)
 {
-	CvPoint3D32f* model_points = new CvPoint3D32f[count];
-	CvPoint2D32f* image_points = new CvPoint2D32f[count];
-	CvPoint3D32f* tmp_model_points = new CvPoint3D32f[count+1];
-	CvPoint2D32f* tmp_image_points = new CvPoint2D32f[count+1];
+	int total = ctx.feature_count + ctx.keypoint_count;
+	CvPoint3D32f* model_points = new CvPoint3D32f[total];
+	CvPoint2D32f* image_points = new CvPoint2D32f[total];
+	CvPoint3D32f* tmp_model_points = new CvPoint3D32f[total+1];
+	CvPoint2D32f* tmp_image_points = new CvPoint2D32f[total+1];
 	int k = 0;
 	bool ret = false;
 
-	for (int i = 0; i < count; i++) {
-		int idx = indices[i];
+	for (int i = 0; i < ctx.config.max_keypoints; i++) {
+		if (ctx.keypoints[i].idx == -1 || ctx.keypoint_failed_iters[i] != 0)
+			continue;
+		int idx = ctx.keypoints[i].idx;
 		model_points[k] = ctx.model.centers[idx];
-		image_points[k] = ctx.features[idx];
+		image_points[k] = ctx.keypoints[i].position;
 		k++;
 	}
 
-	if (k != 0) {
+	for (int i = 0; i < ctx.model.count; i++) {
+		if (ctx.features[i].x == -1 || ctx.feature_failed_iters[i] != 0)
+			continue;
+		model_points[k] = ctx.model.centers[i];
+		image_points[k] = ctx.features[i];
+		k++;
+	}
+
+	if (k >= 4) {
 		int centermost = -1;
 		float center_distance = 1e10;
 
@@ -98,13 +107,13 @@ bool ht_estimate_pose(headtracker_t& ctx,
 
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2) {
 	int sz = ctx.config.depth_avg_frames;
-	ctx.depths[ctx.depth_counter_pos] = (float) tan(HT_STD_FACE_WIDTH / HT_STD_DEPTH);
+	ctx.depths[ctx.depth_counter_pos] = translation_2;
 	ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % sz;
 	if (ctx.depth_frame_count < sz)
 		ctx.depth_frame_count++;
 	float zoom_scale = 0.0f;
 	for (int i = 0; i < ctx.depth_frame_count; i++)
 		zoom_scale += ctx.depths[i];
-	zoom_scale /= ctx.depth_frame_count * tan(HT_STD_FACE_WIDTH / translation_2);
+	zoom_scale /= ctx.depth_frame_count * HT_STD_DEPTH;
 	ctx.zoom_ratio = zoom_scale;
 }

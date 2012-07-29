@@ -3,7 +3,7 @@
 using namespace std;
 using namespace cv;
 
-error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
+static __inline error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
 	float rotation_matrix[9];
 	float translation_vector[3];
 	float focal_length = ctx.config.focal_length;
@@ -44,90 +44,139 @@ void ht_fisher_yates(int* indices, int count) {
 
 bool ht_ransac(headtracker_t& ctx,
 			   int max_iter,
-			   int iter_points,
 			   float max_error,
 			   int min_consensus,
-			   int* best_cnt,
+			   int* best_feature_cnt,
+			   int* best_keypoint_cnt,
 			   error_t* best_error,
 			   int* best_indices,
+			   int* best_keypoints,
 			   model_t& model,
 			   float error_scale)
 {
+	if (ctx.keypoint_count == 0)
+		return false;
+
 	int mcnt = ctx.model.count;
-	int* indices = new int[mcnt];
-	CvPoint2D32f* image_points = new CvPoint2D32f[mcnt];
-	CvPoint3D32f* model_points = new CvPoint3D32f[mcnt];
 	int k = 0;
-	int* model_indices = new int[mcnt];
 	bool ret = false;
 	float max_consensus_error = ctx.config.ransac_max_consensus_error;
 	float importance = ctx.config.ransac_best_error_importance;
+	int* keypoint_indices = new int[ctx.keypoint_count];
+	int* model_feature_indices = new int[mcnt];
+	int* model_keypoint_indices = new int[ctx.keypoint_count];
+	int* indices = new int[mcnt];
 
 	best_error->avg = 1.0e10;
-	*best_cnt = 0;
+	*best_feature_cnt = 0;
+	*best_keypoint_cnt = 0;
 
 	for (int i = 0; i < mcnt; i++) {
 		if (ctx.features[i].x != -1)
 			indices[k++] = i;
 	}
 
-	if (k < min_consensus || k < 4 || iter_points < 4)
+	int kppos = 0;
+
+	for (int i = 0; i < ctx.keypoint_count; i++) {
+		if (ctx.keypoints[i].idx != -1)
+			keypoint_indices[kppos++] = i;
+	}
+
+	CvPoint2D32f* image_points = new CvPoint2D32f[k + kppos];
+	CvPoint3D32f* model_points = new CvPoint3D32f[k + kppos];
+
+	if ((k + kppos) < min_consensus || (k + kppos) < 4)
 		goto end;
 
 	for (int iter = 0; iter < max_iter; iter++) {
 		ht_fisher_yates(indices, k);
-
-		int pos = 0;
+		ht_fisher_yates(keypoint_indices, kppos);
+		int ipos = 0;
+		int fpos = 0;
+		int kpos = 0;
+		int gfpos = 0;
+		int gkpos = 0;
 
 		CvPoint3D32f first_point = model.centers[indices[0]];
 
-		for (int i = 0; i < iter_points; i++) {
-			int idx = indices[i];
-
-			model_points[pos] = model.centers[idx];
-			model_points[pos].x -= first_point.x;
-			model_points[pos].y -= first_point.y;
-			model_points[pos].z -= first_point.z;
-			image_points[pos] = ctx.features[idx];
-			model_indices[pos] = idx;
-			pos++;
-		}
-
-		error_t cur_error = ht_avg_reprojection_error(ctx, model_points, image_points, pos);
-		cur_error.avg *= error_scale;
+		error_t cur_error;
+		cur_error.avg = max_consensus_error - 1.0e-2f;
 
 		if (cur_error.avg >= max_consensus_error)
 			continue;
 
-		for (int i = iter_points; i < k; i++) {
-			int idx = indices[i];
-			model_points[pos] = model.centers[idx];
-			model_points[pos].x -= first_point.x;
-			model_points[pos].y -= first_point.y;
-			model_points[pos].z -= first_point.z;
-			image_points[pos] = ctx.features[idx];
-			model_indices[pos] = idx;
+		for (; fpos < k; fpos++) {
+			int idx = indices[fpos];
+			model_points[ipos] = model.centers[idx];
+			model_points[ipos].x -= first_point.x;
+			model_points[ipos].y -= first_point.y;
+			model_points[ipos].z -= first_point.z;
+			image_points[ipos] = ctx.features[idx];
+			model_feature_indices[gfpos] = idx;
 
-			error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, pos+1);
-			e.avg *= error_scale;
+			if (ipos >= ctx.config.ransac_min_features) {
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1);
+				e.avg *= error_scale;
+				if (e.avg*max_error > cur_error.avg)
+					continue;
+				cur_error.avg = e.avg;
 
-			if (e.avg*max_error > cur_error.avg)
-				continue;
+				if (cur_error.avg > max_consensus_error)
+					goto end2;
+			}
 
-			cur_error.avg = e.avg;
-			pos++;
-
-			if (cur_error.avg > max_consensus_error)
-				goto end2;
+			ipos++;
+			gfpos++;
 
 			float measure = (1.0 - importance) + importance * best_error->avg / cur_error.avg;
 
-			if (pos >= min_consensus && pos * measure * measure > *best_cnt) {
+			if (ipos >= min_consensus && ipos * measure * measure > *best_feature_cnt + *best_keypoint_cnt) {
 				ret = true;
-				*best_error = e;
-				*best_cnt = pos;
-				for (int j = 0; j < pos; j++)
-					best_indices[j] = model_indices[j];
+				*best_error = cur_error;
+				*best_feature_cnt = gfpos;
+				*best_keypoint_cnt = gkpos;
+				for (int i = 0; i < gfpos; i++)
+					best_indices[i] = model_feature_indices[i];
+				for (int i = 0; i < gkpos; i++)
+					best_keypoints[i] = model_keypoint_indices[i];
+			}
+		}
+
+		for (; kpos < kppos; kpos++) {
+			int idx = keypoint_indices[kpos];
+			ht_keypoint& kp = ctx.keypoints[idx];
+			int tid = kp.idx;
+			model_points[ipos] = model.centers[tid];
+			model_points[ipos].x -= first_point.x;
+			model_points[ipos].y -= first_point.y;
+			model_points[ipos].z -= first_point.z;
+			image_points[ipos] = kp.position;
+			model_keypoint_indices[gkpos] = idx;
+			if (ipos >= ctx.config.ransac_min_features) {
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1);
+				e.avg *= error_scale;
+				if (e.avg*max_error > cur_error.avg)
+					continue;
+				cur_error.avg = e.avg;
+				if (cur_error.avg > max_consensus_error)
+					goto end2;
+			}
+
+			ipos++;
+			gkpos++;
+
+			float measure = (1.0 - importance) + importance * best_error->avg / cur_error.avg;
+
+			if (ipos >= min_consensus && ipos * measure > *best_feature_cnt + *best_keypoint_cnt) {
+				ret = true;
+				*best_error = cur_error;
+				*best_feature_cnt = gfpos;
+				*best_keypoint_cnt = gkpos;
+				for (int i = 0; i < gfpos; i++)
+					best_indices[i] = model_feature_indices[i];
+				for (int i = 0; i < gkpos; i++)
+					best_keypoints[i] = model_keypoint_indices[i];
 			}
 		}
 end2:
@@ -136,34 +185,41 @@ end2:
 
 end:
 
+	delete[] keypoint_indices;
 	delete[] indices;
 	delete[] image_points;
 	delete[] model_points;
-	delete[] model_indices;
+	delete[] model_feature_indices;
+	delete[] model_keypoint_indices;
 
 	return ret;
 }
 
-bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
+bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 	int min_features = ctx.state == HT_STATE_TRACKING ? ctx.feature_count * ctx.config.ransac_min_consensus : ctx.config.min_track_start_features;
+	int* best_feature_indices = new int[ctx.feature_count];
+	int* best_keypoint_indices = new int[ctx.keypoint_count];
+	int best_feature_cnt, best_keypoint_cnt;
 	if (ht_ransac(ctx,
 				  ctx.config.ransac_iter,
-				  ctx.config.ransac_min_features,
 				  ctx.config.ransac_max_error,
 				  min_features,
-				  best_cnt,
+				  &best_feature_cnt,
+				  &best_keypoint_cnt,
 				  best_error,
-				  best_indices,
+				  best_feature_indices,
+				  best_keypoint_indices,
 				  ctx.model,
 				  ctx.zoom_ratio)) {
-		char* usedp = new char[ctx.model.count];
+		char* fusedp = new char[ctx.model.count];
+		char* kusedp = new char[ctx.config.max_keypoints];
 		for (int i = 0; i < ctx.model.count; i++)
-			usedp[i] = 0;
-		for (int i = 0; i < *best_cnt; i++) {
-			usedp[best_indices[i]] = 1;
+			fusedp[i] = 0;
+		for (int i = 0; i < best_feature_cnt; i++) {
+			fusedp[best_feature_indices[i]] = 1;
 		}
 		for (int i = 0; i < ctx.model.count; i++) {
-			if (!usedp[i]) {
+			if (!fusedp[i]) {
 				if (ctx.features[i].x != -1 && ctx.features[i].y != -1) {
 					if (++ctx.feature_failed_iters[i] >= ctx.config.feature_max_failed_ransac) {
 						ctx.features[i] = cvPoint2D32f(-1, -1);
@@ -174,8 +230,27 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 				ctx.feature_failed_iters[i] = 0;
 			}
 		}
-		delete[] usedp;
+		for (int i = 0; i < ctx.config.max_keypoints; i++)
+			kusedp[i] = 0;
+		for (int i = 0; i < best_keypoint_cnt; i++)
+			kusedp[best_keypoint_indices[i]] = 1;
+		for (int i = 0; i < ctx.config.max_keypoints; i++) {
+			if (!kusedp[i] && ctx.keypoints[i].idx != -1) {
+				if (++ctx.keypoint_failed_iters[i] >= ctx.config.feature_max_failed_ransac) {
+					ctx.keypoints[i].idx = -1;
+					ctx.keypoint_count--;
+				}
+			} else {
+				ctx.keypoint_failed_iters[i] = 0;
+			}
+		}
+		delete[] fusedp;
+		delete[] kusedp;
+		delete[] best_keypoint_indices;
+		delete[] best_feature_indices;
 		return true;
 	}
+	delete[] best_keypoint_indices;
+	delete[] best_feature_indices;
 	return false;
 }

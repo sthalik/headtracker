@@ -18,15 +18,16 @@ int main(int argc, char** argv)
 
 	while (ht_cycle(ctx, &result)) {
 		if (result.filled) {
-			printf("%.3f %.2f | %.2f %.2f %.2f | %.1f %.1f %.1f\n",
+#if 1
+			printf("%.3f | %.2f %.2f %.2f | %.1f %.1f %.1f\n",
 				   result.confidence,
-				   result.feature_ratio,
 				   result.rotx * 180.0f / HT_PI,
 				   result.roty * 180.0f / HT_PI,
 				   result.rotz * 180.0f / HT_PI,
 				   result.tx,
 				   result.ty,
 				   result.tz);
+#endif
 		}
 		ht_frame_t frame = ht_get_bgr_frame(ctx);
 		if (!image)

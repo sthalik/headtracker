@@ -55,23 +55,28 @@ HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config
 	for (int i = 0; i < ctx->config.depth_avg_frames; i++)
 		ctx->depths[i] = 0;
 	ctx->bgr_frame = NULL;
+	ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
+	for (int i = 0; i < ctx->config.max_keypoints; i++)
+		ctx->keypoints[i].idx = -1;
+	ctx->keypoint_count = 0;
+	ctx->keypoint_failed_iters = new char[ctx->config.max_keypoints];
 	return ctx;
 }
 
 HT_API(void) ht_free_context(headtracker_t* ctx) {
 	if (ctx->model.triangles)
-		delete ctx->model.triangles;
+		delete[] ctx->model.triangles;
 	if (ctx->model.projection)
-		delete ctx->model.projection;
+		delete[] ctx->model.projection;
 	if (ctx->model.centers)
-		delete ctx->model.centers;
+		delete[] ctx->model.centers;
 	cvReleaseCapture(&ctx->camera);
 	for (int i = 0; i < HT_CLASSIFIER_COUNT; i++)
 		ht_free_classifier(&ctx->classifiers[i]);
 	if (ctx->grayscale)
 		cvReleaseImage(&ctx->grayscale);
 	if (ctx->features)
-		delete ctx->features;
+		delete[] ctx->features;
 	if (ctx->pyr_a)
 		cvReleaseImage(&ctx->pyr_a);
 	if (ctx->pyr_b)
@@ -79,9 +84,13 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 	if (ctx->last_image)
 		cvReleaseImage(&ctx->last_image);
 	if (ctx->depths)
-		delete ctx->depths;
+		delete[] ctx->depths;
 	if (ctx->bgr_frame)
-		delete ctx->bgr_frame;
+		delete[] ctx->bgr_frame;
+	if (ctx->keypoints)
+		delete[] ctx->keypoints;
+	if (ctx->keypoint_failed_iters)
+		delete[] ctx->keypoint_failed_iters;
 	delete ctx;
 }
 

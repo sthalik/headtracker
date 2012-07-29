@@ -3,11 +3,10 @@
 // todo do away with leaks if initialization fails
 #pragma once
 #define HT_PI 3.14159265f
-#define HT_STD_FACE_WIDTH 100.0f
 #define HT_STD_DEPTH 570.0f
 
 #define HT_CENTROID_DEPTH 90.0f
-#define HT_CENTROID_Y 19.0f
+#define HT_CENTROID_Y 30.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2
@@ -86,6 +85,11 @@ static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotatio
 						y * focal_length);
 }
 
+typedef struct {
+	int idx;
+	CvPoint2D32f position;
+} ht_keypoint;
+
 typedef struct ht_context {
 	CvCapture* camera;
 	IplImage* grayscale;
@@ -109,6 +113,9 @@ typedef struct ht_context {
 	float zoom_ratio;
 	ht_config_t config;
 	char* bgr_frame;
+	ht_keypoint* keypoints;
+	int keypoint_count;
+	char* keypoint_failed_iters;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
@@ -162,30 +169,28 @@ typedef struct {
 	float avg;
 } error_t;
 
-error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt);
-
 bool ht_ransac(headtracker_t& ctx,
 			   int max_iter,
-			   int iter_points,
 			   float max_error,
 			   int min_consensus,
-			   int* best_cnt,
+			   int* best_feature_cnt,
+			   int* best_keypoint_cnt,
 			   error_t* best_error,
 			   int* best_indices,
+			   int* best_keypoints,
 			   model_t& model,
 			   float error_scale);
+
+
 
 bool ht_estimate_pose(headtracker_t& ctx,
 					  float* rotation_matrix,
 					  float* translation_vector,
 					  float* rotation_matrix2,
 					  float* translation_vector2,
-					  int* indices,
-					  int count,
-					  CvPoint3D32f*
-					  offset,
+					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid);
-bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices);
+bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error);
 void ht_remove_lumps(headtracker_t& ctx);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 

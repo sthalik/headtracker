@@ -10,9 +10,7 @@ void ht_remove_lumps(headtracker_t& ctx) {
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1 || ctx.feature_failed_iters == 0)
 				continue;
-			for (int j = 0; j < ctx.model.count; j++) {
-				if (i == j)
-					continue;
+			for (int j = 0; j < i; j++) {
 				if (ctx.features[j].x == -1)
 					continue;
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
@@ -31,9 +29,7 @@ void ht_remove_lumps(headtracker_t& ctx) {
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (ctx.features[i].x == -1)
 				continue;
-			for (int j = 0; j < ctx.model.count; j++) {
-				if (i == j)
-					continue;
+			for (int j = 0; j < i; j++) {
 				if (ctx.features[j].x == -1)
 					continue;
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
@@ -56,20 +52,31 @@ void ht_draw_features(headtracker_t& ctx) {
 			continue;
 
 		CvScalar color;
+		int size;
 
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
+			size = 1;
 		} else if (ctx.feature_failed_iters[i] < ctx.config.feature_max_failed_ransac) {
 			color = CV_RGB(255, 255, 0);
+			size = 3;
 		} else {
 			color = CV_RGB(255, 0, 0);
+			size = 3;
 		}
 
-		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), 1, color, -1);
+		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
+	}
+
+	for (int i = 0; i < ctx.config.max_keypoints; i++) {
+		if (ctx.keypoints[i].idx != -1)
+			cvCircle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 2, CV_RGB(255, 0, 255), -1);
 	}
 }
 
 void ht_track_features(headtracker_t& ctx) {
+	bool pyr_b_ready = false;
+
 	if (!ctx.features)
 		return;
 
@@ -94,51 +101,99 @@ void ht_track_features(headtracker_t& ctx) {
 			old_features[sz++] = ctx.features[i];
 	}
 
-	if (sz == 0) {
-		delete[] old_features;
-		return;
-	}
-
-	char* features_found = new char[sz];
-	CvPoint2D32f* new_features = new CvPoint2D32f[sz];
+	if (sz > 0) {
+		char* features_found = new char[sz];
+		CvPoint2D32f* new_features = new CvPoint2D32f[sz];
 	
-	cvCalcOpticalFlowPyrLK(
-		ctx.last_image,
-		ctx.grayscale,
-		ctx.pyr_a,
-		ctx.pyr_b,
-		old_features,
-		new_features,
-		sz,
-		cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
-		ctx.config.pyrlk_pyramids,
-		features_found,
-		NULL,
-		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 200, 0.1),
-		OPTFLOW_LK_GET_MIN_EIGENVALS | (got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
+		cvCalcOpticalFlowPyrLK(
+			ctx.last_image,
+			ctx.grayscale,
+			ctx.pyr_a,
+			ctx.pyr_b,
+			old_features,
+			new_features,
+			sz,
+			cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+			ctx.config.pyrlk_pyramids,
+			features_found,
+			NULL,
+			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 200, 0.1),
+			OPTFLOW_LK_GET_MIN_EIGENVALS | ((got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0));
+		
+		pyr_b_ready = true;
 
-	for (int i = 0, j = 0; i < sz; i++, j++) {
-		for (; j < ctx.model.count; j++)
-			if (ctx.features[j].x != -1 || ctx.features[j].y != -1)
+		for (int i = 0, j = 0; i < sz; i++, j++) {
+			for (; j < ctx.model.count; j++)
+				if (ctx.features[j].x != -1 || ctx.features[j].y != -1)
+					break;
+
+			if (j == ctx.model.count)
 				break;
 
-		if (j == ctx.model.count)
-			break;
+			if (!features_found[i]) {
+				ctx.features[j] = cvPoint2D32f(-1, -1);
+				ctx.feature_count--;
+				ctx.feature_failed_iters[j] = 0;
+			} else
+				ctx.features[j] = new_features[i];
+		}
 
-		if (!features_found[i]) {
-			ctx.features[j] = cvPoint2D32f(-1, -1);
-			ctx.feature_count--;
-			ctx.feature_failed_iters[j] = 0;
-		} else
-			ctx.features[j] = new_features[i];
+		delete[] features_found;
+		delete[] new_features;
+	}
+
+	if (ctx.keypoint_count > 0) {
+		int sz = ctx.keypoint_count;
+		char* features_found = new char[sz];
+		CvPoint2D32f* new_features = new CvPoint2D32f[sz];
+
+		int k = 0;
+
+		for (int i = 0; i < ctx.config.max_keypoints; i++) {
+			if (ctx.keypoints[i].idx == -1)
+				continue;
+			old_features[k++] = ctx.keypoints[i].position;
+		}
+
+		if (k > 0) {
+			cvCalcOpticalFlowPyrLK(ctx.last_image,
+								   ctx.grayscale,
+								   ctx.pyr_a,
+								   ctx.pyr_b,
+								   old_features,
+								   new_features,
+								   k,
+								   cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+								   ctx.config.pyrlk_pyramids,
+								   features_found,
+								   NULL,
+								   cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 200, 0.1),
+								   CV_LKFLOW_GET_MIN_EIGENVALS
+								       | ((got_pyr && !ctx.restarted)
+									       ? (CV_LKFLOW_PYR_A_READY | (pyr_b_ready && CV_LKFLOW_PYR_B_READY))
+										   : 0));
+			for (int i = 0, j = 0; i < k; i++, j++) {
+				for (; j < ctx.config.max_keypoints && ctx.keypoints[j].idx == -1; j++)
+					;;
+				if (j == ctx.config.max_keypoints)
+					break;
+				if (!features_found[i]) {
+					ctx.keypoints[j].idx = -1;
+					ctx.keypoint_count--;
+				} else {
+					ctx.keypoints[j].position = new_features[i];
+				}
+			}
+		}
+
+		delete[] features_found;
+		delete[] new_features;
 	}
 
 	IplImage* tmp = ctx.pyr_a;
 	ctx.pyr_a = ctx.pyr_b;
 	ctx.pyr_b = tmp;
 
-	delete[] features_found;
-	delete[] new_features;
 	delete[] old_features;
 }
 
@@ -147,11 +202,9 @@ static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 }
 
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model) {
-	if (ctx.feature_count >= ctx.config.max_tracked_features * ctx.config.features_detect_threshold)
-		return;
-
-	if (!model.projection)
-		return;
+	if (!(ctx.keypoint_count < ctx.config.max_keypoints ||
+		  ctx.feature_count < ctx.config.max_tracked_features * ctx.config.features_detect_threshold))
+		  return;
 
 	float min_x = (float) ctx.grayscale->width, max_x = 0.0f;
 	float min_y = (float) ctx.grayscale->height, max_y = 0.0f;
@@ -179,6 +232,9 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 		if (y < min_y)
 			min_y = y;
 	}
+	
+	if (!model.projection)
+		return;
 
 	CvRect roi = cvRect(min_x, min_y, max_x - min_x, max_y - min_y);
 
@@ -193,19 +249,89 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	vector<KeyPoint> corners;
 
 	Mat mat = Mat(Mat(ctx.grayscale, false), roi);
-	int max = ctx.state == HT_STATE_TRACKING
-		? ctx.config.max_tracked_features * ctx.config.max_detect_features
-		: ctx.config.min_track_start_features * 1.5f;
+start_keypoints:
+	if (ctx.keypoint_count < ctx.config.max_keypoints) {
+		float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
+		max_dist *= max_dist;
+		ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 16, ctx.config.keypoint_quality, 0, 4, 0, ctx.config.feature_quality_level);
+		detector(mat, noArray(), corners);
+		sort(corners.begin(), corners.end(), ht_feature_quality_level);
+		int cnt = corners.size();
+		int good = 0;
 
-	int good = 0;
+		for (int i = 0; i < cnt; i++) {
+			corners[i].pt.x += roi.x;
+			corners[i].pt.y += roi.y;
+
+			CvPoint2D32f kp = corners[i].pt;
+			triangle_t t;
+			int idx;
+			if (!ht_triangle_at(ctx, kp, &t, &idx, rotation_matrix, translation_vector, model))
+				continue;
+
+			bool overlap = false;
+
+			for (int j = 0; j < i; j++)
+				if (ht_distance2d_squared(kp, corners[j].pt) < max_dist) {
+					overlap = true;
+					break;
+				}
+
+			if (!overlap)
+				good++;
+			else
+				continue;
+
+			if (ctx.keypoint_count < ctx.config.max_keypoints) {
+				for (int j = 0; j < ctx.config.max_keypoints; j++) {
+					if (ctx.keypoints[j].idx != -1 && ht_distance2d_squared(kp, ctx.keypoints[j].position) < max_dist) {
+						overlap = true;
+						break;
+					}
+				}
+
+				if (overlap)
+					continue;
+
+				for (int kpidx = 0; kpidx < ctx.config.max_keypoints; kpidx++) {
+					if (ctx.keypoints[kpidx].idx == -1) {
+						ctx.keypoints[kpidx].idx = idx;
+						ctx.keypoints[kpidx].position = kp;
+						ctx.keypoint_count++;
+						ctx.keypoint_failed_iters[kpidx] = 0;
+						break;
+					}
+				}
+			}
+		}
+
+		if (good < ctx.config.max_keypoints) {
+			if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL)
+				ctx.config.keypoint_quality--;
+		} else {
+			if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL) {
+				ctx.config.keypoint_quality++;
+				if (ctx.state == HT_STATE_INITIALIZING) {
+					corners.clear();
+					goto start_keypoints;
+				}
+			}
+		}
+	}
+
+	corners.clear();
+	
+	if (ctx.feature_count >= ctx.config.max_tracked_features * ctx.config.features_detect_threshold)
+		return;
+
+	int max = ctx.state == HT_STATE_TRACKING
+		? ctx.config.max_tracked_features
+		: ctx.config.min_track_start_features;
 
 redetect:
-	ORB detector = ORB(max*20, 1.1f, 12, ctx.config.feature_quality_level, 0, 2, 0, ctx.config.feature_quality_level);
-	detector(mat, noArray(), corners);
-
-	printf("ORB gave %d corners at quality level %d\n", corners.size(), ctx.config.feature_quality_level);
-
-	sort(corners.begin(), corners.end(), ht_feature_quality_level);
+	int good = 0;
+	PyramidAdaptedFeatureDetector pyrfast(new FastFeatureDetector(ctx.config.feature_quality_level), 3);
+	pyrfast.detect(mat, corners);
 
 	int count = corners.size(), k = 0;
 
@@ -214,12 +340,20 @@ redetect:
 
 	CvPoint2D32f* features_to_add = new CvPoint2D32f[count];
 
+	float max_distance = ctx.config.min_feature_distance * ctx.zoom_ratio;
+	max_distance *= max_distance;
+
 	for (int i = 0; i < count; i++) {
 		corners[i].pt.x += roi.x;
 		corners[i].pt.y += roi.y;
 		
 		triangle_t t;
 		int idx;
+
+		for (int j = 0; j < count; j++) {
+			if (i != j && ht_distance2d_squared(corners[i].pt, corners[j].pt) < max_distance)
+				goto end;
+		}
 
 		if (!(ht_triangle_at(ctx, corners[i].pt, &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
@@ -230,9 +364,12 @@ redetect:
 			continue;
 
 		features_to_add[k++] = corners[i].pt;
+
+end:
+		;
 	}
 
-	if (good > max) {
+	if (good > max * ctx.config.feature_detect_ratio) {
 		if (ctx.config.feature_quality_level < HT_FEATURE_MAX_QUALITY_LEVEL)
 			ctx.config.feature_quality_level++;
 	} else {
@@ -249,8 +386,6 @@ redetect:
 	if (k > max)
 		k = max;
 
-	float max_distance = ctx.config.min_feature_distance * ctx.zoom_ratio * ctx.config.min_feature_distance * ctx.zoom_ratio;
-
 	if (k > 0) {
 		if (roi.width > 17 && roi.height > 13)
 			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 100, 0.05));
@@ -258,15 +393,15 @@ redetect:
 			triangle_t t;
 			int idx;
 
+			for (int j = 0; j < model.count; j++)
+				if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max_distance)
+					goto end2;
+
 			if (!(ht_triangle_at(ctx, features_to_add[i], &t, &idx, rotation_matrix, translation_vector, model)))
 				continue;
 
 			if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
 				continue;
-
-			for (int j = 0; j < model.count; j++)
-				if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max_distance)
-					goto end2;
 
 			ctx.features[idx] = features_to_add[i];
 			ctx.feature_count++;

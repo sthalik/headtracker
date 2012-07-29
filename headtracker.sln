@@ -10,11 +10,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "headtracker-demo", "headtra
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81FC8292-C95B-4E28-BF2A-900F4068E6E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{81FC8292-C95B-4E28-BF2A-900F4068E6E8}.Debug|Win32.Build.0 = Debug|Win32
 		{81FC8292-C95B-4E28-BF2A-900F4068E6E8}.Release|Win32.ActiveCfg = Release|Win32
 		{81FC8292-C95B-4E28-BF2A-900F4068E6E8}.Release|Win32.Build.0 = Release|Win32
+		{5C8978D1-CA85-4AD6-B2AA-74E80B19E572}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C8978D1-CA85-4AD6-B2AA-74E80B19E572}.Debug|Win32.Build.0 = Debug|Win32
 		{5C8978D1-CA85-4AD6-B2AA-74E80B19E572}.Release|Win32.ActiveCfg = Release|Win32
 		{5C8978D1-CA85-4AD6-B2AA-74E80B19E572}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection

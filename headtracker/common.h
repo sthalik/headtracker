@@ -12,9 +12,7 @@ typedef struct ht_config {
 	int   max_tracked_features;
 	float ransac_min_consensus;
 	int   ransac_iter;
-	int   ransac_min_features;
 	float ransac_max_consensus_error;
-	float max_detect_features;
 	int   min_track_start_features;
 	int   max_init_retries;
 	float features_detect_threshold;
@@ -27,6 +25,11 @@ typedef struct ht_config {
 	float filter_lumps_distance_threshold;
 	float ransac_best_error_importance;
 	float ransac_max_error;
+	int   max_keypoints;
+	int   keypoint_quality;
+	float keypoint_distance;
+	int   ransac_min_features;
+	float feature_detect_ratio;
 } ht_config_t;
 
 typedef struct {
@@ -34,7 +37,6 @@ typedef struct {
 	float tx, ty, tz;
 	bool filled;
 	float confidence;
-	float feature_ratio;
 } ht_result_t;
 
 typedef enum {
