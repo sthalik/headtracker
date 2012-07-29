@@ -1,12 +1,16 @@
 #!/bin/sh -e
 
-MINGW=""
-
 if uname -s | fgrep -iq mingw; then
 	MINGW="-DMINGW"
+	VER="242"
+	SUFFIX=.exe
+else
+	VER=""
+	MINGW=""
+	SUFFIX=""
 fi
 
-LIBS="-lopencv_calib3d242 -lopencv_contrib242 -lopencv_core242 -lopencv_features2d242 -lopencv_flann242 -lopencv_gpu242 -lopencv_highgui242 -lopencv_imgproc242 -lopencv_legacy242 -lopencv_ml242 -lopencv_nonfree242 -lopencv_objdetect242 -lopencv_photo242 -lopencv_stitching242 -lopencv_video242 -lopencv_videostab242 -lopencv_ffmpeg242"
+LIBS="-lopencv_calib3d$VER -lopencv_contrib$VER -lopencv_core242 -lopencv_features2d$VER -lopencv_flann$VER -lopencv_highgui$VER -lopencv_imgproc$VER -lopencv_legacy$VER -lopencv_ml$VER -lopencv_nonfree$VER -lopencv_objdetect$VER -lopencv_photo$VER -lopencv_stitching$VER -lopencv_video$VER -lopencv_videostab$VER"
 LDFLAGS="-L../thirdparty/bin -Wl,-rpath,."
 CXXFLAGS="-I../../headtracker -I../thirdparty/include -O3 -march=native -ffast-math"
 
@@ -20,7 +24,7 @@ for i in ../../headtracker/*.cpp ../../headtracker-demo/headtracker-demo.cpp; do
 done
 
 echo LD headtracker-demo
-g++ -o headtracker-demo.exe *.o $LIBS $LDFLAGS
+g++ -o headtracker-demo$SUFFIX *.o $LIBS $LDFLAGS
 cp ../../thirdparty/bin/head.raw .
 cp ../../thirdparty/bin/*.xml .
 if test -n "$MINGW"; then
