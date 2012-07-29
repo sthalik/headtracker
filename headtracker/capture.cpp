@@ -20,13 +20,13 @@ bool ht_get_image(headtracker_t& ctx) {
 	return true;
 }
 
-HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config) {
+HT_API(headtracker_t*) ht_make_context(const ht_config_t* config) {
 	headtracker_t* ctx = new headtracker_t;
 	memset(ctx, 0, sizeof(headtracker_t));
 	ctx->config = config == NULL ? ht_make_config() : *config;
 
 	ctx->grayscale = NULL;
-	ctx->camera = cvCreateCameraCapture(camera_idx);
+	ctx->camera = cvCreateCameraCapture(ctx->config.camera_index);
 	ctx->classifiers = new classifier_t[HT_CLASSIFIER_COUNT];
 	ctx->color = NULL;
 	
@@ -60,6 +60,12 @@ HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config
 		ctx->keypoints[i].idx = -1;
 	ctx->keypoint_count = 0;
 	ctx->keypoint_failed_iters = new char[ctx->config.max_keypoints];
+	if (ctx->config.force_width)
+		cvSetCaptureProperty(ctx->camera, CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
+	if (ctx->config.force_height)
+		cvSetCaptureProperty(ctx->camera, CV_CAP_PROP_FRAME_HEIGHT, ctx->config.force_height);
+	if (ctx->config.force_fps)
+		cvSetCaptureProperty(ctx->camera, CV_CAP_PROP_FPS, ctx->config.force_fps);
 	return ctx;
 }
 

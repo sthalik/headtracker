@@ -7,7 +7,17 @@ using namespace cv;
 
 int main(int argc, char** argv)
 {
-	headtracker_t* ctx = ht_make_context(0);
+	ht_config_t conf;
+	FILE* cfg;
+
+	if ((cfg = fopen("config.txt", "r")) != NULL) {
+		conf = ht_load_config(cfg);
+		fclose(cfg);
+	} else {
+		conf = ht_make_config();
+	}
+
+	headtracker_t* ctx = ht_make_context(&conf);
 	ht_result_t result;
 
 	srand((int) getTickCount());

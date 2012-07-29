@@ -61,7 +61,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum error of one RANSAC iteration compared to the previous one."),
 	F(filter_lumps_distance_threshold, float, 0.88f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
-	F(min_feature_distance, float, 6.1f, 3.00001f, 15.00001f,
+	F(min_feature_distance, float, 5.1f, 3.00001f, 15.00001f,
 		"Distance between two features at the time of their detection, including already detected ones."),
 	F(max_keypoints, int, 18, 8, 48,
 		"Maximum keypoints to track"),
@@ -73,6 +73,14 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Points to start each RANSAC iteration"),
 	F(feature_detect_ratio, float, 0.7f, 0.1f, 2.0f,
 		"Features to detect at one time to consider given quality level as satisfactory."),
+	F(force_width, int, 0, 0, 10000,
+		"Force capture width of a webcam."),
+	F(force_height, int, 0, 0, 10000,
+		"Force capture height of a webcam."),
+	F(force_fps, int, 0, 0, 10000,
+		"Force capture frames per second of a webcam."),
+	F(camera_index, int, 0, -1, 100000,
+		"Choose a different camera by its platform-specific index."),
 	FIELD_END
 };
 

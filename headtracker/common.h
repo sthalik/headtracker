@@ -30,6 +30,10 @@ typedef struct ht_config {
 	float keypoint_distance;
 	int   ransac_min_features;
 	float feature_detect_ratio;
+	int   force_width;
+	int   force_height;
+	int   force_fps;
+	int   camera_index;
 } ht_config_t;
 
 typedef struct {
@@ -66,7 +70,7 @@ typedef struct {
 	char const* data;
 } ht_frame_t;
 
-HT_API(headtracker_t*) ht_make_context(int camera_idx, const ht_config_t* config = NULL);
+HT_API(headtracker_t*) ht_make_context(const ht_config_t* config = NULL);
 HT_API(ht_config_t) ht_load_config(FILE* stream);
 HT_API(ht_config_t) ht_load_config(const char* filename);
 HT_API(void) ht_free_context(headtracker_t* ctx);
