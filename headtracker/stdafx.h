@@ -4,6 +4,9 @@
 #else
 #  define HT_API(t) t
 #endif
+#ifndef _WIN32
+#  define _isnan isnan
+#endif
 #if defined(_WIN32) && !defined(MINGW)
 #include "targetver.h"
 #endif

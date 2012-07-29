@@ -14,7 +14,6 @@ typedef struct ht_config {
 	int   ransac_iter;
 	int   ransac_min_features;
 	float ransac_max_consensus_error;
-	bool  use_harris;
 	float max_detect_features;
 	int   min_track_start_features;
 	int   max_init_retries;

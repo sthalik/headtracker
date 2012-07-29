@@ -4,7 +4,7 @@
 #pragma once
 #define HT_PI 3.14159265f
 #define HT_STD_FACE_WIDTH 100.0f
-#define HT_STD_DEPTH 700.0f
+#define HT_STD_DEPTH 570.0f
 
 #define HT_CENTROID_DEPTH 90.0f
 #define HT_CENTROID_Y 19.0f
