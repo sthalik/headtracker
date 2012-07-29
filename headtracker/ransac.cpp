@@ -145,11 +145,12 @@ end:
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_error, int* best_indices) {
+	int min_features = ctx.state == HT_STATE_TRACKING ? ctx.feature_count * ctx.config.ransac_min_consensus : ctx.config.min_track_start_features;
 	if (ht_ransac(ctx,
 				  ctx.config.ransac_iter,
 				  ctx.config.ransac_min_features,
 				  ctx.config.ransac_max_error,
-				  (int) (ctx.feature_count * ctx.config.ransac_min_consensus) + 1,
+				  min_features,
 				  best_cnt,
 				  best_error,
 				  best_indices,
@@ -174,7 +175,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, int* best_cnt, error_t* best_err
 			}
 		}
 		delete[] usedp;
-		return *best_cnt >= ctx.config.ransac_min_consensus * ctx.feature_count;
+		return true;
 	}
 	return false;
 }

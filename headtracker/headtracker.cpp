@@ -17,7 +17,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
 		ht_track_features(*ctx);
-		if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector)) {
+		if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector))
+		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
 			ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
 			ctx->restarted = false;

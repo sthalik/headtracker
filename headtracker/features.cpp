@@ -114,8 +114,8 @@ void ht_track_features(headtracker_t& ctx) {
 		ctx.config.pyrlk_pyramids,
 		features_found,
 		NULL,
-		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.251 ),
-		(got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
+		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 200, 0.1),
+		OPTFLOW_LK_GET_MIN_EIGENVALS | (got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0);
 
 	for (int i = 0, j = 0; i < sz; i++, j++) {
 		for (; j < ctx.model.count; j++)
@@ -140,6 +140,10 @@ void ht_track_features(headtracker_t& ctx) {
 	delete[] features_found;
 	delete[] new_features;
 	delete[] old_features;
+}
+
+static bool ht_feature_quality_level(KeyPoint& x, KeyPoint& y) {
+	return x.response < y.response;
 }
 
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model) {
@@ -186,70 +190,90 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	if (roi.width == 0 || roi.height == 0)
 		return;
 
-	IplImage* eig_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
-	IplImage* tmp_image = cvCreateImage( cvGetSize(ctx.grayscale), IPL_DEPTH_32F, 1 );
+	vector<KeyPoint> corners;
 
-	int to_detect = (int) ctx.config.max_detect_features * ctx.config.max_tracked_features;
+	Mat mat = Mat(Mat(ctx.grayscale, false), roi);
+	int max = ctx.state == HT_STATE_TRACKING
+		? ctx.config.max_tracked_features * ctx.config.max_detect_features
+		: ctx.config.min_track_start_features * 1.5f;
 
-	CvPoint2D32f* tmp_features    = new CvPoint2D32f[to_detect];
-	CvPoint2D32f* features_to_add = new CvPoint2D32f[to_detect];
-	int k = 0;
+	int good = 0;
 
-	cvSetImageROI(ctx.grayscale, roi);
-	cvGoodFeaturesToTrack(ctx.grayscale,
-						  eig_image,
-						  tmp_image,
-						  tmp_features,
-						  &to_detect,
-						  ctx.config.feature_quality_level,
-						  ctx.config.detect_feature_distance,
-						  NULL, 3, ctx.config.use_harris);
-	cvResetImageROI(ctx.grayscale);
+redetect:
+	ORB detector = ORB(max*20, 1.1f, 12, ctx.config.feature_quality_level, 0, 2, 0, ctx.config.feature_quality_level);
+	detector(mat, noArray(), corners);
 
-	for (int i = 0; i < to_detect; i++) {
-		tmp_features[i].x += roi.x;
-		tmp_features[i].y += roi.y;
+	printf("ORB gave %d corners at quality level %d\n", corners.size(), ctx.config.feature_quality_level);
+
+	sort(corners.begin(), corners.end(), ht_feature_quality_level);
+
+	int count = corners.size(), k = 0;
+
+	if (count == 0)
+		return;
+
+	CvPoint2D32f* features_to_add = new CvPoint2D32f[count];
+
+	for (int i = 0; i < count; i++) {
+		corners[i].pt.x += roi.x;
+		corners[i].pt.y += roi.y;
 		
 		triangle_t t;
 		int idx;
 
-		if (!(ht_triangle_at(ctx, tmp_features[i], &t, &idx, rotation_matrix, translation_vector, model)))
+		if (!(ht_triangle_at(ctx, corners[i].pt, &t, &idx, rotation_matrix, translation_vector, model)))
 			continue;
+
+		good++;
 
 		if (ctx.features[idx].x != -1)
 			continue;
 
-		features_to_add[k++] = tmp_features[i];
+		features_to_add[k++] = corners[i].pt;
 	}
 
-	if (k > 0 && roi.width > 32 && roi.height > 32)
-		cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(4, 3), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.3));
-
-	float max = ctx.config.min_feature_distance * ctx.zoom_ratio * ctx.config.min_feature_distance * ctx.zoom_ratio;
-
-	for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
-		triangle_t t;
-		int idx;
-
-		if (!(ht_triangle_at(ctx, features_to_add[i], &t, &idx, rotation_matrix, translation_vector, model)))
-			continue;
-
-		if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
-			continue;
-
-		for (int j = 0; j < model.count; j++) {
-			if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max)
-				goto end2;
+	if (good > max) {
+		if (ctx.config.feature_quality_level < HT_FEATURE_MAX_QUALITY_LEVEL)
+			ctx.config.feature_quality_level++;
+	} else {
+		if (ctx.config.feature_quality_level > HT_FEATURE_MIN_QUALITY_LEVEL) {
+			ctx.config.feature_quality_level--;
+			if (ctx.state == HT_STATE_INITIALIZING) {
+				corners.clear();
+				delete[] features_to_add;
+				goto redetect;
+			}
 		}
-
-		ctx.features[idx] = features_to_add[i];
-		ctx.feature_count++;
-end2:
-		;
 	}
 
-	cvReleaseImage(&eig_image);
-	cvReleaseImage(&tmp_image);
-	delete tmp_features;
-	delete features_to_add;
+	if (k > max)
+		k = max;
+
+	float max_distance = ctx.config.min_feature_distance * ctx.zoom_ratio * ctx.config.min_feature_distance * ctx.zoom_ratio;
+
+	if (k > 0) {
+		if (roi.width > 17 && roi.height > 13)
+			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 100, 0.05));
+		for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
+			triangle_t t;
+			int idx;
+
+			if (!(ht_triangle_at(ctx, features_to_add[i], &t, &idx, rotation_matrix, translation_vector, model)))
+				continue;
+
+			if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
+				continue;
+
+			for (int j = 0; j < model.count; j++)
+				if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max_distance)
+					goto end2;
+
+			ctx.features[idx] = features_to_add[i];
+			ctx.feature_count++;
+	end2:
+			;
+		}
+	}
+
+	delete[] features_to_add;
 }

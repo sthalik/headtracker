@@ -5,7 +5,7 @@ typedef struct ht_context headtracker_t;
 typedef struct ht_config {
 	float focal_length;
 	float classification_delay;
-	float feature_quality_level;
+	int   feature_quality_level;
 	int   pyrlk_pyramids;
 	int   pyrlk_win_size_w;
 	int   pyrlk_win_size_h;
@@ -25,7 +25,6 @@ typedef struct ht_config {
 	float ransac_posit_eps;
 	int   depth_avg_frames;
 	float min_feature_distance;
-	float detect_feature_distance;
 	float filter_lumps_distance_threshold;
 	float ransac_best_error_importance;
 	float ransac_max_error;
