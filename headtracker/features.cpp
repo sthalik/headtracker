@@ -253,7 +253,7 @@ start_keypoints:
 	if (ctx.keypoint_count < ctx.config.max_keypoints) {
 		float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
 		max_dist *= max_dist;
-		ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 16, ctx.config.keypoint_quality, 0, 4, 0, ctx.config.feature_quality_level);
+		ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
 		detector(mat, noArray(), corners);
 		sort(corners.begin(), corners.end(), ht_feature_quality_level);
 		int cnt = corners.size();
