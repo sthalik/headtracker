@@ -3,5 +3,4 @@
 #include "targetver.h"
 #endif
 #include <stdio.h>
-#include <tchar.h>
 #include <headtracker.h>
