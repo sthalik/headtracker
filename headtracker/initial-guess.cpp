@@ -13,11 +13,11 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 
 	CvRect rectangles[HT_CLASSIFIER_COUNT];
 
-	if (!ht_classify(ctx, ctx.classifiers[HT_CLASSIFIER_HEAD], frame, cvRect(0, 0, frame.width, frame.height), rectangles[HT_CLASSIFIER_HEAD]))
+	if (!ht_classify(ctx.classifiers[HT_CLASSIFIER_HEAD], frame, cvRect(0, 0, frame.width, frame.height), rectangles[HT_CLASSIFIER_HEAD]))
 		return false;
 
 	for (int i = 1; i < HT_CLASSIFIER_COUNT; i++) {
-		if (!ht_classify(ctx, ctx.classifiers[i], frame, rectangles[HT_CLASSIFIER_HEAD], rectangles[i]))
+		if (!ht_classify(ctx.classifiers[i], frame, rectangles[HT_CLASSIFIER_HEAD], rectangles[i]))
 			return false;
 	}
 
@@ -28,8 +28,8 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 		image_points[i-1] = cvPoint2D32f(rectangles[i].x + rectangles[i].width/2, rectangles[i].y + rectangles[i].height/2);
 
 	object_points[HT_CLASSIFIER_NOSE-1] = cvPoint3D32f(0, 0, 0);
-	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-31.67, -16.58, -35.3);
-	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(31.67, -16.58, -35.3);
+	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-32.92, -12.57, -34.34);
+	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(32.92, -12.57, -34.34);
 	object_points[HT_CLASSIFIER_MOUTH-1] = cvPoint3D32f(0, 58, -21);
 
 	return ht_posit(image_points,

@@ -25,10 +25,11 @@ void ht_project_model(headtracker_t& ctx,
 		t2d.p3 = ht_project_point(cvPoint3D32f(t.p3.x - origin.x, t.p3.y - origin.y, t.p3.z - origin.z), rotation_matrix, translation_vector, focal_length);
 
 		model.projection[i] = t2d;
+		model.projected_depths[i] = model.centers[i].x * rotation_matrix[6] + model.centers[i].y * rotation_matrix[7] + model.centers[i].z * rotation_matrix[8];
 	}
 }
 
-bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, const model_t& model) {
+bool ht_triangle_at(CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model) {
 	if (!model.projection)
 		return false;
 
@@ -36,11 +37,10 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* 
 	int sz = model.count;
 
 	for (int i = 0; i < sz; i++) {
-		float depth = model.centers[i].x * rotation_matrix[6] + model.centers[i].y * rotation_matrix[7] + model.centers[i].z * rotation_matrix[8];
 		triangle2d_t& t = model.projection[i];
-		if (depth > min_depth && ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos)) {
+		if (model.projected_depths[i] > min_depth && ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos)) {
 			*ret = model.triangles[i];
-			min_depth = depth;
+			min_depth = model.projected_depths[i];
 			*idx = i;
 		}
 	}
@@ -48,7 +48,7 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* 
 	return min_depth > -9999;
 }
 
-bool ht_triangle_exists(headtracker_t& ctx, CvPoint2D32f pos, const model_t& model) {
+bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model) {
 	if (!model.projection)
 		return false;
 
@@ -64,7 +64,7 @@ bool ht_triangle_exists(headtracker_t& ctx, CvPoint2D32f pos, const model_t& mod
 }
 
 
-void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model) {
+void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	int sz = model.count;
 
 	for (int i = 0; i < sz; i++) {
@@ -135,6 +135,7 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 	ret.count = sz;
 	ret.triangles = new triangle_t[sz];
 	ret.centers = new CvPoint3D32f[sz];
+	ret.projected_depths = new float[sz];
 	for (int i = 0; i < sz; i++) {
 		ret.triangles[i] = triangles[i];
 		ret.centers[i] = cvPoint3D32f(
@@ -150,6 +151,7 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 
 void ht_free_model(model_t& model) {
 	delete model.triangles;
+	delete model.projected_depths;
 }
 
 bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c, CvPoint2D32f point) {
@@ -168,13 +170,11 @@ bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c,
 	float dot11 = ht_dot_product2d(v1, v1);
 	float dot12 = ht_dot_product2d(v1, v2);
 	float denom = dot00 * dot11 - dot01 * dot01;
-	if (denom == 0)
-		return false;
 	float invDenom = 1.0f / denom;
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-	return u >= 0 && v >= 0 && u + v <= 1;
+	return u > 0 && v > 0 && u + v < 1;
 }
 
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight) {

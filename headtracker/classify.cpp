@@ -16,7 +16,7 @@ classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f m
 	return ret;
 }
 
-bool ht_classify(headtracker_t& ctx, const classifier_t& classifier, IplImage& frame, const CvRect& roi, CvRect& ret) {
+bool ht_classify(const classifier_t& classifier, IplImage& frame, const CvRect& roi, CvRect& ret) {
 	CvRect roi2 = roi;
 
 	roi2.x += roi.width * classifier.rect.x;

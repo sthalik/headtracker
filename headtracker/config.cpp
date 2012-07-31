@@ -20,7 +20,7 @@ DEFINE_UNION_INITIALIZER(bool, i);
 static const ht_reflection_t ht_reflection_info[] = {
 	F(classification_delay, float, 334.0f, 200.0f, 2000.0f,
 		"Delay between two Haar classifications at the very start of tracking, until enough features are tracked."),
-	F(features_detect_threshold, float, 0.98f, 0.5f, 1.0f,
+	F(features_detect_threshold, float, 0.97f, 0.5f, 1.0f,
 		"Only detect new features when the amount of features presently tracked falls below this ratio."),
 	F(feature_max_failed_ransac, int, 1, 0, 6,
 		"Maximum consecutive amount of RANSAC evaluations of a feature that fail for it to no longer be tracked."),
@@ -28,9 +28,9 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum consecutive amount of RANSAC evaluations of a keypoint that fail for it to no longer be tracked."),
 	F(feature_quality_level, int, 3, HT_FEATURE_MIN_QUALITY_LEVEL, HT_FEATURE_MAX_QUALITY_LEVEL,
 		"Maximum feature quality level compared to the strongest feature during their detection. See cvGoodFeaturesToTrack."),
-	F(filter_lumps_feature_count_threshold, float, 0.31f, 0.5f, 1.0f,
+	F(filter_lumps_feature_count_threshold, float, 0.75f, 0.5f, 1.0f,
 		"Only filter features too close to each other if amount of features falls above this threshold."),
-	F(focal_length, float, 680, 300.0f, 2000.0f,
+	F(focal_length, float, 750, 300.0f, 2000.0f,
 		"Camera field of view in OpenCV-implementation-dependent values."),
 	F(max_init_retries, int, 100, 2, 1000,
 		"Maximum retries before restarting the initialization process."),
@@ -38,21 +38,21 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum features to be tracked at once."),
 	F(min_track_start_features, int, 20, 10, 100,
 		"Minimum features to track before initialization ends and main phase starts."),
-	F(pyrlk_pyramids, int, 7, 3, 50,
+	F(pyrlk_pyramids, int, 5, 3, 50,
 		"Maximum mipmaps for optical flow tracking. See cvCalcOpticalFlowPyrLK"),
-	F(pyrlk_win_size_h, int, 16, 3, 45,
+	F(pyrlk_win_size_h, int, 9, 3, 45,
 		"Window size for optical flow tracking, horizontal."),
-	F(pyrlk_win_size_w, int, 24, 4, 60,
+	F(pyrlk_win_size_w, int, 12, 4, 60,
 		"Window size for optical flow tracking, vertical"),
-	F(ransac_iter, int, 96, 48, 288,
+	F(ransac_iter, int, 120, 48, 288,
 		"RANSAC iterations per frame."),
 	F(ransac_max_consensus_error, float, 10.0f, 5.0f, 30.0f,
 		"Maximum total RANSAC consensus error (see ransac_max_error)."),
 	F(ransac_min_consensus, float, 0.334f, 0.2f, 0.6f,
 		"Minimum RANSAC consensus size, with regards to the amount of presently tracked features"),
-	F(ransac_posit_eps, float, 3.0f, 0.0001f, 10.0f,
+	F(ransac_posit_eps, float, 2.0f, 0.0001f, 10.0f,
 		"cvPOSIT epsilon for the purpose of estimating a feature set in RANSAC."),
-	F(ransac_posit_iter, int, 15, 10, 500,
+	F(ransac_posit_iter, int, 20, 10, 500,
 		"cvPOSIT max iteration count for estimating a RANSAC feature set."),
 	F(depth_avg_frames, int, 30, 1, 120,
 		"Amount of frames for arithmetic averaging of depth info. "
@@ -61,19 +61,19 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"How much smaller reprojection error is favored against more features in a RANSAC iteration that's about to be turned into a consensus."),
 	F(ransac_max_error, float, 0.953f, 0.9f, 1.001f,
 		"Maximum error of one RANSAC iteration compared to the previous one."),
-	F(filter_lumps_distance_threshold, float, 0.89f, 0.5f, 1.0f,
+	F(filter_lumps_distance_threshold, float, 0.83f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
-	F(min_feature_distance, float, 7.998f, 3.00001f, 25.00001f,
+	F(min_feature_distance, float, 6.501f, 3.00001f, 25.00001f,
 		"Distance between two features at the time of their detection, including already detected ones."),
-	F(max_keypoints, int, 14, 8, 48,
+	F(max_keypoints, int, 16, 8, 48,
 		"Maximum keypoints to track"),
 	F(keypoint_quality, int, 3, 1, 60,
 		"Starting keypoint quality"),
-	F(keypoint_distance, float, 12.0001f, 10.0f, 50.0f,
+	F(keypoint_distance, float, 10.0001f, 10.0f, 50.0f,
 		"Minimum Euclidean distance between keypoints"),
 	F(ransac_min_features, int, 6, 4, 24,
 		"Points to start each RANSAC iteration"),
-	F(feature_detect_ratio, float, 1.05f, 0.1f, 2.0f,
+	F(feature_detect_ratio, float, 0.8f, 0.1f, 2.0f,
 		"Features to detect at one time to consider given quality level as satisfactory."),
 	F(force_width, int, 0, 0, 10000,
 		"Force capture width of a webcam."),
@@ -112,7 +112,7 @@ HT_API(ht_config_t) ht_make_config() {
 			*(int*) ptr = field.default_value.i;
 			break;
 		default:
-			throw exception();
+			continue;
 		}
 	}
 	return ret;
@@ -125,13 +125,12 @@ HT_API(ht_config_t) ht_load_config(FILE* stream) {
 	buf[255] = '\0';
 
 	while (fgets(buf, 255, stream)) {
-			int len = strlen(buf);
 		char* value = strchr(buf, ' ');
 		if (value == NULL)
-			throw new exception();
+			continue;
 		*value++ = '\0';
 		if (strlen(value) == 0)
-			throw exception();
+			continue;
 		ht_reflection_t info = ht_find_config_entry(buf);
 		void* ptr = ((char*) &cfg) + info.offset;
 		switch (info.type) {
@@ -141,42 +140,22 @@ HT_API(ht_config_t) ht_load_config(FILE* stream) {
 		case cfg_type_float:
 			*(float*) ptr = (float) strtod(value, NULL);
 			if (*(float*) ptr > info.max.f || *(float*) ptr < info.min.f)
-				throw exception();
+				continue;
 			break;
 		case cfg_type_int:
 			*(int*) ptr = (int) strtol(value, NULL, 10);
 			if (*(int*) ptr > info.max.i || *(int*) ptr < info.min.i)
-				throw exception();
+				continue;
 			break;
 		default:
-			throw exception();
+			continue;
 		}
 	}
 
 	return cfg;
 }
 
-HT_API(ht_config_t) ht_load_config(const char* filename) {
-	FILE* stream = fopen(filename, "r");
-
-	if (stream == NULL)
-		throw exception();
-
-	ht_config_t cfg;
-
-	try {
-		cfg = ht_load_config(stream);
-	} catch (exception e) {
-		fclose(stream);
-		throw e;
-	}
-
-	fclose(stream);
-
-	return cfg;
-}
-
-HT_API(void) ht_store_config(const ht_config_t& config, FILE* stream) {
+static void ht_store_config_internal(const ht_config_t& config, FILE* stream) {
 	for (int i = 0; ht_reflection_info[i].name; i++) {
 		const ht_reflection_t& info = ht_reflection_info[i];
 		void* ptr = ((char*) &config) + info.offset;
@@ -198,14 +177,14 @@ HT_API(void) ht_store_config(const ht_config_t& config, FILE* stream) {
 	}
 }
 
-HT_API(void) ht_store_config(const ht_config_t& config, const char* filename) {
+static void ht_store_config_internal(const ht_config_t& config, const char* filename) {
 	FILE* stream = fopen(filename, "w");
 
 	if (stream == NULL)
 		throw exception();
 
 	try {
-		ht_store_config(config, stream);
+		ht_store_config_internal(config, stream);
 	} catch (exception e) {
 		fclose(stream);
 		throw e;
@@ -213,10 +192,10 @@ HT_API(void) ht_store_config(const ht_config_t& config, const char* filename) {
 	fclose(stream);
 }
 
-HT_API(void) ht_store_config(const headtracker_t* ctx, const char* filename) {
-	ht_store_config(ctx->config, filename);
+HT_API(void) ht_store_config_in_file(const headtracker_t* ctx, const char* filename) {
+	ht_store_config_internal(ctx->config, filename);
 }
 
 HT_API(void) ht_store_config(const headtracker_t* ctx, FILE* stream) {
-	ht_store_config(ctx->config, stream);
+	ht_store_config_internal(ctx->config, stream);
 }

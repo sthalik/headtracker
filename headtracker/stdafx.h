@@ -1,8 +1,8 @@
 #pragma once
 #if defined(_WIN32) && !defined(MINGW)
-#  define HT_API(t) __declspec(dllexport) t __cdecl
+#  define HT_API(t) extern "C" __declspec(dllexport) t __cdecl
 #else
-#  define HT_API(t) t
+#  define HT_API(t) extern "C" t
 #endif
 #ifndef _WIN32
 #  define _isnan isnan

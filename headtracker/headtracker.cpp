@@ -20,7 +20,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector))
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
-			ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
+			ht_get_features(*ctx, ctx->model);
 			ctx->restarted = false;
 			error_t best_error;
 			if (ht_ransac_best_indices(*ctx, &best_error) &&
@@ -43,9 +43,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
 			ht_remove_lumps(*ctx);
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
-			ht_get_features(*ctx, rotation_matrix, translation_vector, ctx->model);
-			ht_draw_model(*ctx, rotation_matrix, translation_vector, ctx->model);
+			ht_draw_model(*ctx, ctx->model);
 			ht_draw_features(*ctx);
+			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
 			euler->confidence = (ctx->config.ransac_max_consensus_error - best_error.avg) / ctx->config.ransac_max_consensus_error;
@@ -60,7 +60,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	} case HT_STATE_LOST: {
 		ctx->feature_count = 0;
 		for (int i = 0; i < ctx->model.count; i++) {
-			ctx->features[i] = cvPoint2D32f(-1, -1);
+			ctx->features[i].x = -1;
 			ctx->feature_failed_iters[i] = 0;
 		}
 		ctx->state = HT_STATE_INITIALIZING;
@@ -72,7 +72,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
 	}
 	default:
-		throw exception();
+		return false;
 	}
 
 	if (!ctx->last_image)
