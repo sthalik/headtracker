@@ -117,13 +117,15 @@ typedef struct ht_context {
 	ht_keypoint* keypoints;
 	int keypoint_count;
 	char* keypoint_failed_iters;
+	CvPoint3D32f* feature_uv;
+	CvPoint3D32f* keypoint_uv;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
 void ht_free_model(model_t& model);
 CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector, float focal_length);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
-bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c, CvPoint2D32f point);
+bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
 
 bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, float focal_length);
 
@@ -150,7 +152,7 @@ void ht_project_model(headtracker_t& ctx,
 					  float* translation_vector,
 					  model_t& model,
 					  CvPoint3D32f origin);
-bool ht_triangle_at(CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model);
+bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv);
 bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model);
 void ht_draw_model(headtracker_t& ctx, model_t& model);
 void ht_get_features(headtracker_t& ctx, model_t& model);
@@ -180,10 +182,7 @@ bool ht_ransac(headtracker_t& ctx,
 			   error_t* best_error,
 			   int* best_indices,
 			   int* best_keypoints,
-			   model_t& model,
 			   float error_scale);
-
-
 
 bool ht_estimate_pose(headtracker_t& ctx,
 					  float* rotation_matrix,
@@ -195,4 +194,4 @@ bool ht_estimate_pose(headtracker_t& ctx,
 bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error);
 void ht_remove_lumps(headtracker_t& ctx);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
-
+CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);

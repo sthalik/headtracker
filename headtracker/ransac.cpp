@@ -51,7 +51,6 @@ bool ht_ransac(headtracker_t& ctx,
 			   error_t* best_error,
 			   int* best_indices,
 			   int* best_keypoints,
-			   model_t& model,
 			   float error_scale)
 {
 	if (ctx.keypoint_count == 0)
@@ -100,7 +99,7 @@ bool ht_ransac(headtracker_t& ctx,
 		int gkpos = 0;
 		bool good = false;
 
-		CvPoint3D32f first_point = model.centers[indices[0]];
+		CvPoint3D32f first_point = ctx.feature_uv[indices[0]];
 
 		error_t cur_error;
 		cur_error.avg = max_consensus_error - 1.0e-2f;
@@ -110,7 +109,7 @@ bool ht_ransac(headtracker_t& ctx,
 
 		for (; fpos < k; fpos++) {
 			int idx = indices[fpos];
-			model_points[ipos] = model.centers[idx];
+			model_points[ipos] = ctx.feature_uv[idx];
 			model_points[ipos].x -= first_point.x;
 			model_points[ipos].y -= first_point.y;
 			model_points[ipos].z -= first_point.z;
@@ -150,8 +149,7 @@ bool ht_ransac(headtracker_t& ctx,
 		for (; kpos < kppos; kpos++) {
 			int idx = keypoint_indices[kpos];
 			ht_keypoint& kp = ctx.keypoints[idx];
-			int tid = kp.idx;
-			model_points[ipos] = model.centers[tid];
+			model_points[ipos] = ctx.keypoint_uv[idx];
 			model_points[ipos].x -= first_point.x;
 			model_points[ipos].y -= first_point.y;
 			model_points[ipos].z -= first_point.z;
@@ -218,7 +216,6 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 				  best_error,
 				  best_feature_indices,
 				  best_keypoint_indices,
-				  ctx.model,
 				  ctx.zoom_ratio)) {
 		char* fusedp = new char[ctx.model.count];
 		char* kusedp = new char[ctx.config.max_keypoints];

@@ -60,6 +60,8 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config) {
 		ctx->keypoints[i].idx = -1;
 	ctx->keypoint_count = 0;
 	ctx->keypoint_failed_iters = new char[ctx->config.max_keypoints];
+	ctx->keypoint_uv = new CvPoint3D32f[ctx->config.max_keypoints];
+	ctx->feature_uv = new CvPoint3D32f[ctx->model.count];
 	if (ctx->config.force_width)
 		cvSetCaptureProperty(ctx->camera, CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
 	if (ctx->config.force_height)
@@ -70,6 +72,10 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config) {
 }
 
 HT_API(void) ht_free_context(headtracker_t* ctx) {
+	if (ctx->keypoint_uv)
+		delete[] ctx->keypoint_uv;
+	if (ctx->feature_uv)
+		delete[] ctx->feature_uv;
 	if (ctx->model.triangles)
 		delete[] ctx->model.triangles;
 	if (ctx->model.projection)

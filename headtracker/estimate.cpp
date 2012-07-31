@@ -22,8 +22,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	for (int i = 0; i < ctx.config.max_keypoints; i++) {
 		if (ctx.keypoints[i].idx == -1 || ctx.keypoint_failed_iters[i] != 0)
 			continue;
-		int idx = ctx.keypoints[i].idx;
-		model_points[k] = ctx.model.centers[idx];
+		model_points[k] = ctx.keypoint_uv[i];
 		image_points[k] = ctx.keypoints[i].position;
 		k++;
 	}
@@ -31,7 +30,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	for (int i = 0; i < ctx.model.count; i++) {
 		if (ctx.features[i].x == -1 || ctx.feature_failed_iters[i] != 0)
 			continue;
-		model_points[k] = ctx.model.centers[i];
+		model_points[k] = ctx.feature_uv[i];
 		image_points[k] = ctx.features[i];
 		k++;
 	}

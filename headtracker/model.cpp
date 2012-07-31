@@ -29,7 +29,7 @@ void ht_project_model(headtracker_t& ctx,
 	}
 }
 
-bool ht_triangle_at(CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model) {
+bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv) {
 	if (!model.projection)
 		return false;
 
@@ -38,7 +38,7 @@ bool ht_triangle_at(CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& 
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
-		if (model.projected_depths[i] > min_depth && ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos)) {
+		if (model.projected_depths[i] > min_depth && ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv)) {
 			*ret = model.triangles[i];
 			min_depth = model.projected_depths[i];
 			*idx = i;
@@ -53,10 +53,11 @@ bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model) {
 		return false;
 
 	int sz = model.count;
+	CvPoint2D32f uv;
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
-		if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos))
+		if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv))
 			return true;
 	}
 
@@ -154,7 +155,7 @@ void ht_free_model(model_t& model) {
 	delete model.projected_depths;
 }
 
-bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c, CvPoint2D32f point) {
+bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv) {
 	CvPoint2D32f v0 = cvPoint2D32f(
 		c.x - a.x,
 		c.y - a.y);
@@ -174,9 +175,28 @@ bool ht_point_inside_triangle_2d(CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c,
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-	return u > 0 && v > 0 && u + v < 1;
+	if (u > 0 && v > 0 && u + v < 1) {
+		uv.x = u;
+		uv.y = v;
+		return true;
+	}
+
+	return false;
 }
 
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight) {
 	return p.x >= topLeft.x && p.x <= bottomRight.x && p.y >= topLeft.y && p.y <= bottomRight.y;
+}
+
+CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t) {
+	float u = uv.x;
+	float v = uv.y;
+	float w = 1 - u - v;
+	CvPoint3D32f ret;
+
+	ret.x = w * t.p1.x + u * t.p3.x + v * t.p2.x;
+	ret.y = w * t.p1.y + u * t.p3.y + v * t.p2.y;
+	ret.z = w * t.p1.z + u * t.p3.z + v * t.p2.z;
+
+	return ret;
 }

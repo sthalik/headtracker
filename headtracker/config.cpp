@@ -30,7 +30,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum feature quality level compared to the strongest feature during their detection. See cvGoodFeaturesToTrack."),
 	F(filter_lumps_feature_count_threshold, float, 0.75f, 0.5f, 1.0f,
 		"Only filter features too close to each other if amount of features falls above this threshold."),
-	F(focal_length, float, 610, 300.0f, 2000.0f,
+	F(focal_length, float, 602, 300.0f, 2000.0f,
 		"Camera field of view in OpenCV-implementation-dependent values."),
 	F(max_init_retries, int, 100, 2, 1000,
 		"Maximum retries before restarting the initialization process."),

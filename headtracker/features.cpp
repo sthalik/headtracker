@@ -310,16 +310,18 @@ start_keypoints:
 
 				triangle_t t;
 				int idx;
+				CvPoint2D32f uv;
 
-				if (!ht_triangle_at(kp, &t, &idx, model))
+				if (!ht_triangle_at(kp, &t, &idx, model, uv))
 					continue;
 
 				for (; kpidx < ctx.config.max_keypoints; kpidx++) {
 					if (ctx.keypoints[kpidx].idx == -1) {
 						ctx.keypoints[kpidx].idx = idx;
 						ctx.keypoints[kpidx].position = kp;
-						ctx.keypoint_count++;
 						ctx.keypoint_failed_iters[kpidx] = 0;
+						ctx.keypoint_uv[kpidx] = ht_get_triangle_pos(uv, t);
+						ctx.keypoint_count++;
 						break;
 					}
 				}
@@ -394,18 +396,21 @@ end:
 		for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
 			triangle_t t;
 			int idx;
+			CvPoint2D32f uv;
 
 			for (int j = 0; j < model.count; j++)
 				if (ctx.features[j].x != -1 && ht_distance2d_squared(features_to_add[i], ctx.features[j]) < max_distance)
 					goto end2;
 
-			if (!(ht_triangle_at(features_to_add[i], &t, &idx, model)))
+			if (!(ht_triangle_at(features_to_add[i], &t, &idx, model, uv)))
 				continue;
 
 			if (ctx.features[idx].x != -1)
 				continue;
 
 			ctx.features[idx] = features_to_add[i];
+			ctx.feature_failed_iters[idx] = 0;
+			ctx.feature_uv[idx] = ht_get_triangle_pos(uv, t);
 			ctx.feature_count++;
 	end2:
 			;
