@@ -66,6 +66,7 @@ bool ht_ransac(headtracker_t& ctx,
 	int* model_feature_indices = new int[mcnt];
 	int* model_keypoint_indices = new int[ctx.keypoint_count];
 	int* indices = new int[mcnt];
+	int bad = 0;
 
 	best_error->avg = 1.0e10;
 	*best_feature_cnt = 0;
@@ -97,6 +98,7 @@ bool ht_ransac(headtracker_t& ctx,
 		int kpos = 0;
 		int gfpos = 0;
 		int gkpos = 0;
+		bool good = false;
 
 		CvPoint3D32f first_point = model.centers[indices[0]];
 
@@ -124,6 +126,8 @@ bool ht_ransac(headtracker_t& ctx,
 
 				if (cur_error.avg > max_consensus_error)
 					goto end2;
+
+				good = true;
 			}
 
 			ipos++;
@@ -161,6 +165,7 @@ bool ht_ransac(headtracker_t& ctx,
 				cur_error.avg = e.avg;
 				if (cur_error.avg > max_consensus_error)
 					goto end2;
+				good = true;
 			}
 
 			ipos++;
@@ -180,8 +185,11 @@ bool ht_ransac(headtracker_t& ctx,
 			}
 		}
 end2:
-		;
+		if (!good)
+			bad++;
 	}
+
+	printf("RANSAC: %d out of %d iterations failed completely\n", bad, max_iter);
 
 end:
 

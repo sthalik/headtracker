@@ -92,7 +92,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 							   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 400, 0.01 * HT_PI / 180.0),
 							   ctx.config.focal_length);
 				if (ret)
-					ht_update_zoom_scale(ctx, translation_vector[2]);
+					ht_update_zoom_scale(ctx, translation_vector2[2]);
 			}
 		}
 	}
