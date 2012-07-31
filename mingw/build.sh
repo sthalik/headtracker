@@ -11,8 +11,8 @@ else
 fi
 
 LIBS="-lopencv_calib3d$VER -lopencv_contrib$VER -lopencv_core$VER -lopencv_features2d$VER -lopencv_flann$VER -lopencv_highgui$VER -lopencv_imgproc$VER -lopencv_legacy$VER -lopencv_ml$VER -lopencv_nonfree$VER -lopencv_objdetect$VER -lopencv_photo$VER -lopencv_stitching$VER -lopencv_video$VER -lopencv_videostab$VER"
-LDFLAGS="-L../thirdparty/bin -Wl,-rpath,."
-CXXFLAGS="-I../../headtracker -I../thirdparty/include -O3 -march=native -ffast-math"
+LDFLAGS="-L../thirdparty/bin -L/usr/local/lib -Wl,-rpath,."
+CXXFLAGS="-I../../headtracker -I../thirdparty/include -I/usr/local/include -O3 -march=native -ffast-math"
 
 cd "$(dirname -- "$0")"
 mkdir build

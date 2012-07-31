@@ -220,10 +220,11 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 		}
 		for (int i = 0; i < ctx.model.count; i++) {
 			if (!fusedp[i]) {
-				if (ctx.features[i].x != -1 && ctx.features[i].y != -1) {
+				if (ctx.features[i].x != -1) {
 					if (++ctx.feature_failed_iters[i] >= ctx.config.feature_max_failed_ransac) {
-						ctx.features[i] = cvPoint2D32f(-1, -1);
+						ctx.features[i].x = -1;
 						ctx.feature_count--;
+						ctx.feature_failed_iters[i] = 0;
 					}
 				}
 			} else {
@@ -236,7 +237,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 			kusedp[best_keypoint_indices[i]] = 1;
 		for (int i = 0; i < ctx.config.max_keypoints; i++) {
 			if (!kusedp[i] && ctx.keypoints[i].idx != -1) {
-				if (++ctx.keypoint_failed_iters[i] >= ctx.config.feature_max_failed_ransac) {
+				if (++ctx.keypoint_failed_iters[i] >= ctx.config.keypoint_max_failed_ransac) {
 					ctx.keypoints[i].idx = -1;
 					ctx.keypoint_count--;
 				}

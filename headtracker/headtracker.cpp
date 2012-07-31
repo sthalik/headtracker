@@ -50,6 +50,10 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			euler->filled = true;
 			euler->confidence = (ctx->config.ransac_max_consensus_error - best_error.avg) / ctx->config.ransac_max_consensus_error;
 			cvCircle(ctx->color, cvPoint(centroid.x, centroid.y), 3, CV_RGB(0, 255, 0), -1);
+			if (ctx->config.debug)
+				printf("corners %d/%d (%d) keypoints %d/%d (%d)\n",
+					   ctx->feature_count, ctx->config.max_tracked_features, ctx->config.feature_quality_level,
+					   ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality);
 		} else
 			ctx->state = HT_STATE_LOST;
 		break;

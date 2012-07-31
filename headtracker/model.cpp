@@ -28,7 +28,7 @@ void ht_project_model(headtracker_t& ctx,
 	}
 }
 
-bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model) {
+bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, const model_t& model) {
 	if (!model.projection)
 		return false;
 
@@ -46,6 +46,21 @@ bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* 
 	}
 
 	return min_depth > -9999;
+}
+
+bool ht_triangle_exists(headtracker_t& ctx, CvPoint2D32f pos, const model_t& model) {
+	if (!model.projection)
+		return false;
+
+	int sz = model.count;
+
+	for (int i = 0; i < sz; i++) {
+		triangle2d_t& t = model.projection[i];
+		if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos))
+			return true;
+	}
+
+	return false;
 }
 
 

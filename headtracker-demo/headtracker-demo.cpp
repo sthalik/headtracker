@@ -7,6 +7,8 @@ using namespace cv;
 
 int main(int argc, char** argv)
 {
+	cv::setUseOptimized(true);
+
 	ht_config_t conf;
 	FILE* cfg;
 
@@ -28,7 +30,6 @@ int main(int argc, char** argv)
 
 	while (ht_cycle(ctx, &result)) {
 		if (result.filled) {
-#if 1
 			printf("%.3f | %.2f %.2f %.2f | %.1f %.1f %.1f\n",
 				   result.confidence,
 				   result.rotx * 180.0f / HT_PI,
@@ -37,7 +38,6 @@ int main(int argc, char** argv)
 				   result.tx,
 				   result.ty,
 				   result.tz);
-#endif
 		}
 		ht_frame_t frame = ht_get_bgr_frame(ctx);
 		if (!image)

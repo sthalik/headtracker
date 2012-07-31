@@ -48,7 +48,7 @@ void ht_draw_features(headtracker_t& ctx) {
 		return;
 
 	for (int i = 0; i < ctx.model.count; i++) {
-		if (ctx.features[i].x == -1 || ctx.features[i].y == -1)
+		if (ctx.features[i].x == -1)
 			continue;
 
 		CvScalar color;
@@ -57,12 +57,9 @@ void ht_draw_features(headtracker_t& ctx) {
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
 			size = 1;
-		} else if (ctx.feature_failed_iters[i] < ctx.config.feature_max_failed_ransac) {
-			color = CV_RGB(255, 255, 0);
-			size = 3;
 		} else {
-			color = CV_RGB(255, 0, 0);
-			size = 3;
+			color = CV_RGB(255, 255, 0);
+			size = 2;
 		}
 
 		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
@@ -70,7 +67,7 @@ void ht_draw_features(headtracker_t& ctx) {
 
 	for (int i = 0; i < ctx.config.max_keypoints; i++) {
 		if (ctx.keypoints[i].idx != -1)
-			cvCircle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 2, CV_RGB(255, 0, 255), -1);
+			cvCircle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, CV_RGB(255, 0, 255), -1);
 	}
 }
 
@@ -97,7 +94,7 @@ void ht_track_features(headtracker_t& ctx) {
 	CvPoint2D32f* old_features = new CvPoint2D32f[ctx.model.count];
 
 	for (int i = 0; i < max; i++) {
-		if (ctx.features[i].x != -1 || ctx.features[i].y != -1)
+		if (ctx.features[i].x != -1)
 			old_features[sz++] = ctx.features[i];
 	}
 
@@ -117,21 +114,21 @@ void ht_track_features(headtracker_t& ctx) {
 			ctx.config.pyrlk_pyramids,
 			features_found,
 			NULL,
-			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.3),
+			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.04999),
 			OPTFLOW_LK_GET_MIN_EIGENVALS | ((got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0));
 		
 		pyr_b_ready = true;
 
 		for (int i = 0, j = 0; i < sz; i++, j++) {
 			for (; j < ctx.model.count; j++)
-				if (ctx.features[j].x != -1 || ctx.features[j].y != -1)
+				if (ctx.features[j].x != -1)
 					break;
 
 			if (j == ctx.model.count)
 				break;
 
 			if (!features_found[i]) {
-				ctx.features[j] = cvPoint2D32f(-1, -1);
+				ctx.features[j].x = -1;
 				ctx.feature_count--;
 				ctx.feature_failed_iters[j] = 0;
 			} else
@@ -167,7 +164,7 @@ void ht_track_features(headtracker_t& ctx) {
 								   ctx.config.pyrlk_pyramids,
 								   features_found,
 								   NULL,
-								   cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.3),
+								   cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.04999),
 								   CV_LKFLOW_GET_MIN_EIGENVALS
 								       | ((got_pyr && !ctx.restarted)
 									       ? (CV_LKFLOW_PYR_A_READY | (pyr_b_ready && CV_LKFLOW_PYR_B_READY))
@@ -249,25 +246,23 @@ void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translat
 	vector<KeyPoint> corners;
 
 	Mat mat = Mat(Mat(ctx.grayscale, false), roi);
+
+	float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
 start_keypoints:
+	int good = 0;
 	if (ctx.keypoint_count < ctx.config.max_keypoints) {
-		float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
 		max_dist *= max_dist;
-		ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
+		ORB detector = ORB(ctx.config.max_keypoints * 16, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
 		detector(mat, noArray(), corners);
 		sort(corners.begin(), corners.end(), ht_feature_quality_level);
 		int cnt = corners.size();
-		int good = 0;
+		CvPoint2D32f* keypoints_to_add = new CvPoint2D32f[cnt];
 
 		for (int i = 0; i < cnt; i++) {
 			corners[i].pt.x += roi.x;
 			corners[i].pt.y += roi.y;
 
 			CvPoint2D32f kp = corners[i].pt;
-			triangle_t t;
-			int idx;
-			if (!ht_triangle_at(ctx, kp, &t, &idx, rotation_matrix, translation_vector, model))
-				continue;
 
 			bool overlap = false;
 
@@ -277,12 +272,42 @@ start_keypoints:
 					break;
 				}
 
-			if (!overlap)
-				good++;
-			else
+			if (overlap)
 				continue;
 
-			if (ctx.keypoint_count < ctx.config.max_keypoints) {
+			if (!ht_triangle_exists(ctx, kp, model))
+				continue;
+
+			keypoints_to_add[good++] = corners[i].pt;
+		}
+
+		if (good < ctx.config.max_keypoints) {
+			if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL) {
+				ctx.config.keypoint_quality--;
+				if (ctx.state == HT_STATE_INITIALIZING) {
+					if (ctx.config.debug)
+						printf("restarting orb due to %d < %d at q:%d\n", good, ctx.config.max_keypoints, ctx.config.keypoint_quality);
+					corners.clear();
+					delete[] keypoints_to_add;
+					goto start_keypoints;
+				}
+			}
+		} else {
+			if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL)
+				ctx.config.keypoint_quality++;
+		}
+
+		if (ctx.config.debug)
+			printf("ORB: got %d corners at %d quality\n", good, ctx.config.keypoint_quality);
+
+		if (good > 0) {
+			if (roi.width > 17 && roi.height > 13)
+				cvFindCornerSubPix(ctx.grayscale, keypoints_to_add, good, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.05));
+			int kpidx = 0;
+			for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
+				CvPoint2D32f kp = keypoints_to_add[i];
+				bool overlap = false;
+
 				for (int j = 0; j < ctx.config.max_keypoints; j++) {
 					if (ctx.keypoints[j].idx != -1 && ht_distance2d_squared(kp, ctx.keypoints[j].position) < max_dist) {
 						overlap = true;
@@ -293,7 +318,13 @@ start_keypoints:
 				if (overlap)
 					continue;
 
-				for (int kpidx = 0; kpidx < ctx.config.max_keypoints; kpidx++) {
+				triangle_t t;
+				int idx;
+
+				if (!ht_triangle_at(ctx, kp, &t, &idx, rotation_matrix, translation_vector, model))
+					continue;
+
+				for (; kpidx < ctx.config.max_keypoints; kpidx++) {
 					if (ctx.keypoints[kpidx].idx == -1) {
 						ctx.keypoints[kpidx].idx = idx;
 						ctx.keypoints[kpidx].position = kp;
@@ -305,18 +336,7 @@ start_keypoints:
 			}
 		}
 
-		if (good < ctx.config.max_keypoints) {
-			if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL)
-				ctx.config.keypoint_quality--;
-		} else {
-			if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL) {
-				ctx.config.keypoint_quality++;
-				if (ctx.state == HT_STATE_INITIALIZING) {
-					corners.clear();
-					goto start_keypoints;
-				}
-			}
-		}
+		delete[] keypoints_to_add;
 	}
 
 	corners.clear();
@@ -329,9 +349,11 @@ start_keypoints:
 		: ctx.config.min_track_start_features;
 
 redetect:
-	int good = 0;
-	PyramidAdaptedFeatureDetector pyrfast(new FastFeatureDetector(ctx.config.feature_quality_level), 3);
+	good = 0;
+	PyramidAdaptedFeatureDetector pyrfast(new FastFeatureDetector(ctx.config.feature_quality_level), 5);
 	pyrfast.detect(mat, corners);
+
+	sort(corners.begin(), corners.end(), ht_feature_quality_level);
 
 	int count = corners.size(), k = 0;
 
@@ -347,21 +369,15 @@ redetect:
 		corners[i].pt.x += roi.x;
 		corners[i].pt.y += roi.y;
 		
-		triangle_t t;
-		int idx;
-
-		for (int j = 0; j < count; j++) {
+		for (int j = 0; j < i; j++) {
 			if (i != j && ht_distance2d_squared(corners[i].pt, corners[j].pt) < max_distance)
 				goto end;
 		}
 
-		if (!(ht_triangle_at(ctx, corners[i].pt, &t, &idx, rotation_matrix, translation_vector, model)))
+		if (!ht_triangle_exists(ctx, corners[i].pt, model))
 			continue;
 
 		good++;
-
-		if (ctx.features[idx].x != -1)
-			continue;
 
 		features_to_add[k++] = corners[i].pt;
 
@@ -383,9 +399,6 @@ end:
 		}
 	}
 
-	if (k > max)
-		k = max;
-
 	if (k > 0) {
 		if (roi.width > 17 && roi.height > 13)
 			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.05));
@@ -400,7 +413,7 @@ end:
 			if (!(ht_triangle_at(ctx, features_to_add[i], &t, &idx, rotation_matrix, translation_vector, model)))
 				continue;
 
-			if (ctx.features[idx].x != -1 || ctx.features[idx].y != -1)
+			if (ctx.features[idx].x != -1)
 				continue;
 
 			ctx.features[idx] = features_to_add[i];

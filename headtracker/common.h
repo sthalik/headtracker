@@ -34,6 +34,8 @@ typedef struct ht_config {
 	int   force_height;
 	int   force_fps;
 	int   camera_index;
+	int   keypoint_max_failed_ransac;
+	bool  debug;
 } ht_config_t;
 
 typedef struct {

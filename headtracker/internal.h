@@ -3,13 +3,13 @@
 // todo do away with leaks if initialization fails
 #pragma once
 #define HT_PI 3.14159265f
-#define HT_STD_DEPTH 570.0f
+#define HT_STD_DEPTH 560.0f
 
-#define HT_CENTROID_DEPTH 90.0f
-#define HT_CENTROID_Y 30.0f
+#define HT_CENTROID_DEPTH 95.0f
+#define HT_CENTROID_Y 19.53f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 2
+#define HT_FEATURE_MIN_QUALITY_LEVEL 1
 
 // these ones will be trainable
 // maybe even more after training.cpp is written and sample video(s) made
@@ -149,7 +149,8 @@ void ht_project_model(headtracker_t& ctx,
 					  float* translation_vector,
 					  model_t& model,
 					  CvPoint3D32f origin);
-bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, model_t& model);
+bool ht_triangle_at(headtracker_t& ctx, CvPoint2D32f pos, triangle_t* ret, int* idx, float* rotation_matrix, float* translation_vector, const model_t& model);
+bool ht_triangle_exists(headtracker_t& ctx, CvPoint2D32f pos, const model_t& model);
 void ht_draw_model(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model);
 void ht_get_features(headtracker_t& ctx, float* rotation_matrix, float* translation_vector, model_t& model);
 void ht_track_features(headtracker_t& ctx);
