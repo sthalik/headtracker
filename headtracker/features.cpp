@@ -52,17 +52,14 @@ void ht_draw_features(headtracker_t& ctx) {
 			continue;
 
 		CvScalar color;
-		int size;
 
 		if (ctx.feature_failed_iters[i] == 0) {
 			color = CV_RGB(0, 255, 255);
-			size = 1;
 		} else {
 			color = CV_RGB(255, 0, 0);
-			size = 2;
 		}
 
-		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), size, color, -1);
+		cvCircle(ctx.color, cvPoint(ctx.features[i].x, ctx.features[i].y), 1, color, -1);
 	}
 
 	for (int i = 0; i < ctx.config.max_keypoints; i++) {
