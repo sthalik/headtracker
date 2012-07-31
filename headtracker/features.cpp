@@ -285,8 +285,6 @@ start_keypoints:
 			if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL) {
 				ctx.config.keypoint_quality--;
 				if (ctx.state == HT_STATE_INITIALIZING) {
-					if (ctx.config.debug)
-						printf("restarting orb due to %d < %d at q:%d\n", good, ctx.config.max_keypoints, ctx.config.keypoint_quality);
 					corners.clear();
 					delete[] keypoints_to_add;
 					goto start_keypoints;
@@ -296,9 +294,6 @@ start_keypoints:
 			if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL)
 				ctx.config.keypoint_quality++;
 		}
-
-		if (ctx.config.debug)
-			printf("ORB: got %d corners at %d quality\n", good, ctx.config.keypoint_quality);
 
 		if (good > 0) {
 			if (roi.width > 17 && roi.height > 13)
