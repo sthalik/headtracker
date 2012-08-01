@@ -171,6 +171,7 @@ void ht_track_features(headtracker_t& ctx) {
 					break;
 				if (!features_found[i]) {
 					ctx.keypoints[j].idx = -1;
+					ctx.keypoint_failed_iters[j] = 0;
 					ctx.keypoint_count--;
 				} else {
 					ctx.keypoints[j].position = new_features[i];
@@ -294,7 +295,7 @@ start_keypoints:
 
 		if (good > 0) {
 			if (roi.width > 17 && roi.height > 13)
-				cvFindCornerSubPix(ctx.grayscale, keypoints_to_add, good, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.05));
+				cvFindCornerSubPix(ctx.grayscale, keypoints_to_add, good, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.251));
 			int kpidx = 0;
 			for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
 				CvPoint2D32f kp = keypoints_to_add[i];
@@ -394,7 +395,7 @@ end:
 
 	if (k > 0) {
 		if (roi.width > 17 && roi.height > 13)
-			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.05));
+			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 20, 0.251));
 		for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
 			triangle_t t;
 			int idx;

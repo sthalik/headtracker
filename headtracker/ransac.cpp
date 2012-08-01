@@ -245,6 +245,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 			if (!kusedp[i] && ctx.keypoints[i].idx != -1) {
 				if (++ctx.keypoint_failed_iters[i] > ctx.config.keypoint_max_failed_ransac) {
 					ctx.keypoints[i].idx = -1;
+					ctx.keypoint_failed_iters[i] = 0;
 					ctx.keypoint_count--;
 				}
 			} else {
