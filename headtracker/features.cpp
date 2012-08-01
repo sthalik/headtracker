@@ -213,16 +213,18 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 	}
 
 	for (int i = 0; i < ctx.model.count; i++) {
-		float x = (model.projection[i].p1.x + model.projection[i].p2.x + model.projection[i].p3.x) / 3;
-		float y = (model.projection[i].p1.x + model.projection[i].p2.y + model.projection[i].p3.y) / 3;
-		if (x > max_x)
-			max_x = x;
-		if (x < min_x)
-			min_x = x;
-		if (y > max_y)
-			max_y = y;
-		if (y < min_y)
-			min_y = y;
+		float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
+		float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
+		float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
+		float maxy = max(model.projection[i].p1.y, max(model.projection[i].p2.y, model.projection[i].p3.y));
+		if (maxx > max_x)
+			max_x = maxx;
+		if (minx < min_x)
+			min_x = minx;
+		if (maxy > max_y)
+			max_y = maxy;
+		if (miny < min_y)
+			min_y = miny;
 	}
 	
 	if (!model.projection)
@@ -247,7 +249,7 @@ start_keypoints:
 	int good = 0;
 	if (ctx.keypoint_count < ctx.config.max_keypoints) {
 		max_dist *= max_dist;
-		ORB detector = ORB(ctx.config.max_keypoints * 32, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
+		ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
 		detector(mat, noArray(), corners);
 		sort(corners.begin(), corners.end(), ht_feature_quality_level);
 		int cnt = corners.size();
