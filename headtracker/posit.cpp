@@ -11,14 +11,6 @@ bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_
 	cvPOSIT(posit_obj, image_points, focal_length, term_crit, rotation_matrix, translation_vector);
 	cvReleasePOSITObject(&posit_obj);
 
-	for (int i = 0; i < 9; i++)
-		if (_isnan(rotation_matrix[i]))
-			return false;
-
-	for (int i = 0; i < 3; i++)
-		if (_isnan(translation_vector[i]))
-			return false;
-
 	return true;
 }
 

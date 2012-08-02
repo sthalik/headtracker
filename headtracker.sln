@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "headtracker-demo", "headtra
 		{81FC8292-C95B-4E28-BF2A-900F4068E6E8} = {81FC8292-C95B-4E28-BF2A-900F4068E6E8}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1A258F86-A651-4C9C-B4BD-3F44F2E89796}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

@@ -3,10 +3,10 @@
 // todo do away with leaks if initialization fails
 #pragma once
 #define HT_PI 3.14159265f
-#define HT_STD_DEPTH 680.0f
+#define HT_STD_DEPTH 750.0f
 
-#define HT_CENTROID_DEPTH 100.0f
-#define HT_CENTROID_Y 32.0f
+#define HT_CENTROID_DEPTH 95.0f
+#define HT_CENTROID_Y -27.74809f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 1
