@@ -1,7 +1,13 @@
-_ReSharper*/
+/_ReSharper*/
 *.opensdf
 *.sdf
 *.suo
 *.user
 *.ipch
-ipch/
+/ipch/
+/headtracker/Debug
+/headtracker/Release
+/Release
+/Debug
+/headtracker-demo/Debug
+/headtracker-demo/Release

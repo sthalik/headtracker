@@ -5,10 +5,8 @@
 using namespace std;
 using namespace cv;
 
-int main(int argc, char** argv)
+int main(int, char**)
 {
-	cv::setUseOptimized(true);
-
 	ht_config_t conf;
 	FILE* cfg;
 
