@@ -5,11 +5,11 @@
 #define HT_PI 3.14159265f
 #define HT_STD_DEPTH 750.0f
 
-#define HT_CENTROID_DEPTH 95.0f
-#define HT_CENTROID_Y -27.74809f
+#define HT_CENTROID_DEPTH 100.0f
+#define HT_CENTROID_Y -30.02961
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 1
+#define HT_FEATURE_MIN_QUALITY_LEVEL 2
 
 // these ones will be trainable
 // maybe even more after training.cpp is written and sample video(s) made
