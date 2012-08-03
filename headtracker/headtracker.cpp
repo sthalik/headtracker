@@ -59,16 +59,17 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
 	} case HT_STATE_LOST: {
 		ctx->feature_count = 0;
-		for (int i = 0; i < ctx->model.count; i++) {
+		for (int i = 0; i < ctx->model.count; i++)
 			ctx->features[i].x = -1;
-			ctx->feature_failed_iters[i] = 0;
-		}
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->init_retries = 0;
 		ctx->restarted = true;
 		ctx->depth_frame_count = 0;
 		ctx->depth_counter_pos = 0;
 		ctx->zoom_ratio = 1.0f;
+		ctx->keypoint_count = 0;
+		for (int i = 0; i < ctx->config.max_keypoints; i++)
+			ctx->keypoints[i].idx = -1;
 		break;
 	}
 	default:

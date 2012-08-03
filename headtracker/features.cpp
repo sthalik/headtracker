@@ -19,7 +19,6 @@ void ht_remove_lumps(headtracker_t& ctx) {
 									? i
 									: j;
 					ctx.features[idx].x = -1;
-					ctx.feature_failed_iters[idx] = 0;
 					ctx.feature_count--;
 				}
 			}
@@ -35,7 +34,6 @@ void ht_remove_lumps(headtracker_t& ctx) {
 				float dist = sqrt(ht_distance2d_squared(ctx.features[i], ctx.features[j]));
 				if (dist < max) {
 					ctx.features[i].x = -1;
-					ctx.feature_failed_iters[i] = 0;
 					ctx.feature_count--;
 				}
 			}
@@ -125,7 +123,6 @@ void ht_track_features(headtracker_t& ctx) {
 			if (!features_found[i]) {
 				ctx.features[j].x = -1;
 				ctx.feature_count--;
-				ctx.feature_failed_iters[j] = 0;
 			} else
 				ctx.features[j] = new_features[i];
 		}
@@ -170,7 +167,6 @@ void ht_track_features(headtracker_t& ctx) {
 					break;
 				if (!features_found[i]) {
 					ctx.keypoints[j].idx = -1;
-					ctx.keypoint_failed_iters[j] = 0;
 					ctx.keypoint_count--;
 				} else {
 					ctx.keypoints[j].position = new_features[i];
@@ -208,8 +204,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 		for (int i = 0; i < sz; i++)
 			ctx.features[i] = cvPoint2D32f(-1, -1);
 		ctx.feature_failed_iters = new char[sz];
-		for (int i = 0; i < sz; i++)
-			ctx.feature_failed_iters[i] = 0;
 	}
 
 	for (int i = 0; i < ctx.model.count; i++) {
