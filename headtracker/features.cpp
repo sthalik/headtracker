@@ -109,7 +109,7 @@ void ht_track_features(headtracker_t& ctx) {
 			ctx.config.pyrlk_pyramids,
 			features_found,
 			NULL,
-			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.75),
+			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.51),
 			((got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0));
 		
 		pyr_b_ready = true;
@@ -159,7 +159,7 @@ void ht_track_features(headtracker_t& ctx) {
 								   ctx.config.pyrlk_pyramids,
 								   features_found,
 								   NULL,
-								   cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.75),
+								   cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.51),
 								   (got_pyr && !ctx.restarted)
 									       ? (CV_LKFLOW_PYR_A_READY | (pyr_b_ready && CV_LKFLOW_PYR_B_READY))
 										   : 0);
@@ -249,7 +249,7 @@ start_keypoints:
 	int good = 0;
 	if (ctx.keypoint_count < ctx.config.max_keypoints) {
 		max_dist *= max_dist;
-		ORB detector = ORB(ctx.config.max_keypoints * 1.5, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.feature_quality_level);
+		ORB detector = ORB(ctx.config.max_keypoints * 1.5, 1.1f, 16, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
 		detector(mat, noArray(), corners);
 		sort(corners.begin(), corners.end(), ht_feature_quality_level);
 		int cnt = corners.size();
@@ -293,8 +293,8 @@ start_keypoints:
 		}
 
 		if (good > 0) {
-			if (roi.width > 17 && roi.height > 13)
-				cvFindCornerSubPix(ctx.grayscale, keypoints_to_add, good, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 5, 0.49));
+			if (roi.width > 13 && roi.height > 9)
+				cvFindCornerSubPix(ctx.grayscale, keypoints_to_add, good, cvSize(6, 4), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 5, 0.34));
 			int kpidx = 0;
 			for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
 				CvPoint2D32f kp = keypoints_to_add[i];
@@ -393,8 +393,8 @@ end:
 	}
 
 	if (k > 0) {
-		if (roi.width > 17 && roi.height > 13)
-			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(8, 6), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 5, 0.49));
+		if (roi.width > 13 && roi.height > 9)
+			cvFindCornerSubPix(ctx.grayscale, features_to_add, k, cvSize(6, 4), cvSize(-1, -1), cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 5, 0.34));
 		for (int i = 0; i < k && ctx.feature_count < ctx.config.max_tracked_features; i++) {
 			triangle_t t;
 			int idx;
