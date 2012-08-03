@@ -59,7 +59,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Depth info is used for turning pixel-based indicators into absolute measures, independent of closeness to the camera."),
 	F(ransac_best_error_importance, float, 0.1f, 0.0f, 10.0f,
 		"How much smaller reprojection error is favored against more features in a RANSAC iteration that's about to be turned into a consensus."),
-	F(ransac_max_error, float, 0.956f, 0.9f, 1.001f,
+	F(ransac_max_error, float, 0.96f, 0.9f, 1.001f,
 		"Maximum error of one RANSAC iteration compared to the previous one."),
 	F(filter_lumps_distance_threshold, float, 0.83f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
