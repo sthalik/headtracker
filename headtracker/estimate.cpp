@@ -75,7 +75,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 			if (ret) {
 				*offset = c;
 				tmp_model_points[0] = cvPoint3D32f(0, 0, 0);
-				tmp_image_points[0] = *image_centroid = ht_project_point(cvPoint3D32f(-c.x, -c.y + HT_CENTROID_Y, -c.z - HT_CENTROID_DEPTH),
+				tmp_image_points[0] = *image_centroid = ht_project_point(cvPoint3D32f(-c.x, -c.y - HT_CENTROID_Y, -c.z - HT_CENTROID_DEPTH),
 																		 rotation_matrix,
 																		 translation_vector,
 																		 ctx.config.focal_length);
