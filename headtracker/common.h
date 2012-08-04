@@ -23,7 +23,6 @@ typedef struct ht_config {
 	int   depth_avg_frames;
 	float min_feature_distance;
 	float filter_lumps_distance_threshold;
-	float ransac_best_error_importance;
 	float ransac_max_error;
 	int   max_keypoints;
 	int   keypoint_quality;

@@ -5,7 +5,7 @@
 #define HT_PI 3.14159265f
 #define HT_STD_DEPTH 750.0f
 
-#define HT_CENTROID_DEPTH 100.0f
+#define HT_CENTROID_DEPTH 90.0f
 #define HT_CENTROID_Y 30.02961
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
@@ -75,10 +75,10 @@ static __inline int ht_tickcount(void) {
 	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
 }
 
-static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector, float focal_length) {
-	float x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
-	float y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
-	float z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
+static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector, double focal_length) {
+	double x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
+	double y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
+	double z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
 
 	focal_length /= z;
 
@@ -123,7 +123,6 @@ typedef struct ht_context {
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
 void ht_free_model(model_t& model);
-CvPoint2D32f ht_project_point(CvPoint3D32f point, float* rotation_matrix, float* translation_vector, float focal_length);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
 bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
 

@@ -60,7 +60,6 @@ bool ht_ransac(headtracker_t& ctx,
 	int k = 0;
 	bool ret = false;
 	float max_consensus_error = ctx.config.ransac_max_consensus_error;
-	float importance = ctx.config.ransac_best_error_importance;
 	int* keypoint_indices = new int[ctx.keypoint_count];
 	int* model_feature_indices = new int[mcnt];
 	int* model_keypoint_indices = new int[ctx.keypoint_count];
@@ -132,9 +131,7 @@ bool ht_ransac(headtracker_t& ctx,
 			ipos++;
 			gfpos++;
 
-			float measure = (1.0 - importance) + importance * best_error->avg / cur_error.avg;
-
-			if (ipos >= min_consensus && ipos * measure * measure > *best_feature_cnt + *best_keypoint_cnt) {
+			if (ipos >= min_consensus && ipos > *best_feature_cnt + *best_keypoint_cnt) {
 				ret = true;
 				*best_error = cur_error;
 				*best_feature_cnt = gfpos;
@@ -169,9 +166,7 @@ bool ht_ransac(headtracker_t& ctx,
 			ipos++;
 			gkpos++;
 
-			float measure = (1.0 - importance) + importance * best_error->avg / cur_error.avg;
-
-			if (ipos >= min_consensus && ipos * measure > *best_feature_cnt + *best_keypoint_cnt) {
+			if (ipos >= min_consensus && ipos > *best_feature_cnt + *best_keypoint_cnt) {
 				ret = true;
 				*best_error = cur_error;
 				*best_feature_cnt = gfpos;
