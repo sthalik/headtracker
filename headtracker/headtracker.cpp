@@ -18,9 +18,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	case HT_STATE_INITIALIZING: {
 		if (!(ctx->focal_length > 0)) {
 			double ar = (ctx->grayscale->height / (double) ctx->grayscale->width);
-			ctx->focal_length_w = ctx->grayscale->width / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
-			ctx->focal_length_h = ctx->grayscale->height / tan(0.5 * ctx->config.field_of_view * ar * HT_PI / 180.0);
-			ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
+			ctx->focal_length_w = 0.5 * ctx->grayscale->width / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
+			ctx->focal_length_h = 0.5 * ctx->grayscale->height / tan(0.5 * ctx->config.field_of_view * ar * HT_PI / 180.0);
+			ctx->focal_length = ctx->focal_length_w;
 		}
 		ht_track_features(*ctx);
 		if (ht_initial_guess(*ctx, *ctx->grayscale, rotation_matrix, translation_vector))

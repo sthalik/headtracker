@@ -11,6 +11,7 @@ using namespace cv;
 	}
 
 DEFINE_UNION_INITIALIZER(float, f);
+DEFINE_UNION_INITIALIZER(double, d);
 DEFINE_UNION_INITIALIZER(int, i);
 DEFINE_UNION_INITIALIZER(bool, i);
 
@@ -20,11 +21,11 @@ DEFINE_UNION_INITIALIZER(bool, i);
 static const ht_reflection_t ht_reflection_info[] = {
 	F(classification_delay, float, 334.0f, 200.0f, 2000.0f,
 		"Delay between two Haar classifications at the very start of tracking, until enough features are tracked."),
-	F(features_detect_threshold, float, 0.93f, 0.5f, 1.0f,
+	F(features_detect_threshold, float, 0.96f, 0.5f, 1.0f,
 		"Only detect new features when the amount of features presently tracked falls below this ratio."),
-	F(feature_max_failed_ransac, int, 1, 0, 6,
+	F(feature_max_failed_ransac, int, 2, 0, 6,
 		"Maximum consecutive amount of RANSAC evaluations of a feature that fail for it to no longer be tracked."),
-	F(keypoint_max_failed_ransac, int, 2, 0, 6,
+	F(keypoint_max_failed_ransac, int, 3, 0, 6,
 		"Maximum consecutive amount of RANSAC evaluations of a keypoint that fail for it to no longer be tracked."),
 	F(feature_quality_level, int, 3, HT_FEATURE_MIN_QUALITY_LEVEL, HT_FEATURE_MAX_QUALITY_LEVEL,
 		"Maximum feature quality level compared to the strongest feature during their detection. See cvGoodFeaturesToTrack."),
@@ -40,9 +41,9 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Minimum features to track before initialization ends and main phase starts."),
 	F(pyrlk_pyramids, int, 3, 3, 50,
 		"Maximum mipmaps for optical flow tracking. See cvCalcOpticalFlowPyrLK"),
-	F(pyrlk_win_size_w, int, 15, 4, 60,
+	F(pyrlk_win_size_w, int, 12, 4, 60,
 		"Window size for optical flow tracking, vertical"),
-	F(pyrlk_win_size_h, int, 15, 3, 45,
+	F(pyrlk_win_size_h, int, 9, 3, 45,
 		"Window size for optical flow tracking, horizontal."),
 	F(ransac_iter, int, 96, 48, 288,
 		"RANSAC iterations per frame."),
@@ -50,24 +51,22 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum total RANSAC consensus error (see ransac_max_error)."),
 	F(ransac_min_consensus, float, 0.5001f, 0.2f, 0.6f,
 		"Minimum RANSAC consensus size, with regards to the amount of presently tracked features"),
-	F(ransac_posit_eps, float, 1.0e-4f, 1.0e-6f, 10.0f,
+	F(ransac_posit_eps, double, 1.0e-7, 1.0e-7, 1.0,
 		"cvPOSIT epsilon for the purpose of estimating a feature set in RANSAC."),
-	F(ransac_posit_iter, int, 40, 10, 500,
-		"cvPOSIT max iteration count for estimating a RANSAC feature set."),
 	F(depth_avg_frames, int, 10, 1, 120,
 		"Amount of frames for arithmetic averaging of depth info. "
 		"Depth info is used for turning pixel-based indicators into absolute measures, independent of closeness to the camera."),
 	F(ransac_max_error, float, 0.96f, 0.9f, 1.001f,
 		"Maximum error of one RANSAC iteration compared to the previous one."),
-	F(filter_lumps_distance_threshold, float, 0.79f, 0.5f, 1.0f,
+	F(filter_lumps_distance_threshold, float, 0.5f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
-	F(min_feature_distance, float, 5.2f, 3.00001f, 25.00001f,
+	F(min_feature_distance, float, 4.0001f, 3.00001f, 25.00001f,
 		"Distance between two features at the time of their detection, including already detected ones."),
 	F(max_keypoints, int, 14, 8, 48,
 		"Maximum keypoints to track"),
 	F(keypoint_quality, int, 3, 1, 60,
 		"Starting keypoint quality"),
-	F(keypoint_distance, float, 5.0001f, 10.0f, 50.0f,
+	F(keypoint_distance, float, 4.11f, 10.0f, 50.0f,
 		"Minimum Euclidean distance between keypoints"),
 	F(ransac_min_features, int, 4, 4, 24,
 		"Points to start each RANSAC iteration"),
@@ -106,6 +105,9 @@ HT_API(ht_config_t) ht_make_config() {
 		case cfg_type_float:
 			*(float*) ptr = field.default_value.f;
 			break;
+		case cfg_type_double:
+			*(double*) ptr = field.default_value.d;
+			break;
 		case cfg_type_int:
 			*(int*) ptr = field.default_value.i;
 			break;
@@ -140,6 +142,11 @@ HT_API(ht_config_t) ht_load_config(FILE* stream) {
 			if (*(float*) ptr > info.max.f || *(float*) ptr < info.min.f)
 				continue;
 			break;
+		case cfg_type_double:
+			*(double*) ptr = strtod(value, NULL);
+			if (*(double*) ptr > info.max.d || *(double*) ptr < info.min.d)
+				continue;
+			break;
 		case cfg_type_int:
 			*(int*) ptr = (int) strtol(value, NULL, 10);
 			if (*(int*) ptr > info.max.i || *(int*) ptr < info.min.i)
@@ -168,6 +175,8 @@ static void ht_store_config_internal(const ht_config_t& config, FILE* stream) {
 		case cfg_type_float:
 			fprintf(stream, "%f", *(float*)ptr);
 			break;
+		case cfg_type_double:
+			fprintf(stream, "%f", *(double*)ptr);
 		default:
 			throw exception();
 		}

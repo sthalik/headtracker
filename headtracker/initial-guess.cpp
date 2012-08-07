@@ -27,8 +27,8 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 		image_points[i-1] = cvPoint2D32f(rectangles[i].x + rectangles[i].width/2, rectangles[i].y + rectangles[i].height/2);
 
 	object_points[HT_CLASSIFIER_NOSE-1] = cvPoint3D32f(0, 0, 0);
-	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-45.57722, -31.15408, -44.83258);
-	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(45.57722, -31.15408, -44.83258);
+	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-45.57722, -31.15408, -46.59756);
+	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(45.57722, -31.15408, -46.59756);
 	object_points[HT_CLASSIFIER_MOUTH-1] = cvPoint3D32f(0, 56.94890, -36.79019);
 
 	return ht_posit(image_points,

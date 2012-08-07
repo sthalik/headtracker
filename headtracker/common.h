@@ -18,8 +18,7 @@ typedef struct ht_config {
 	float features_detect_threshold;
 	float filter_lumps_feature_count_threshold;
 	int   feature_max_failed_ransac;
-	int   ransac_posit_iter;
-	float ransac_posit_eps;
+	double ransac_posit_eps;
 	int   depth_avg_frames;
 	float min_feature_distance;
 	float filter_lumps_distance_threshold;
@@ -47,10 +46,13 @@ typedef struct {
 typedef enum {
 	cfg_type_float = 0,
 	cfg_type_int   = 1,
-	cfg_type_bool  = 2
+	cfg_type_bool  = 2,
+	cfg_type_double = 3,
 } ht_cfg_type_t;
 
-typedef union {
+typedef union
+{
+	double d;
 	float f;
 	int i;
 } ht_cfg_value_t;
