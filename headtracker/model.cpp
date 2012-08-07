@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 using namespace std;
@@ -77,16 +78,15 @@ void ht_draw_model(headtracker_t& ctx, model_t& model) {
 }
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset) {
-	FILE* stream = fopen(filename, "r");
-	if (stream == NULL)
-		throw exception();
+	ifstream stream(filename, ifstream::in);
+	
 	char line[256];
 	line[255] = '\0';
 	vector<triangle_t> triangles;
+	triangle_t triangle;
 
-	while (fgets(line, 255, stream) != NULL) {
-		triangle_t triangle;
-
+	while (stream.good()) {
+		stream.getline(line, 254);
 		int ret = sscanf(line,
 						 "%f%f%f%f%f%f%f%f%f",
 						 &triangle.p1.x, &triangle.p1.y, &triangle.p1.z,
@@ -126,8 +126,6 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 		triangles.push_back(triangle);
 
 	}
-
-	fclose(stream);
 
 	model_t ret;
 

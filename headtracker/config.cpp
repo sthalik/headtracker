@@ -60,7 +60,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum error of one RANSAC iteration compared to the previous one."),
 	F(filter_lumps_distance_threshold, float, 0.5f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
-	F(min_feature_distance, float, 6.0001f, 3.00001f, 25.00001f,
+	F(min_feature_distance, float, 6.9f, 3.00001f, 25.00001f,
 		"Distance between two features at the time of their detection, including already detected ones."),
 	F(max_keypoints, int, 14, 8, 48,
 		"Maximum keypoints to track"),
