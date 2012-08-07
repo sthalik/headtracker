@@ -6,7 +6,7 @@ using namespace cv;
 static __inline error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
 	float rotation_matrix[9];
 	float translation_vector[3];
-	float focal_length = ctx.config.focal_length;
+	double focal_length = ctx.focal_length;
 
 	error_t ret;
 
@@ -24,7 +24,7 @@ static __inline error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D3
 	float avg = 0;
 
 	for (int i = 0; i < point_cnt; i++)
-		avg += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, focal_length), image_points[i]);
+		avg += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
 
 	ret.avg = (float) sqrt(avg / point_cnt);
 

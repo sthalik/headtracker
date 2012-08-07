@@ -40,7 +40,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 		float center_distance = 1e10;
 
 		for (int i = 0; i < k; i++) {
-			float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, 15, -30));
+			float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, 13, -29));
 
 			if (center_distance > d) {
 				center_distance = d;
@@ -69,8 +69,8 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-						   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-6f),
-						   ctx.config.focal_length);
+						   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-7),
+						   ctx.focal_length);
 
 			if (ret) {
 				*offset = c;
@@ -78,7 +78,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 				tmp_image_points[0] = *image_centroid = ht_project_point(cvPoint3D32f(-c.x, -c.y - HT_CENTROID_Y, -c.z - HT_CENTROID_DEPTH),
 																		 rotation_matrix,
 																		 translation_vector,
-																		 ctx.config.focal_length);
+																		 ctx.focal_length);
 				for (int i = 0; i < k; i++) {
 					tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x, model_points[i].y + HT_CENTROID_Y, model_points[i].z + HT_CENTROID_DEPTH);
 					tmp_image_points[i+1] = image_points[i];
@@ -88,8 +88,8 @@ bool ht_estimate_pose(headtracker_t& ctx,
 							   k+1,
 							   rotation_matrix2,
 							   translation_vector2,
-							   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 500, 1.0e-5f),
-							   ctx.config.focal_length);
+							   cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-7),
+							   ctx.focal_length);
 				if (ret)
 					ht_update_zoom_scale(ctx, translation_vector2[2]);
 			}

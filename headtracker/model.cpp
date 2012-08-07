@@ -12,7 +12,6 @@ void ht_project_model(headtracker_t& ctx,
 					  CvPoint3D32f origin)
 {
 	int sz = model.count;
-	float focal_length = ctx.config.focal_length;
 
 	if (!model.projection)
 		model.projection = new triangle2d_t[sz];
@@ -20,9 +19,9 @@ void ht_project_model(headtracker_t& ctx,
 	for (int i = 0; i < sz; i++) {
 		triangle_t& t = model.triangles[i];
 		triangle2d_t t2d;
-		t2d.p1 = ht_project_point(cvPoint3D32f(t.p1.x - origin.x, t.p1.y - origin.y, t.p1.z - origin.z), rotation_matrix, translation_vector, focal_length);
-		t2d.p2 = ht_project_point(cvPoint3D32f(t.p2.x - origin.x, t.p2.y - origin.y, t.p2.z - origin.z), rotation_matrix, translation_vector, focal_length);
-		t2d.p3 = ht_project_point(cvPoint3D32f(t.p3.x - origin.x, t.p3.y - origin.y, t.p3.z - origin.z), rotation_matrix, translation_vector, focal_length);
+		t2d.p1 = ht_project_point(cvPoint3D32f(t.p1.x - origin.x, t.p1.y - origin.y, t.p1.z - origin.z), rotation_matrix, translation_vector, ctx.focal_length);
+		t2d.p2 = ht_project_point(cvPoint3D32f(t.p2.x - origin.x, t.p2.y - origin.y, t.p2.z - origin.z), rotation_matrix, translation_vector, ctx.focal_length);
+		t2d.p3 = ht_project_point(cvPoint3D32f(t.p3.x - origin.x, t.p3.y - origin.y, t.p3.z - origin.z), rotation_matrix, translation_vector, ctx.focal_length);
 
 		model.projection[i] = t2d;
 		model.projected_depths[i] = model.centers[i].x * rotation_matrix[6] + model.centers[i].y * rotation_matrix[7] + model.centers[i].z * rotation_matrix[8];

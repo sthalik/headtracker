@@ -76,7 +76,7 @@
       <Profile>false</Profile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)thirdparty\bin\*.*" "$(TargetDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)\thirdparty\bin\*.*" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

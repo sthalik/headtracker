@@ -27,15 +27,15 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 		image_points[i-1] = cvPoint2D32f(rectangles[i].x + rectangles[i].width/2, rectangles[i].y + rectangles[i].height/2);
 
 	object_points[HT_CLASSIFIER_NOSE-1] = cvPoint3D32f(0, 0, 0);
-	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-40.51580, -31.15408, -44.83258);
-	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(40.51580, -31.15408, -44.83258);
-	object_points[HT_CLASSIFIER_MOUTH-1] = cvPoint3D32f(0, 50, -36);
+	object_points[HT_CLASSIFIER_EYE1-1] = cvPoint3D32f(-45.57722, -31.15408, -44.83258);
+	object_points[HT_CLASSIFIER_EYE2-1] = cvPoint3D32f(45.57722, -31.15408, -44.83258);
+	object_points[HT_CLASSIFIER_MOUTH-1] = cvPoint3D32f(0, 56.94890, -36.79019);
 
 	return ht_posit(image_points,
 					object_points,
 					HT_CLASSIFIER_COUNT-1,
 					rotation_matrix,
 					translation_vector,
-					cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 0.01 * HT_PI / 180.0f),
-					ctx.config.focal_length);
+					cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-7),
+					ctx.focal_length);
 }

@@ -4,6 +4,8 @@
 *.suo
 *.user
 *.ipch
+*.vsp
+*.psess
 /ipch/
 /headtracker/Debug
 /headtracker/Release
@@ -11,3 +13,4 @@
 /Debug
 /headtracker-demo/Debug
 /headtracker-demo/Release
+/thirdparty/bin/head.blend*

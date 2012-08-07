@@ -3,7 +3,7 @@
 using namespace std;
 using namespace cv;
 
-bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, float focal_length) {
+bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, double focal_length) {
 	if (point_cnt < 4)
 		return false;
 

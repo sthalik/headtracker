@@ -3,7 +3,7 @@ struct ht_context;
 typedef struct ht_context headtracker_t;
 
 typedef struct ht_config {
-	float focal_length;
+	float field_of_view;
 	float classification_delay;
 	int   feature_quality_level;
 	int   pyrlk_pyramids;
