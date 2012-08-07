@@ -1,5 +1,4 @@
 // todo die on impossible poses
-// todo autocalibration
 // todo do away with leaks if initialization fails
 #pragma once
 #define HT_PI 3.1415926535
@@ -10,15 +9,6 @@
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2
-
-// these ones will be trainable
-// maybe even more after training.cpp is written and sample video(s) made
-// the basic idea is to make a video of doing something(s) the tracker has
-// problems with, then change random parameters until it's more fit
-// the fitness is problematic, but will probably be measured by
-// how a freshly-computed pose differs from the 'continuing'
-// also, the reprojection error of the present pose
-// these will be probably tested later, but are pretty optimal as of now
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
