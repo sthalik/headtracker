@@ -15,7 +15,7 @@ static __inline error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D3
 				  point_cnt,
 				  rotation_matrix,
 				  translation_vector,
-				  cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2.5 * point_cnt + 10, ctx.config.ransac_posit_eps),
+				  cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1.5 * point_cnt + 5, ctx.config.ransac_posit_eps),
 				  focal_length)) {
 		ret.avg = 1.0e10;
 		return ret;
