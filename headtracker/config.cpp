@@ -51,7 +51,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum total RANSAC consensus error (see ransac_max_error)."),
 	F(ransac_min_consensus, float, 0.5001f, 0.2f, 0.6f,
 		"Minimum RANSAC consensus size, with regards to the amount of presently tracked features"),
-	F(ransac_posit_eps, double, 1.0e-7, 1.0e-7, 1.0,
+	F(ransac_posit_eps, double, 1.0e-6, 1.0e-7, 1.0,
 		"cvPOSIT epsilon for the purpose of estimating a feature set in RANSAC."),
 	F(depth_avg_frames, int, 10, 1, 120,
 		"Amount of frames for arithmetic averaging of depth info. "
