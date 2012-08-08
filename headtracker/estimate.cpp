@@ -40,7 +40,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 		float center_distance = 1e10;
 
 		for (int i = 0; i < k; i++) {
-			float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, 13, -29));
+			float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, 24.21354, 25.75259));
 
 			if (center_distance > d) {
 				center_distance = d;

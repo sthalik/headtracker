@@ -19,7 +19,7 @@ DEFINE_UNION_INITIALIZER(bool, i);
 #define FIELD_END { NULL, -1, cfg_type_int, 0 }
 
 static const ht_reflection_t ht_reflection_info[] = {
-	F(classification_delay, float, 334.0f, 200.0f, 2000.0f,
+	F(classification_delay, float, 500.0f, 200.0f, 2000.0f,
 		"Delay between two Haar classifications at the very start of tracking, until enough features are tracked."),
 	F(features_detect_threshold, float, 0.96f, 0.5f, 1.0f,
 		"Only detect new features when the amount of features presently tracked falls below this ratio."),
@@ -56,7 +56,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 	F(depth_avg_frames, int, 10, 1, 120,
 		"Amount of frames for arithmetic averaging of depth info. "
 		"Depth info is used for turning pixel-based indicators into absolute measures, independent of closeness to the camera."),
-	F(ransac_max_error, float, 0.97f, 0.9f, 1.001f,
+	F(ransac_max_error, float, 0.974f, 0.9f, 1.001f,
 		"Maximum error of one RANSAC iteration compared to the previous one."),
 	F(filter_lumps_distance_threshold, float, 0.5f, 0.5f, 1.0f,
 		"How much too close to each other features have to be to filter them. Features that failed the last POSIT iteration are removed first."),
