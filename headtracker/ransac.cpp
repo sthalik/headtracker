@@ -3,23 +3,160 @@
 using namespace std;
 using namespace cv;
 
-static __inline error_t ht_avg_reprojection_error(headtracker_t& ctx, CvPoint3D32f* model_points, CvPoint2D32f* image_points, int point_cnt) {
-	float rotation_matrix[9];
-	float translation_vector[3];
+struct CvPOSITObject
+{
+    int N;
+    float* inv_matr;
+    float* obj_vecs;
+    float* img_vecs;
+};
+
+static void ht_icvRecreatePOSITObject(const CvPOSITObject *prev_pObject,
+                                      CvPOSITObject *new_ppObject,
+									  const CvPoint2D32f *imagePoints)
+{
+	int prev_N;
+	int N = new_ppObject->N;
+
+	if (prev_pObject == NULL) {
+		prev_N = 0;
+	} else {
+		prev_N = prev_pObject->N;
+		for (int i = 0; i < prev_N; i++) {
+			new_ppObject->img_vecs[i] = prev_pObject->img_vecs[i];
+			new_ppObject->img_vecs[N + i] = prev_pObject->img_vecs[N + i];
+		}
+	}
+
+	for (int i = prev_N; i < N; i++) {
+		new_ppObject->img_vecs[i] = imagePoints[i + 1].x - imagePoints[0].x;
+		new_ppObject->img_vecs[N + i] = imagePoints[i + 1].y - imagePoints[0].y;
+	}
+}
+
+// original POSIT code, modified, copyright/authorship applies
+
+static void ht_icvPOSIT( CvPOSITObject *pObject, CvPoint2D32f *imagePoints,
+                         float focalLength, float max_eps, int max_iter,
+                         float* rotation, float* translation )
+{
+    int i, j, k;
+    int count = 0, converged = 0;
+    float inorm, jnorm, invInorm, invJnorm, invScale, scale = 0, inv_Z = 0;
+    float diff = max_eps;
+    float inv_focalLength = 1 / focalLength;
+
+    /* init variables */
+    int N = pObject->N;
+    float *objectVectors = pObject->obj_vecs;
+    float *invMatrix = pObject->inv_matr;
+    float *imgVectors = pObject->img_vecs;
+
+    while( !converged )
+    {
+        diff = 0;
+        /* Compute new SOP (scaled orthograthic projection) image from pose */
+        for( i = 0; i < N; i++ )
+        {
+            /* objectVector * k */
+            float old;
+            float tmp = objectVectors[i] * rotation[6] /*[2][0]*/ +
+                objectVectors[N + i] * rotation[7]     /*[2][1]*/ +
+                objectVectors[2 * N + i] * rotation[8] /*[2][2]*/;
+
+            tmp *= inv_Z;
+            tmp += 1;
+
+            old = imgVectors[i];
+            imgVectors[i] = imagePoints[i + 1].x * tmp - imagePoints[0].x;
+
+            diff = MAX( diff, (float) fabs( imgVectors[i] - old ));
+
+            old = imgVectors[N + i];
+            imgVectors[N + i] = imagePoints[i + 1].y * tmp - imagePoints[0].y;
+
+            diff = MAX( diff, (float) fabs( imgVectors[N + i] - old ));
+        }
+        /* calculate I and J vectors */
+        for( i = 0; i < 2; i++ )
+        {
+            for( j = 0; j < 3; j++ )
+            {
+                rotation[3*i+j] /*[i][j]*/ = 0;
+                for( k = 0; k < N; k++ )
+                {
+                    rotation[3*i+j] /*[i][j]*/ += invMatrix[j * N + k] * imgVectors[i * N + k];
+                }
+            }
+        }
+
+        inorm = rotation[0] /*[0][0]*/ * rotation[0] /*[0][0]*/ +
+                rotation[1] /*[0][1]*/ * rotation[1] /*[0][1]*/ + 
+                rotation[2] /*[0][2]*/ * rotation[2] /*[0][2]*/;
+
+        jnorm = rotation[3] /*[1][0]*/ * rotation[3] /*[1][0]*/ +
+                rotation[4] /*[1][1]*/ * rotation[4] /*[1][1]*/ + 
+                rotation[5] /*[1][2]*/ * rotation[5] /*[1][2]*/;
+
+        invInorm = cvInvSqrt( inorm );
+        invJnorm = cvInvSqrt( jnorm );
+
+        inorm *= invInorm;
+        jnorm *= invJnorm;
+
+        rotation[0] /*[0][0]*/ *= invInorm;
+        rotation[1] /*[0][1]*/ *= invInorm;
+        rotation[2] /*[0][2]*/ *= invInorm;
+
+        rotation[3] /*[1][0]*/ *= invJnorm;
+        rotation[4] /*[1][1]*/ *= invJnorm;
+        rotation[5] /*[1][2]*/ *= invJnorm;
+
+        /* row2 = row0 x row1 (cross product) */
+        rotation[6] /*->m[2][0]*/ = rotation[1] /*->m[0][1]*/ * rotation[5] /*->m[1][2]*/ -
+                                    rotation[2] /*->m[0][2]*/ * rotation[4] /*->m[1][1]*/;
+       
+        rotation[7] /*->m[2][1]*/ = rotation[2] /*->m[0][2]*/ * rotation[3] /*->m[1][0]*/ -
+                                    rotation[0] /*->m[0][0]*/ * rotation[5] /*->m[1][2]*/;
+       
+        rotation[8] /*->m[2][2]*/ = rotation[0] /*->m[0][0]*/ * rotation[4] /*->m[1][1]*/ -
+                                    rotation[1] /*->m[0][1]*/ * rotation[3] /*->m[1][0]*/;
+
+        scale = (inorm + jnorm) / 2.0f;
+        inv_Z = scale * inv_focalLength;
+
+        count++;
+        converged = diff < max_eps || count == max_iter;
+    }
+    invScale = 1 / scale;
+    translation[0] = imagePoints[0].x * invScale;
+    translation[1] = imagePoints[0].y * invScale;
+    translation[2] = 1 / inv_Z;
+}
+
+static error_t ht_avg_reprojection_error(headtracker_t& ctx,
+										 CvPoint3D32f* model_points,
+										 CvPoint2D32f* image_points,
+										 int point_cnt,
+										 CvPOSITObject** prev_pObject,
+										 float* rotation_matrix,
+										 float* translation_vector) {
 	double focal_length = ctx.focal_length;
 
 	error_t ret;
 
-	if (!ht_posit(image_points,
-				  model_points,
-				  point_cnt,
-				  rotation_matrix,
-				  translation_vector,
-				  cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, point_cnt + 5, ctx.config.ransac_posit_eps),
-				  focal_length)) {
-		ret.avg = 1.0e10;
-		return ret;
-	}
+	CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
+	ht_icvRecreatePOSITObject(*prev_pObject, posit_obj, image_points);
+	if (*prev_pObject)
+		cvReleasePOSITObject(prev_pObject);
+	*prev_pObject = posit_obj;
+	ht_icvPOSIT(posit_obj,
+				image_points,
+				focal_length,
+				ctx.config.ransac_posit_eps,
+				5 + point_cnt,
+				rotation_matrix,
+				translation_vector);
 
 	float avg = 0;
 
@@ -97,14 +234,18 @@ bool ht_ransac(headtracker_t& ctx,
 		int gfpos = 0;
 		int gkpos = 0;
 		bool good = false;
+		float rotation_matrix[9];
+		float translation_vector[3];
+
+		memset(rotation_matrix, 0, sizeof(float) * 9);
+		memset(translation_vector, 0, sizeof(float) * 3);
 
 		CvPoint3D32f first_point = ctx.feature_uv[indices[0]];
 
 		error_t cur_error;
 		cur_error.avg = max_consensus_error - 1.0e-2f;
 
-		if (cur_error.avg >= max_consensus_error)
-			continue;
+		CvPOSITObject* posit_obj = NULL;
 
 		for (; fpos < k; fpos++) {
 			int idx = indices[fpos];
@@ -116,7 +257,7 @@ bool ht_ransac(headtracker_t& ctx,
 			model_feature_indices[gfpos] = idx;
 
 			if (ipos >= ctx.config.ransac_min_features) {
-				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1);
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_matrix, translation_vector);
 				e.avg *= error_scale;
 				if (e.avg*max_error > cur_error.avg)
 					continue;
@@ -153,7 +294,7 @@ bool ht_ransac(headtracker_t& ctx,
 			image_points[ipos] = kp.position;
 			model_keypoint_indices[gkpos] = idx;
 			if (ipos >= ctx.config.ransac_min_features) {
-				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1);
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_matrix, translation_vector);
 				e.avg *= error_scale;
 				if (e.avg*max_error > cur_error.avg)
 					continue;
@@ -180,6 +321,9 @@ bool ht_ransac(headtracker_t& ctx,
 end2:
 		if (!good)
 			bad++;
+
+		if (posit_obj)
+			cvReleasePOSITObject(&posit_obj);
 	}
 
 	if (ctx.config.debug)

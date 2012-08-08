@@ -9,6 +9,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	float rotation_matrix2[9];
 	float translation_vector2[3];
 
+	memset(rotation_matrix, 0, sizeof(float) * 9);
+	memset(translation_vector, 0, sizeof(float) * 3);
+
 	euler->filled = false;
 
 	if (!ht_get_image(*ctx))

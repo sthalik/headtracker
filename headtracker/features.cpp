@@ -107,7 +107,7 @@ void ht_track_features(headtracker_t& ctx) {
 			ctx.config.pyrlk_pyramids,
 			features_found,
 			NULL,
-			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.51),
+			cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.95),
 			((got_pyr && !ctx.restarted) ? CV_LKFLOW_PYR_A_READY : 0));
 		
 		pyr_b_ready = true;
@@ -156,7 +156,7 @@ void ht_track_features(headtracker_t& ctx) {
 								   ctx.config.pyrlk_pyramids,
 								   features_found,
 								   NULL,
-								   cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.51),
+								   cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.95),
 								   (got_pyr && !ctx.restarted)
 									       ? (CV_LKFLOW_PYR_A_READY | (pyr_b_ready && CV_LKFLOW_PYR_B_READY))
 										   : 0);
