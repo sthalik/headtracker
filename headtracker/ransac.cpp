@@ -160,8 +160,11 @@ static error_t ht_avg_reprojection_error(headtracker_t& ctx,
 
 	float avg = 0;
 
-	for (int i = 0; i < point_cnt; i++)
-		avg += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+	for (int i = 0; i < point_cnt; i++) {
+		float foo = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+		if (foo > avg)
+			avg = foo;
+	}
 
 	ret.avg = (float) sqrt(avg / point_cnt);
 
