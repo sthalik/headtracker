@@ -34,6 +34,7 @@ typedef struct ht_config {
 	int   camera_index;
 	int   keypoint_max_failed_ransac;
 	bool  debug;
+	float ransac_smaller_error_preference;
 } ht_config_t;
 
 typedef struct {

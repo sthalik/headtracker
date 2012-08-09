@@ -154,7 +154,7 @@ static error_t ht_avg_reprojection_error(headtracker_t& ctx,
 				image_points,
 				focal_length,
 				ctx.config.ransac_posit_eps,
-				5 + point_cnt,
+				5 + point_cnt * 0.666,
 				rotation_matrix,
 				translation_vector);
 
@@ -196,12 +196,12 @@ bool ht_ransac(headtracker_t& ctx,
 	int mcnt = ctx.model.count;
 	int k = 0;
 	bool ret = false;
-	float max_consensus_error = ctx.config.ransac_max_consensus_error;
+	float max_consensus_error = ctx.config.ransac_max_consensus_error * error_scale;
 	int* keypoint_indices = new int[ctx.keypoint_count];
 	int* model_feature_indices = new int[mcnt];
 	int* model_keypoint_indices = new int[ctx.keypoint_count];
 	int* indices = new int[mcnt];
-	int bad = 0;
+	const float bias = ctx.config.ransac_smaller_error_preference;
 
 	best_error->avg = 1.0e10;
 	*best_feature_cnt = 0;
@@ -233,9 +233,10 @@ bool ht_ransac(headtracker_t& ctx,
 		int kpos = 0;
 		int gfpos = 0;
 		int gkpos = 0;
-		bool good = false;
 		float rotation_matrix[9];
 		float translation_vector[3];
+		float rotation_new[9];
+		float translation_new[3];
 
 		memset(rotation_matrix, 0, sizeof(float) * 9);
 		memset(translation_vector, 0, sizeof(float) * 3);
@@ -243,7 +244,7 @@ bool ht_ransac(headtracker_t& ctx,
 		CvPoint3D32f first_point = ctx.feature_uv[indices[0]];
 
 		error_t cur_error;
-		cur_error.avg = max_consensus_error - 1.0e-2f;
+		cur_error.avg = max_consensus_error;
 
 		CvPOSITObject* posit_obj = NULL;
 
@@ -257,16 +258,17 @@ bool ht_ransac(headtracker_t& ctx,
 			model_feature_indices[gfpos] = idx;
 
 			if (ipos >= ctx.config.ransac_min_features) {
-				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_matrix, translation_vector);
+				memcpy(rotation_new, rotation_matrix, sizeof(float) * 9);
+				memcpy(translation_new, translation_vector, sizeof(float) * 3);
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
 				e.avg *= error_scale;
+
 				if (e.avg*max_error > cur_error.avg)
 					continue;
 				cur_error.avg = e.avg;
 
-				if (cur_error.avg > max_consensus_error)
-					goto end2;
-
-				good = true;
+				memcpy(rotation_matrix, rotation_new, sizeof(float) * 9);
+				memcpy(translation_vector, translation_new, sizeof(float) * 3);
 			}
 
 			ipos++;
@@ -294,20 +296,23 @@ bool ht_ransac(headtracker_t& ctx,
 			image_points[ipos] = kp.position;
 			model_keypoint_indices[gkpos] = idx;
 			if (ipos >= ctx.config.ransac_min_features) {
-				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_matrix, translation_vector);
+				memcpy(rotation_new, rotation_matrix, sizeof(float) * 9);
+				memcpy(translation_new, translation_vector, sizeof(float) * 3);
+				error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
 				e.avg *= error_scale;
 				if (e.avg*max_error > cur_error.avg)
 					continue;
 				cur_error.avg = e.avg;
-				if (cur_error.avg > max_consensus_error)
-					goto end2;
-				good = true;
+				memcpy(rotation_matrix, rotation_new, sizeof(float) * 9);
+				memcpy(translation_vector, translation_new, sizeof(float) * 3);
 			}
 
 			ipos++;
 			gkpos++;
 
-			if (ipos >= min_consensus && ipos > *best_feature_cnt + *best_keypoint_cnt) {
+			if (ipos >= min_consensus &&
+				ipos * ((1.0f - bias) + bias * (best_error->avg / cur_error.avg)) > *best_feature_cnt + *best_keypoint_cnt)
+			{
 				ret = true;
 				*best_error = cur_error;
 				*best_feature_cnt = gfpos;
@@ -318,16 +323,9 @@ bool ht_ransac(headtracker_t& ctx,
 					best_keypoints[i] = model_keypoint_indices[i];
 			}
 		}
-end2:
-		if (!good)
-			bad++;
-
 		if (posit_obj)
 			cvReleasePOSITObject(&posit_obj);
 	}
-
-	if (ctx.config.debug)
-		printf("RANSAC: %d out of %d iterations failed completely\n", bad, max_iter);
 
 end:
 
@@ -349,7 +347,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
 	if (ht_ransac(ctx,
 				  ctx.config.ransac_iter,
 				  ctx.config.ransac_max_error,
-				  min_features,
+				  max(min_features, ctx.config.ransac_min_features),
 				  &best_feature_cnt,
 				  &best_keypoint_cnt,
 				  best_error,
