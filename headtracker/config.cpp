@@ -47,7 +47,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Window size for optical flow tracking, horizontal."),
 	F(ransac_iter, int, 120, 48, 288,
 		"RANSAC iterations per frame."),
-	F(ransac_max_consensus_error, float, 7.0f, 5.0f, 30.0f,
+	F(ransac_max_consensus_error, float, 20.0f, 5.0f, 30.0f,
 		"Maximum total RANSAC consensus error (see ransac_max_error)."),
 	F(ransac_min_consensus, float, 0.333f, 0.2f, 0.75f,
 		"Minimum RANSAC consensus size, with regards to the amount of presently tracked features"),
