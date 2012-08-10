@@ -140,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\thirdparty\bin\head.raw" />
+    <None Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
