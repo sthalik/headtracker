@@ -154,7 +154,7 @@ static error_t ht_avg_reprojection_error(headtracker_t& ctx,
 				image_points,
 				focal_length,
 				ctx.config.ransac_posit_eps,
-				5 + point_cnt * 0.666,
+				10 + point_cnt,
 				rotation_matrix,
 				translation_vector);
 
