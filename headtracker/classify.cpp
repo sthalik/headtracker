@@ -32,10 +32,10 @@ bool ht_classify(const classifier_t& classifier, IplImage& frame, const CvRect& 
 	CvSeq* seq = cvHaarDetectObjects(&frame,
 									 classifier.cascade,
 									 storage,
-									 1.15,
+									 1.2,
 									 2,
 									 CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT,
-									 cvSize(1 + classifier.min_size.width * roi2.width, 1 + classifier.min_size.height * roi2.height),
+									 cvSize(classifier.min_size.width * roi2.width, classifier.min_size.height * roi2.height),
 									 cvSize(roi2.width, roi2.height));
 	int size = -1;
 

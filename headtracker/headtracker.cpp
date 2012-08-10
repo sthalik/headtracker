@@ -48,7 +48,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		CvPoint3D32f offset;
 		CvPoint2D32f centroid;
 		if (ht_ransac_best_indices(*ctx, &best_error) &&
-			ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid))
+			ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid) &&
+			best_error.avg < 5.0f)
 		{
 			ht_remove_lumps(*ctx);
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
@@ -57,7 +58,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
-			euler->confidence = (ctx->config.ransac_max_consensus_error - best_error.avg) / ctx->config.ransac_max_consensus_error;
+			euler->confidence = (5.0f - best_error.avg) / 5.0f;
 			cvCircle(ctx->color, cvPoint(centroid.x, centroid.y), 3, CV_RGB(0, 255, 0), -1);
 			if (ctx->config.debug)
 				printf("corners %d/%d (%d) keypoints %d/%d (%d)\n",

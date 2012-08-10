@@ -199,7 +199,6 @@ bool ht_ransac(headtracker_t& ctx,
 	int mcnt = ctx.model.count;
 	int k = 0;
 	bool ret = false;
-	float max_consensus_error = ctx.config.ransac_max_consensus_error * error_scale;
 	int* keypoint_indices = new int[ctx.keypoint_count];
 	int* model_feature_indices = new int[mcnt];
 	int* model_keypoint_indices = new int[ctx.keypoint_count];
@@ -247,7 +246,7 @@ bool ht_ransac(headtracker_t& ctx,
 		CvPoint3D32f first_point = ctx.feature_uv[indices[0]];
 
 		error_t cur_error;
-		cur_error.avg = max_consensus_error;
+		cur_error.avg = 1.0e10;
 
 		CvPOSITObject* posit_obj = NULL;
 
