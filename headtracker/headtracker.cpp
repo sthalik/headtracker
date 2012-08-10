@@ -58,7 +58,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
-			euler->confidence = (5.0f - best_error.avg) / 5.0f;
+			euler->confidence = (4.0f - best_error.avg) / 4.0f;
 			cvCircle(ctx->color, cvPoint(centroid.x, centroid.y), 3, CV_RGB(0, 255, 0), -1);
 			if (ctx->config.debug)
 				printf("corners %d/%d (%d) keypoints %d/%d (%d)\n",
