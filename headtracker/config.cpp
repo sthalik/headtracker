@@ -21,7 +21,7 @@ DEFINE_UNION_INITIALIZER(bool, i);
 static const ht_reflection_t ht_reflection_info[] = {
 	F(classification_delay, float, 300.0f, 200.0f, 2000.0f,
 		"Delay between two Haar classifications at the very start of tracking, until enough features are tracked."),
-	F(features_detect_threshold, float, 0.97f, 0.5f, 1.0f,
+	F(features_detect_threshold, float, 0.9f, 0.5f, 1.0f,
 		"Only detect new features when the amount of features presently tracked falls below this ratio."),
 	F(feature_max_failed_ransac, int, 0, 0, 6,
 		"Maximum consecutive amount of RANSAC evaluations of a feature that fail for it to no longer be tracked."),
@@ -64,7 +64,7 @@ static const ht_reflection_t ht_reflection_info[] = {
 		"Maximum keypoints to track"),
 	F(keypoint_quality, int, 3, 1, 60,
 		"Starting keypoint quality"),
-	F(keypoint_distance, float, 8.5f, 10.0f, 50.0f,
+	F(keypoint_distance, float, 8.5f, 5.0f, 50.0f,
 		"Minimum Euclidean distance between keypoints"),
 	F(ransac_min_features, int, 4, 4, 24,
 		"Points to start each RANSAC iteration"),
