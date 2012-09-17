@@ -18,6 +18,7 @@ static void ht_quit_handler(int foo) {
 
 int main(int argc, char** argv)
 {
+    srand(0);
     bool start = false;
 #ifdef __unix
     (void) signal(SIGTERM, ht_quit_handler);
@@ -38,8 +39,6 @@ int main(int argc, char** argv)
     ht_result_t result;
 
     cvNamedWindow("capture");
-
-	srand((int) getTickCount());
 
     while (!ht_quitp && ht_cycle(ctx, &result)) {
         if (result.filled) {

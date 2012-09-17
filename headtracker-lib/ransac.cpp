@@ -19,7 +19,7 @@ static double ht_avg_reprojection_error(headtracker_t& ctx,
     cvPOSIT(posit_obj,
             image_points,
             focal_length,
-            cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, ctx.config.ransac_posit_iter, ctx.config.ransac_posit_eps),
+            cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, point_cnt/10 + 10, ctx.config.ransac_posit_eps),
             rotation_matrix,
             translation_vector);
 
@@ -137,7 +137,9 @@ bool ht_ransac(headtracker_t& ctx,
             ipos++;
             gfpos++;
 
-            if (ipos >= N && ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt)
+            if (ipos >= N &&
+                ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt &&
+                (ipos % 3) == 0)
             {
                 ret = true;
                 *best_error = cur_error;
@@ -175,7 +177,9 @@ bool ht_ransac(headtracker_t& ctx,
             ipos++;
             gkpos++;
 
-            if (ipos >= N && ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt)
+            if (ipos >= N &&
+                ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt &&
+                ((ipos % 3) == 0 || kpos + 1 == kppos))
             {
                 ret = true;
                 *best_error = cur_error;

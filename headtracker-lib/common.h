@@ -36,7 +36,7 @@ typedef struct ht_config {
 	int   keypoint_max_failed_ransac;
 	bool  debug;
 	float ransac_smaller_error_preference;
-    int   ransac_posit_iter;
+    //int   ransac_posit_iter;
     int   ransac_num_iters;
     int   ransac_min_features;
     float max_best_error;

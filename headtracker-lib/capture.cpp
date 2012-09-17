@@ -15,7 +15,6 @@ bool ht_get_image(headtracker_t& ctx) {
 
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     equalizeHist(ctx.grayscale, ctx.grayscale);
-
 	return true;
 }
 
