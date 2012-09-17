@@ -75,7 +75,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Force capture frames per second of a webcam."),
     F(camera_index, int, 0, -1, 100000,
     "Choose a different camera by its platform-specific index."),
-    F(ransac_smaller_error_preference, float, 0.2f, 0.0f, 1.0f,
+    F(ransac_smaller_error_preference, float, 0.1f, 0.0f, 1.0f,
     "How much to bias toward smaller reprojection error"),
     F(ransac_num_iters, int, 50, 10, 100),
     F(ransac_min_features, int, 35, 10, 100),

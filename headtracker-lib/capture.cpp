@@ -8,7 +8,10 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.isOpened())
         return false;
 
-    ctx.camera >> ctx.color;
+    if (ctx.camera.grab())
+        ctx.camera.read(ctx.color);
+    else
+        return false;
 
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     equalizeHist(ctx.grayscale, ctx.grayscale);
