@@ -19,6 +19,7 @@ static void ht_quit_handler(int foo) {
 int main(int argc, char** argv)
 {
     srand(0);
+    cv::setNumThreads(4);
     bool start = false;
 #ifdef __unix
     (void) signal(SIGTERM, ht_quit_handler);

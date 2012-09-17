@@ -15,7 +15,6 @@ typedef struct ht_config {
 	int   pyrlk_win_size_w;
 	int   pyrlk_win_size_h;
 	int   max_tracked_features;
-	int   min_track_start_features;
 	int   max_init_retries;
 	float features_detect_threshold;
 	float filter_lumps_feature_count_threshold;
@@ -36,10 +35,9 @@ typedef struct ht_config {
 	int   keypoint_max_failed_ransac;
 	bool  debug;
 	float ransac_smaller_error_preference;
-    //int   ransac_posit_iter;
+    int   ransac_posit_iter;
     int   ransac_num_iters;
     int   ransac_min_features;
-    float max_best_error;
     double pyrlk_min_eigenval;
 } ht_config_t;
 

@@ -8,9 +8,10 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.isOpened())
         return false;
 
-    if (ctx.camera.grab())
-        ctx.camera.read(ctx.color);
-    else
+    if (!ctx.camera.grab())
+        return false;
+
+    if (!ctx.camera.read(ctx.color))
         return false;
 
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
@@ -54,10 +55,8 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	for (int i = 0; i < ctx->config.max_keypoints; i++)
 		ctx->keypoints[i].idx = -1;
 	ctx->keypoint_count = 0;
-	ctx->keypoint_failed_iters = new char[ctx->config.max_keypoints];
-    ctx->feature_failed_iters = new char[ctx->model.count];
 	ctx->feature_uv = new CvPoint3D32f[ctx->model.count];
-	ctx->focal_length = -1;
+    ctx->focal_length = -1;
 	if (ctx->config.force_width)
         ctx->camera.set(CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
 	if (ctx->config.force_height)
@@ -87,10 +86,6 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->depths;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
-	if (ctx->keypoint_failed_iters)
-		delete[] ctx->keypoint_failed_iters;
-    if (ctx->feature_failed_iters)
-        delete[] ctx->feature_failed_iters;
     delete ctx->pyr_a;
     delete ctx->pyr_b;
 	delete ctx;

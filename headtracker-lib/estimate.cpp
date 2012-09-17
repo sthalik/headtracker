@@ -20,7 +20,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	bool ret = false;
 
 	for (int i = 0; i < ctx.config.max_keypoints; i++) {
-		if (ctx.keypoints[i].idx == -1 || ctx.keypoint_failed_iters[i] != 0)
+        if (ctx.keypoints[i].idx == -1)
 			continue;
 		model_points[k] = ctx.keypoint_uv[i];
 		image_points[k] = ctx.keypoints[i].position;
@@ -28,7 +28,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	}
 
 	for (int i = 0; i < ctx.model.count; i++) {
-		if (ctx.features[i].x == -1 || ctx.feature_failed_iters[i] != 0)
+        if (ctx.features[i].x == -1)
 			continue;
 		model_points[k] = ctx.feature_uv[i];
 		image_points[k] = ctx.features[i];
@@ -69,7 +69,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-8),
+                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-6),
 						   ctx.focal_length);
 
 			if (ret) {
@@ -88,13 +88,13 @@ bool ht_estimate_pose(headtracker_t& ctx,
 							   k+1,
 							   rotation_matrix2,
 							   translation_vector2,
-                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-8),
+                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-6),
 							   ctx.focal_length);
 				if (ret)
 					ht_update_zoom_scale(ctx, translation_vector2[2]);
 			}
 		}
-	}
+    }
 
 	delete[] model_points;
 	delete[] image_points;

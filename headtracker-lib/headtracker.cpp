@@ -32,7 +32,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_get_features(*ctx, ctx->model);
             double best_error;
 			if (ht_ransac_best_indices(*ctx, &best_error) &&
-				ctx->feature_count >= ctx->config.min_track_start_features)
+                ctx->feature_count >= ctx->config.ransac_min_features * 2)
 			{
 				ctx->state = HT_STATE_TRACKING;
                 ctx->restarted = false;
@@ -44,13 +44,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
 	} case HT_STATE_TRACKING: {
 		ht_track_features(*ctx);
-        double best_error;
+        double best_error = 1.0e10;
 		CvPoint3D32f offset;
 		CvPoint2D32f centroid;
-		if (ht_ransac_best_indices(*ctx, &best_error) &&
-			ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid) &&
-            best_error < ctx->config.max_best_error)
-		{
+
+        if (ht_ransac_best_indices(*ctx, &best_error) &&
+            ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid))
+        {
 			ht_remove_lumps(*ctx);
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_draw_model(*ctx, ctx->model);
@@ -58,13 +58,16 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
-            euler->confidence = (ctx->config.max_best_error - best_error) / ctx->config.max_best_error;
+            euler->confidence = -best_error;
 			if (ctx->config.debug)
 				printf("corners %d/%d (%d) keypoints %d/%d (%d)\n",
 					   ctx->feature_count, ctx->config.max_tracked_features, ctx->config.feature_quality_level,
 					   ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality);
-		} else
+        } else {
+            if (ctx->abortp)
+                abort();
 			ctx->state = HT_STATE_LOST;
+        }
 		break;
 	} case HT_STATE_LOST: {
 		ctx->feature_count = 0;
@@ -77,6 +80,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		ctx->depth_counter_pos = 0;
 		ctx->zoom_ratio = 1.0f;
 		ctx->keypoint_count = 0;
+        ctx->abortp = false;
 		for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
 		break;

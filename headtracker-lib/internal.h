@@ -97,7 +97,6 @@ typedef struct ht_context {
 	model_t model;
 	state_t state;
     vector<CvPoint2D32f> features;
-	char* feature_failed_iters;
     vector<Mat>* pyr_a;
     vector<Mat>* pyr_b;
     Mat last_image;
@@ -111,7 +110,6 @@ typedef struct ht_context {
 	ht_config_t config;
 	ht_keypoint* keypoints;
 	int keypoint_count;
-	char* keypoint_failed_iters;
 	CvPoint3D32f* feature_uv;
 	CvPoint3D32f* keypoint_uv;
     bool abortp;
