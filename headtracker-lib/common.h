@@ -40,6 +40,7 @@ typedef struct ht_config {
     int   ransac_num_iters;
     int   ransac_min_features;
     float max_best_error;
+    double pyrlk_min_eigenval;
 } ht_config_t;
 
 typedef struct {
