@@ -27,10 +27,9 @@ static double ht_avg_reprojection_error(headtracker_t& ctx,
     double ret = 0;
     for (int i = 0; i < point_cnt; i++) {
         float foo = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
-        if (ret < foo)
-            ret = foo;
+        ret += foo;
     }
-    return sqrt(ret);
+    return sqrt(ret / point_cnt);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -189,7 +188,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
     int* best_feature_indices = new int[ctx.feature_count];
     int* best_keypoint_indices = new int[ctx.keypoint_count];
     double max_error = ctx.config.ransac_max_error;
-
+    bool ret = false;
     int best_feature_cnt, best_keypoint_cnt;
     if (ht_ransac(ctx,
                   max_error,
@@ -199,7 +198,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
                   best_feature_indices,
                   best_keypoint_indices,
                   ctx.zoom_ratio) &&
-        best_feature_cnt + best_keypoint_cnt > ctx.config.ransac_min_features)
+            (!ret || (ctx.config.ransac_min_features < best_feature_cnt + best_keypoint_cnt &&
+                      best_feature_cnt + best_keypoint_cnt < ctx.feature_count + ctx.keypoint_count)))
     {
         char* fusedp = new char[ctx.model.count];
         char* kusedp = new char[ctx.config.max_keypoints];
@@ -228,12 +228,9 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         }
         delete[] fusedp;
         delete[] kusedp;
-
-        delete[] best_keypoint_indices;
-        delete[] best_feature_indices;
-        return true;
+        ret = true;
     }
     delete[] best_keypoint_indices;
     delete[] best_feature_indices;
-    return false;
+    return ret;
 }
