@@ -3,15 +3,7 @@
 using namespace std;
 using namespace cv;
 
-struct CvPOSITObject
-{
-    int N;
-    float* inv_matr;
-    float* obj_vecs;
-    float* img_vecs;
-};
-
-static error_t ht_avg_reprojection_error(headtracker_t& ctx,
+static double ht_avg_reprojection_error(headtracker_t& ctx,
                                          CvPoint3D32f* model_points,
                                          CvPoint2D32f* image_points,
                                          int point_cnt,
@@ -19,8 +11,6 @@ static error_t ht_avg_reprojection_error(headtracker_t& ctx,
                                          float* rotation_matrix,
                                          float* translation_vector) {
     double focal_length = ctx.focal_length;
-
-    error_t ret;
 
     CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
     if (*prev_pObject)
@@ -33,17 +23,13 @@ static error_t ht_avg_reprojection_error(headtracker_t& ctx,
             rotation_matrix,
             translation_vector);
 
-    float avg = 0;
-
+    double ret = 0;
     for (int i = 0; i < point_cnt; i++) {
         float foo = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
-        if (foo > avg)
-            avg = foo;
+        if (foo > ret)
+            ret = foo;
     }
-
-    ret.avg = (float) sqrt(avg / point_cnt);
-
-    return ret;
+    return sqrt(ret / point_cnt);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -58,12 +44,10 @@ void ht_fisher_yates(int* indices, int count) {
 }
 
 bool ht_ransac(headtracker_t& ctx,
-               int max_iter,
                float max_error,
-               int min_consensus,
                int* best_feature_cnt,
                int* best_keypoint_cnt,
-               error_t* best_error,
+               double* best_error,
                int* best_indices,
                int* best_keypoints,
                float error_scale)
@@ -79,8 +63,10 @@ bool ht_ransac(headtracker_t& ctx,
     int* model_keypoint_indices = new int[ctx.keypoint_count];
     int* indices = new int[mcnt];
     const float bias = ctx.config.ransac_smaller_error_preference;
+    const int N = 4;
+    const int K = ctx.config.ransac_num_iters;
 
-    best_error->avg = 1.0e10;
+    *best_error = 1.0e10;
     *best_feature_cnt = 0;
     *best_keypoint_cnt = 0;
 
@@ -99,10 +85,10 @@ bool ht_ransac(headtracker_t& ctx,
     CvPoint2D32f* image_points = new CvPoint2D32f[k + kppos];
     CvPoint3D32f* model_points = new CvPoint3D32f[k + kppos];
 
-    if ((k + kppos) < min_consensus || (k + kppos) < 4)
+    if ((k + kppos) < N || (k + kppos) < 4)
         goto end;
 
-    for (int iter = 0; iter < max_iter; iter++) {
+    for (int iter = 0; iter < K; iter++) {
         ht_fisher_yates(indices, k);
         ht_fisher_yates(keypoint_indices, kppos);
         int ipos = 0;
@@ -120,8 +106,8 @@ bool ht_ransac(headtracker_t& ctx,
 
         CvPoint3D32f first_point = ctx.feature_uv[indices[0]];
 
-        error_t cur_error;
-        cur_error.avg = 1.0e10;
+        double cur_error;
+        cur_error = 1.0e10;
 
         CvPOSITObject* posit_obj = NULL;
 
@@ -134,15 +120,15 @@ bool ht_ransac(headtracker_t& ctx,
             image_points[ipos] = ctx.features[idx];
             model_feature_indices[gfpos] = idx;
 
-            if (ipos >= ctx.config.ransac_min_features) {
+            if (ipos >= N) {
                 memcpy(rotation_new, rotation_matrix, sizeof(float) * 9);
                 memcpy(translation_new, translation_vector, sizeof(float) * 3);
-                error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
-                e.avg *= error_scale;
+                double e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
+                e *= error_scale;
 
-                if (e.avg*max_error > cur_error.avg)
+                if (e*max_error > cur_error)
                     continue;
-                cur_error.avg = e.avg;
+                cur_error = e;
 
                 memcpy(rotation_matrix, rotation_new, sizeof(float) * 9);
                 memcpy(translation_vector, translation_new, sizeof(float) * 3);
@@ -151,7 +137,8 @@ bool ht_ransac(headtracker_t& ctx,
             ipos++;
             gfpos++;
 
-            if (ipos >= min_consensus && ipos > *best_feature_cnt + *best_keypoint_cnt) {
+            if (ipos >= N && ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt)
+            {
                 ret = true;
                 *best_error = cur_error;
                 *best_feature_cnt = gfpos;
@@ -172,14 +159,15 @@ bool ht_ransac(headtracker_t& ctx,
             model_points[ipos].z -= first_point.z;
             image_points[ipos] = kp.position;
             model_keypoint_indices[gkpos] = idx;
-            if (ipos >= ctx.config.ransac_min_features) {
+
+            if (ipos >= N) {
                 memcpy(rotation_new, rotation_matrix, sizeof(float) * 9);
                 memcpy(translation_new, translation_vector, sizeof(float) * 3);
-                error_t e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
-                e.avg *= error_scale;
-                if (e.avg*max_error > cur_error.avg)
+                double e = ht_avg_reprojection_error(ctx, model_points, image_points, ipos+1, &posit_obj, rotation_new, translation_new);
+                e *= error_scale;
+                if (e*max_error > cur_error)
                     continue;
-                cur_error.avg = e.avg;
+                cur_error = e;
                 memcpy(rotation_matrix, rotation_new, sizeof(float) * 9);
                 memcpy(translation_vector, translation_new, sizeof(float) * 3);
             }
@@ -187,8 +175,7 @@ bool ht_ransac(headtracker_t& ctx,
             ipos++;
             gkpos++;
 
-            if (ipos >= min_consensus &&
-                    ipos * ((1.0f - bias) + bias * (best_error->avg / cur_error.avg)) > *best_feature_cnt + *best_keypoint_cnt)
+            if (ipos >= N && ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt)
             {
                 ret = true;
                 *best_error = cur_error;
@@ -213,24 +200,35 @@ end:
     delete[] model_feature_indices;
     delete[] model_keypoint_indices;
 
+    if (!ret && ctx.abortp)
+        abort();
+
     return ret;
 }
 
-bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
-    int min_features = ctx.state == HT_STATE_TRACKING ? ctx.feature_count * ctx.config.ransac_min_consensus : ctx.config.min_track_start_features;
+bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
     int* best_feature_indices = new int[ctx.feature_count];
     int* best_keypoint_indices = new int[ctx.keypoint_count];
+    bool goodp = false;
+    double max_error = ctx.config.ransac_max_error;
+    double really_best_error = 1.0e10f;
+#if 0
+    int last_cnt_f = -1;
+    int last_cnt_k = -1;
+start:
+#endif
     int best_feature_cnt, best_keypoint_cnt;
     if (ht_ransac(ctx,
-                  ctx.config.ransac_iter,
-                  ctx.config.ransac_max_error,
-                  max(min_features, ctx.config.ransac_min_features),
+                  max_error,
                   &best_feature_cnt,
                   &best_keypoint_cnt,
                   best_error,
                   best_feature_indices,
                   best_keypoint_indices,
-                  ctx.zoom_ratio)) {
+                  ctx.zoom_ratio) &&
+        best_feature_cnt + best_keypoint_cnt > ctx.config.ransac_min_features)
+    {
+        goodp = true;
         char* fusedp = new char[ctx.model.count];
         char* kusedp = new char[ctx.config.max_keypoints];
         for (int i = 0; i < ctx.model.count; i++)
@@ -266,11 +264,23 @@ bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error) {
         }
         delete[] fusedp;
         delete[] kusedp;
+#if 0
+        really_best_error = *best_error;
+        max_error = really_best_error -  0.01;
+
+        if (max_error > 1.0e-2 && (best_keypoint_cnt != last_cnt_k || best_feature_cnt != last_cnt_f)) {
+            last_cnt_f = best_feature_cnt;
+            last_cnt_k = best_keypoint_cnt;
+            goto start;
+        }
+#endif
+
         delete[] best_keypoint_indices;
         delete[] best_feature_indices;
         return true;
     }
     delete[] best_keypoint_indices;
     delete[] best_feature_indices;
-    return false;
+    *best_error = really_best_error;
+    return goodp;
 }

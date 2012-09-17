@@ -3,7 +3,7 @@
 using namespace std;
 using namespace cv;
 
-bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matrix, float* translation_vector) {
+bool ht_initial_guess(headtracker_t& ctx, Mat& frame, float* rotation_matrix, float* translation_vector) {
 	int ticks = ht_tickcount();
 
 	if (ctx.ticks_last_classification / ctx.config.classification_delay == ticks / ctx.config.classification_delay)
@@ -11,9 +11,9 @@ bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matri
 
 	ctx.ticks_last_classification = ticks;
 
-	CvRect rectangles[HT_CLASSIFIER_COUNT];
+    Rect rectangles[HT_CLASSIFIER_COUNT];
 
-	if (!ht_classify(ctx.classifiers[HT_CLASSIFIER_HEAD], frame, cvRect(0, 0, frame.width, frame.height), rectangles[HT_CLASSIFIER_HEAD]))
+    if (!ht_classify(ctx.classifiers[HT_CLASSIFIER_HEAD], frame, Rect(0, 0, frame.cols, frame.rows), rectangles[HT_CLASSIFIER_HEAD]))
 		return false;
 
 	for (int i = 1; i < HT_CLASSIFIER_COUNT; i++)

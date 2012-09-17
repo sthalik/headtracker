@@ -1,7 +1,11 @@
 // todo die on impossible poses
 // todo do away with leaks if initialization fails
 #pragma once
+#include <vector>
+using namespace std;
+using namespace cv;
 #include "common.h"
+#include <opencv2/opencv.hpp>
 #define HT_PI 3.1415926535
 #define HT_STD_DEPTH 800.0f
 
@@ -35,7 +39,7 @@ static __inline rect_t ht_make_rect(float x, float y, float w, float h) {
 typedef struct {
 	rect_t rect;
 	CvSize2D32f min_size;
-	CvHaarClassifierCascade* cascade;
+    CascadeClassifier cascade;
 } classifier_t;
 
 typedef struct {
@@ -84,19 +88,19 @@ typedef struct ht_context {
 	double focal_length;
 	double focal_length_w;
 	double focal_length_h;
-	CvCapture* camera;
-	IplImage* grayscale;
-	IplImage* color;
+    VideoCapture camera;
+    Mat grayscale;
+    Mat color;
 	classifier_t* classifiers;
 	int ticks_last_classification;
 	int ticks_last_features;
 	model_t model;
 	state_t state;
-	CvPoint2D32f* features;
+    vector<CvPoint2D32f> features;
 	char* feature_failed_iters;
-	IplImage* pyr_a;
-	IplImage* pyr_b;
-	IplImage* last_image;
+    vector<Mat>* pyr_a;
+    vector<Mat>* pyr_b;
+    Mat last_image;
 	int feature_count;
 	int init_retries;
 	bool restarted;
@@ -105,12 +109,12 @@ typedef struct ht_context {
 	unsigned char depth_counter_pos;
 	float zoom_ratio;
 	ht_config_t config;
-	char* bgr_frame;
 	ht_keypoint* keypoints;
 	int keypoint_count;
 	char* keypoint_failed_iters;
 	CvPoint3D32f* feature_uv;
 	CvPoint3D32f* keypoint_uv;
+    bool abortp;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
@@ -121,8 +125,7 @@ bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, con
 bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, double focal_length);
 
 classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f min_size);
-bool ht_classify(const classifier_t& classifier, IplImage& frame, const CvRect& roi, CvRect& ret);
-void ht_free_classifier(classifier_t* classifier);
+bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& ret);
 
 typedef enum {
 	HT_CLASSIFIER_HEAD = 0,
@@ -135,7 +138,7 @@ typedef enum {
 
 bool ht_get_image(headtracker_t& ctx);
 
-bool ht_initial_guess(headtracker_t& ctx, IplImage& frame, float* rotation_matrix, float* translation_vector);
+bool ht_initial_guess(headtracker_t& ctx, Mat& frame, float* rotation_matrix, float* translation_vector);
 ht_result_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector);
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight);
 void ht_project_model(headtracker_t& ctx,
@@ -160,21 +163,6 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 	return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
 }
 
-typedef struct {
-	float avg;
-} error_t;
-
-bool ht_ransac(headtracker_t& ctx,
-			   int max_iter,
-			   float max_error,
-			   int min_consensus,
-			   int* best_feature_cnt,
-			   int* best_keypoint_cnt,
-			   error_t* best_error,
-			   int* best_indices,
-			   int* best_keypoints,
-			   float error_scale);
-
 bool ht_estimate_pose(headtracker_t& ctx,
 					  float* rotation_matrix,
 					  float* translation_vector,
@@ -182,7 +170,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 					  float* translation_vector2,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid);
-bool ht_ransac_best_indices(headtracker_t& ctx, error_t* best_error);
+bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);
 void ht_remove_lumps(headtracker_t& ctx);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);

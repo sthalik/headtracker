@@ -1,7 +1,11 @@
 #pragma once
 #include "api.h"
+#include <opencv2/opencv.hpp>
 struct ht_context;
 typedef struct ht_context headtracker_t;
+
+using namespace std;
+using namespace cv;
 
 typedef struct ht_config {
 	float field_of_view;
@@ -11,8 +15,6 @@ typedef struct ht_config {
 	int   pyrlk_win_size_w;
 	int   pyrlk_win_size_h;
 	int   max_tracked_features;
-	float ransac_min_consensus;
-	int   ransac_iter;
 	int   min_track_start_features;
 	int   max_init_retries;
 	float features_detect_threshold;
@@ -26,7 +28,6 @@ typedef struct ht_config {
 	int   max_keypoints;
 	int   keypoint_quality;
 	float keypoint_distance;
-	int   ransac_min_features;
 	float feature_detect_ratio;
 	int   force_width;
 	int   force_height;
@@ -35,7 +36,10 @@ typedef struct ht_config {
 	int   keypoint_max_failed_ransac;
 	bool  debug;
 	float ransac_smaller_error_preference;
-    int ransac_posit_iter;
+    int   ransac_posit_iter;
+    int   ransac_num_iters;
+    int   ransac_min_features;
+    float max_best_error;
 } ht_config_t;
 
 typedef struct {
@@ -70,12 +74,10 @@ typedef struct {
 } ht_reflection_t;
 
 typedef struct {
-	int width;
-	int height;
-	char const* data;
+    Mat data;
 } ht_frame_t;
 
-HT_API(headtracker_t*) ht_make_context(const ht_config_t* config);
+HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename);
 HT_API(ht_config_t) ht_load_config(FILE* stream);
 HT_API(ht_config_t) ht_load_config_from_file(const char* filename);
 HT_API(void) ht_free_context(headtracker_t* ctx);
