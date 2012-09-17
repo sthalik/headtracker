@@ -74,7 +74,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Maximum features to be tracked at once."),
     F(ransac_smaller_error_preference, float, 0.1f, 0.0f, 1.0f,
     "How much to bias toward smaller reprojection error"),
-    F(min_feature_distance, float, 5.001f, 3.00001f, 25.00001f,
+    F(min_feature_distance, float, 4.8f, 3.00001f, 25.00001f,
     "Distance between two features at the time of their detection, including already detected ones."),
     F(ransac_max_error, float, 0.95f, 0.9f, 1.5f,
     "Maximum error of one RANSAC iteration compared to the previous one."),
@@ -82,7 +82,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Minimum features to be considered 'best' RANSAC iteration"),
     F(max_best_error, float, 25, 0, 100,
     "Max reprojection error"),
-    F(pyrlk_min_eigenval, double, 4.0e-4, 1.0e-4, 1.0e-1,
+    F(pyrlk_min_eigenval, double, 5e-4, 1.0e-4, 1.0e-1,
     "Min eigenvals for Lukas-Kanade"),
     F(debug, bool, true, 0, 1),
     FIELD_END
