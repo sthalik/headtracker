@@ -80,7 +80,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Min eigenval for Lukas-Kanade"),
     F(max_tracked_features, int, 80, 30, 200,
     "Maximum features to be tracked at once."),
-    F(max_best_error, double, 30, 10, 1000,
+    F(max_best_error, double, 20, 10, 1000,
     "Max RANSAC error"),
     F(debug, bool, true, 0, 1),
     FIELD_END
