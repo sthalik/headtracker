@@ -71,7 +71,7 @@ void ht_track_features(headtracker_t& ctx) {
                              noArray(),
                              cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                              ctx.config.pyrlk_pyramids,
-                             TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.011),
+                             TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.009),
                              0,
                              ctx.config.pyrlk_min_eigenval);
 
@@ -115,7 +115,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.011),
+                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 40, 0.009),
                                  0,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {

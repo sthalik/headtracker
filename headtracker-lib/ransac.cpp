@@ -153,7 +153,8 @@ bool ht_ransac(headtracker_t& ctx,
             gkpos++;
 
             if (ipos >= N &&
-                ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt)
+                ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_feature_cnt + *best_keypoint_cnt &&
+                cur_error < ctx.config.max_best_error)
             {
                 ret = true;
                 *best_error = cur_error;
