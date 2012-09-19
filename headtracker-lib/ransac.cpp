@@ -94,6 +94,7 @@ bool ht_ransac(headtracker_t& ctx,
         ht_fisher_yates(keypoint_indices, kppos);
         int ipos = 0;
         int gfpos = 0;
+        int gkpos = 0;
 
         float rotation_matrix[9];
         float translation_vector[3];
@@ -128,8 +129,6 @@ bool ht_ransac(headtracker_t& ctx,
             ipos++;
             gfpos++;
         }
-
-        int gkpos = 0;
 
         for (int kpos = 0; kpos < kppos; kpos++) {
             int idx = keypoint_indices[kpos];
@@ -166,6 +165,7 @@ bool ht_ransac(headtracker_t& ctx,
                     best_keypoints[i] = model_keypoint_indices[i];
             }
         }
+
         if (posit_obj)
             cvReleasePOSITObject(&posit_obj);
     }

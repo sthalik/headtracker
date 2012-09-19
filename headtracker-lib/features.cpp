@@ -148,8 +148,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
     float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
-    int sz = model.count;
-
     for (int i = 0; i < ctx.model.count; i++) {
         float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
         float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));

@@ -15,7 +15,6 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set_property(CACHE CMAKE_CXX_FLAGS_RELEASE PROPERTY VALUE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math -march=native")
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS release debug)
 
 add_subdirectory(headtracker-lib)
