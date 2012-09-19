@@ -24,12 +24,13 @@ static double ht_avg_reprojection_error(headtracker_t& ctx,
             rotation_matrix,
             translation_vector);
 
-    double ret = 0;
+    double ret = 1e-2;
     for (int i = 0; i < point_cnt; i++) {
         float foo = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
-        ret += foo;
+        if (foo > ret)
+            ret = foo;
     }
-    return sqrt(ret / point_cnt);
+    return sqrt(ret);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -63,8 +64,8 @@ bool ht_ransac(headtracker_t& ctx,
     int* model_keypoint_indices = new int[ctx.keypoint_count];
     int* indices = new int[mcnt];
     const float bias = ctx.config.ransac_smaller_error_preference;
-    const int N = 4;
     const int K = ctx.config.ransac_num_iters;
+    const int N = 4;
 
     *best_error = 1.0e20;
     *best_feature_cnt = 0;
