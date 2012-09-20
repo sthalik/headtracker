@@ -112,6 +112,8 @@ typedef struct ht_context {
     bool abortp;
 } headtracker_t;
 
+HT_API(void) ht_reset(headtracker_t* ctx);
+
 model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
 void ht_free_model(model_t& model);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);

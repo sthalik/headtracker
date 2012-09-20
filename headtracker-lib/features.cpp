@@ -11,7 +11,7 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void remove_lumps(headtracker_t& ctx) {
-    float mindist = max(2.0f, 1.5f * ctx.config.keypoint_distance * ctx.config.keypoint_distance * ctx.zoom_ratio * ctx.zoom_ratio);
+    float mindist = max(2.0f, 1.2f * ctx.config.keypoint_distance * ctx.config.keypoint_distance * ctx.zoom_ratio * ctx.zoom_ratio);
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)

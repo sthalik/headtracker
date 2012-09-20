@@ -3,6 +3,10 @@
 using namespace std;
 using namespace cv;
 
+HT_API(void) ht_reset(headtracker_t* ctx) {
+    ctx->state = HT_STATE_LOST;
+}
+
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	float rotation_matrix[9];
 	float translation_vector[3];
