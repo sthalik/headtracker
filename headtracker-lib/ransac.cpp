@@ -122,6 +122,9 @@ bool ht_ransac(headtracker_t& ctx,
                 *best_keypoint_cnt = ipos;
                 for (int i = 0; i < ipos; i++)
                     best_keypoints[i] = model_keypoint_indices[i];
+
+                if (ipos == kppos)
+                    goto end;
             }
         }
 

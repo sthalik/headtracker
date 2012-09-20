@@ -30,7 +30,7 @@ bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& re
     classifier.cascade.detectMultiScale(frame2,
                                         seq,
                                         1.15,
-                                        2,
+                                        1,
                                         CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT);
 
     if (seq.size() > 0) {

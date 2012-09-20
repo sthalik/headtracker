@@ -10,7 +10,31 @@ void ht_draw_features(headtracker_t& ctx) {
     }
 }
 
+static void remove_lumps(headtracker_t& ctx) {
+    float mindist = max(2.0f, 1.5f * ctx.config.keypoint_distance * ctx.config.keypoint_distance * ctx.zoom_ratio * ctx.zoom_ratio);
+    for (int i = 0; i < ctx.config.max_keypoints; i++) {
+        bool foundp = false;
+        if (ctx.keypoints[i].idx == -1)
+            continue;
+        for (int j = 0; j < i; j++) {
+            if (ctx.keypoints[j].idx == -1)
+                continue;
+            float x = ctx.keypoints[j].position.x -ctx.keypoints[i].position.x;
+            float y = ctx.keypoints[j].position.x -ctx.keypoints[i].position.y;
+            if (x * x + y * y < mindist) {
+                foundp = true;
+                break;
+            }
+        }
+        if (foundp) {
+            ctx.keypoints[i].idx = -1;
+            ctx.keypoint_count--;
+        }
+    }
+}
+
 void ht_track_features(headtracker_t& ctx) {
+    remove_lumps(ctx);
     if (ctx.restarted)
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
