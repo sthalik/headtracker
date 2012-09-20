@@ -36,6 +36,6 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, float* rotation_matrix, fl
 					HT_CLASSIFIER_COUNT-1,
 					rotation_matrix,
 					translation_vector,
-					cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-7),
+                    cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-8),
 					ctx.focal_length);
 }

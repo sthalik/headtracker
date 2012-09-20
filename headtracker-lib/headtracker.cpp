@@ -30,7 +30,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
             ht_get_features(*ctx, ctx->model);
-            if (ctx->feature_count >= ctx->config.ransac_min_features) {
+            if (ctx->keypoint_count >= ctx->config.ransac_min_features) {
                 double best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
@@ -52,7 +52,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         if (ht_ransac_best_indices(*ctx, &best_error) &&
             ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid))
         {
-			ht_remove_lumps(*ctx);
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_draw_model(*ctx, ctx->model);
 			ht_draw_features(*ctx);
@@ -61,9 +60,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			euler->filled = true;
             euler->confidence = -best_error;
 			if (ctx->config.debug)
-				printf("corners %d/%d (%d) keypoints %d/%d (%d)\n",
-					   ctx->feature_count, ctx->config.max_tracked_features, ctx->config.feature_quality_level,
-					   ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality);
+                printf("keypoints %d/%d (%d)\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality);
         } else {
             if (ctx->abortp)
                 abort();
@@ -71,9 +68,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         }
 		break;
 	} case HT_STATE_LOST: {
-		ctx->feature_count = 0;
-		for (int i = 0; i < ctx->model.count; i++)
-			ctx->features[i].x = -1;
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->init_retries = 0;
 		ctx->restarted = true;

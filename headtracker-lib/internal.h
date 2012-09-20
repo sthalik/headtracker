@@ -96,12 +96,10 @@ typedef struct ht_context {
 	int ticks_last_features;
 	model_t model;
 	state_t state;
-    vector<CvPoint2D32f> features;
     vector<Mat>* pyr_a;
     vector<Mat>* pyr_b;
     Mat last_image;
-	int feature_count;
-	int init_retries;
+    int init_retries;
 	bool restarted;
 	float* depths;
 	int depth_frame_count;
@@ -110,7 +108,6 @@ typedef struct ht_context {
 	ht_config_t config;
 	ht_keypoint* keypoints;
 	int keypoint_count;
-	CvPoint3D32f* feature_uv;
 	CvPoint3D32f* keypoint_uv;
     bool abortp;
 } headtracker_t;
@@ -169,6 +166,5 @@ bool ht_estimate_pose(headtracker_t& ctx,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid);
 bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);
-void ht_remove_lumps(headtracker_t& ctx);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);

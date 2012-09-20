@@ -11,7 +11,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid)
 {
-	int total = ctx.feature_count + ctx.keypoint_count;
+    int total = ctx.keypoint_count;
 	CvPoint3D32f* model_points = new CvPoint3D32f[total+1];
 	CvPoint2D32f* image_points = new CvPoint2D32f[total+1];
 	CvPoint3D32f* tmp_model_points = new CvPoint3D32f[total+1];
@@ -24,14 +24,6 @@ bool ht_estimate_pose(headtracker_t& ctx,
 			continue;
 		model_points[k] = ctx.keypoint_uv[i];
 		image_points[k] = ctx.keypoints[i].position;
-		k++;
-	}
-
-	for (int i = 0; i < ctx.model.count; i++) {
-        if (ctx.features[i].x == -1)
-			continue;
-		model_points[k] = ctx.feature_uv[i];
-		image_points[k] = ctx.features[i];
 		k++;
 	}
 

@@ -39,11 +39,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
 	ctx->model = ht_load_model("head.raw", cvPoint3D32f(1, 1, 1), cvPoint3D32f(0, 0, 0));
-    ctx->features = vector<CvPoint2D32f>(ctx->model.count);
-    for (int i = 0; i < ctx->model.count; i++)
-        ctx->features[i].x = -1;
     ctx->keypoint_uv = new CvPoint3D32f[ctx->config.max_keypoints];
-	ctx->feature_count = 0;
 	ctx->state = HT_STATE_INITIALIZING;
 	ctx->init_retries = 0;
 	ctx->restarted = 1;
@@ -55,7 +51,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	for (int i = 0; i < ctx->config.max_keypoints; i++)
 		ctx->keypoints[i].idx = -1;
 	ctx->keypoint_count = 0;
-	ctx->feature_uv = new CvPoint3D32f[ctx->model.count];
     ctx->focal_length = -1;
 	if (ctx->config.force_width)
         ctx->camera.set(CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
@@ -74,8 +69,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 HT_API(void) ht_free_context(headtracker_t* ctx) {
 	if (ctx->keypoint_uv)
 		delete[] ctx->keypoint_uv;
-	if (ctx->feature_uv)
-		delete[] ctx->feature_uv;
 	if (ctx->model.triangles)
 		delete[] ctx->model.triangles;
 	if (ctx->model.projection)
