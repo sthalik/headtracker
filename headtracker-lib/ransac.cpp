@@ -24,13 +24,10 @@ static double ht_avg_reprojection_error(headtracker_t& ctx,
             rotation_matrix,
             translation_vector);
 
-    double ret = 1e-2;
-    for (int i = 0; i < point_cnt; i++) {
-        float foo = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
-        if (foo > ret)
-            ret = foo;
-    }
-    return sqrt(ret);
+    double ret = 0;
+    for (int i = 0; i < point_cnt; i++)
+        ret += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+    return sqrt(ret / point_cnt);
 }
 
 void ht_fisher_yates(int* indices, int count) {
