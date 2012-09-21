@@ -63,6 +63,7 @@ int main(int argc, char** argv)
         imshow("capture", frame.data);
         waitKey(1);
     }
+        ht_free_context(ctx);
 	return 0;
 }
 
