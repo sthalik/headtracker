@@ -24,10 +24,15 @@ static double ht_avg_reprojection_error(headtracker_t& ctx,
             rotation_matrix,
             translation_vector);
 
-    double ret = 0;
-    for (int i = 0; i < point_cnt; i++)
-        ret += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
-    return sqrt(ret / point_cnt);
+    double foo = 0;
+
+    for (int i = 0; i < point_cnt; i++) {
+        double tmp = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+        if (foo < tmp)
+            foo = tmp;
+    }
+
+    return sqrt(foo);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -119,9 +124,6 @@ bool ht_ransac(headtracker_t& ctx,
                 *best_keypoint_cnt = ipos;
                 for (int i = 0; i < ipos; i++)
                     best_keypoints[i] = model_keypoint_indices[i];
-
-                if (ipos == kppos)
-                    goto end;
             }
         }
 

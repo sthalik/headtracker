@@ -29,7 +29,6 @@ typedef struct ht_config {
 	float ransac_smaller_error_preference;
     int   ransac_posit_iter;
     int   ransac_num_iters;
-    int   ransac_min_features;
     double pyrlk_min_eigenval;
     double max_best_error;
 } ht_config_t;
