@@ -1,16 +1,20 @@
 #include "stdafx.h"
 #include <limits.h>
 
+#include <Qt>
+#include <QtGlobal>
+#include <QThread>
+
 using namespace std;
 using namespace cv;
 
-static double ht_avg_reprojection_error(headtracker_t& ctx,
-                                         CvPoint3D32f* model_points,
-                                         CvPoint2D32f* image_points,
-                                         int point_cnt,
-                                         CvPOSITObject** prev_pObject,
-                                         float* rotation_matrix,
-                                         float* translation_vector) {
+static double ht_avg_reprojection_error(const headtracker_t& ctx,
+                                        CvPoint3D32f* model_points,
+                                        CvPoint2D32f* image_points,
+                                        int point_cnt,
+                                        CvPOSITObject** prev_pObject,
+                                        float* rotation_matrix,
+                                        float* translation_vector) {
     double focal_length = ctx.focal_length;
 
     CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
@@ -39,14 +43,14 @@ void ht_fisher_yates(int* indices, int count) {
     int tmp;
 
     for (int i = count - 1; i > 0; i--) {
-        int j = rand() % i;
+        int j = qrand() % i;
         tmp = indices[i];
         indices[i] = indices[j];
         indices[j] = tmp;
     }
 }
 
-bool ht_ransac(headtracker_t& ctx,
+bool ht_ransac(const headtracker_t& ctx,
                float max_error,
                int* best_keypoint_cnt,
                double* best_error,
@@ -144,18 +148,65 @@ end:
     return ret;
 }
 
+class RansacThread : public QThread
+{
+public:
+    void run();
+    RansacThread(const headtracker_t& ctx,
+                 float error_scale,
+                 float max_error);
+    int best_keypoint_cnt;
+    double best_error;
+    int* best_keypoints;
+    bool ret;
+    ~RansacThread() {
+        delete[] best_keypoints;
+    }
+private:
+    const headtracker_t& ctx;
+    float error_scale;
+    float max_error;
+};
+
+void RansacThread::run()
+{
+    ret = ht_ransac(ctx, max_error, &best_keypoint_cnt, &best_error, best_keypoints, error_scale);
+}
+
+RansacThread::RansacThread(const headtracker_t& ctx,
+                           float error_scale,
+                           float max_error)
+    : ctx(ctx), error_scale(error_scale), max_error(max_error), ret(false)
+{
+    best_keypoints = new int[ctx.config.max_keypoints];
+}
+
 bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
-    int* best_keypoint_indices = new int[ctx.keypoint_count];
     double max_error = ctx.config.ransac_max_error;
     bool ret = false;
-    int best_keypoint_cnt;
-    if (ht_ransac(ctx,
-                  max_error,
-                  &best_keypoint_cnt,
-                  best_error,
-                  best_keypoint_indices,
-                  ctx.zoom_ratio))
-    {
+    const int max_threads = ctx.config.ransac_max_threads;
+    vector<RansacThread*> threads;
+    for (int i = 0; i < max_threads; i++) {
+        RansacThread* t = new RansacThread(ctx, ctx.zoom_ratio, max_error);
+        t->start();
+        threads.push_back(t);
+    }
+    for (int i = 0; i < max_threads; i++) {
+        RansacThread* t = threads[i];
+        t->wait();
+    }
+    int best = -1;
+    double error = 1e15;
+    for (int i = 0; i < max_threads; i++) {
+        RansacThread* t = threads[i];
+        if (t->ret && error > t->best_error) {
+            best = i;
+            error = t->best_error;
+        }
+    }
+    if (best != -1) {
+        int best_keypoint_cnt = threads[best]->best_keypoint_cnt;
+        const int* best_keypoint_indices = threads[best]->best_keypoints;
         char* kusedp = new char[ctx.config.max_keypoints];
         for (int i = 0; i < ctx.config.max_keypoints; i++)
             kusedp[i] = 0;
@@ -169,7 +220,12 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         }
         delete[] kusedp;
         ret = true;
+        *best_error = error;
     }
-    delete[] best_keypoint_indices;
+    while(!threads.empty()) {
+        delete threads.back();
+        threads.pop_back();
+    }
+
     return ret;
 }

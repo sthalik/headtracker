@@ -41,7 +41,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     F(depth_avg_frames, int, 20, 1, 120,
     "Amount of frames for arithmetic averaging of depth info. "
     "Depth info is used for turning pixel-based indicators into absolute measures, independent of closeness to the camera."),
-    F(max_keypoints, int, 70, 30, 150,
+    F(max_keypoints, int, 90, 30, 150,
     "Maximum keypoints to track"),
     F(keypoint_quality, int, 2, 1, 60,
     "Starting keypoint quality"),
@@ -57,15 +57,17 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Choose a different camera by its platform-specific index."),
     F(ransac_num_iters, int, 50, 10, 100,
     "RANSAC iterations per frame"),
-    F(ransac_smaller_error_preference, float, 0.1, 0.0, 10.0f,
+    F(ransac_smaller_error_preference, float, 0.075, 0.0, 10.0f,
     "How much to bias toward smaller reprojection error"),
-    F(ransac_max_error, float, 0.94f, 0.9f, 1.5f,
+    F(ransac_max_error, float, 0.93f, 0.9f, 1.5f,
     "Maximum error of one RANSAC iteration compared to the previous one."),
     F(pyrlk_min_eigenval, double, 1.0e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
     F(max_best_error, double, 30, 10, 1000,
     "Max RANSAC error"),
     F(debug, bool, true, 0, 1),
+    F(ransac_max_threads, int, 3, 1, 16,
+    "Max threas for RANSAC"),
     FIELD_END
 };
 

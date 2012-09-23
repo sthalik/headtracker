@@ -31,6 +31,7 @@ typedef struct ht_config {
     int   ransac_num_iters;
     double pyrlk_min_eigenval;
     double max_best_error;
+    int ransac_max_threads;
 } ht_config_t;
 
 typedef struct {
