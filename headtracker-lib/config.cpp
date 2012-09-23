@@ -59,7 +59,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "RANSAC iterations per frame"),
     F(ransac_smaller_error_preference, float, 0.15, 0.0, 10.0f,
     "How much to bias toward smaller reprojection error"),
-    F(ransac_max_error, float, 0.94f, 0.9f, 1.5f,
+    F(ransac_max_error, float, 0.945f, 0.9f, 1.5f,
     "Maximum error of one RANSAC iteration compared to the previous one."),
     F(pyrlk_min_eigenval, double, 1.0e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
