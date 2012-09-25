@@ -1,7 +1,7 @@
 project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
-find_package(Qt COMPONENTS QtCore REQUIRED)
+find_package(Qt COMPONENTS QtCore QtNetwork REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")

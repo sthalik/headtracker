@@ -21,8 +21,12 @@ bool ht_get_image(headtracker_t& ctx) {
 
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename)
 {
-	headtracker_t* ctx = new headtracker_t;
-	ctx->config = config == NULL ? ht_make_config() : *config;
+    headtracker_t* ctx = new headtracker_t;
+    if (config == NULL) {
+        ht_make_config(&ctx->config);
+    } else {
+        ctx->config = *config;
+    }
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
@@ -75,19 +79,25 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->model.projection;
 	if (ctx->model.centers)
 		delete[] ctx->model.centers;
+    if (ctx->model.projected_depths)
+        delete[] ctx->model.projected_depths;
 	if (ctx->depths)
 		delete[] ctx->depths;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;
     delete ctx->pyr_b;
+    delete[] ctx->classifiers;
 	delete ctx;
 }
 
-HT_API(ht_frame_t) ht_get_bgr_frame(headtracker_t* ctx) {
-	ht_frame_t ret;
+HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret) {
+    ret->cols = ctx->color.cols;
+    ret->rows = ctx->color.rows;
+    ret->channels = ctx->color.channels();
 
-    ret.data = ctx->color;
-
-	return ret;
+    if (ret->cols > 0) {
+        ret->data = new unsigned char[ret->cols * ret->rows * ret->channels];
+        memcpy(ret->data, ctx->color.data, ret->cols * ret->rows * ret->channels);
+    }
 }

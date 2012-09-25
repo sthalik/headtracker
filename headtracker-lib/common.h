@@ -1,11 +1,7 @@
 #pragma once
 #include "api.h"
-#include <opencv2/opencv.hpp>
 struct ht_context;
 typedef struct ht_context headtracker_t;
-
-using namespace std;
-using namespace cv;
 
 typedef struct ht_config {
 	float field_of_view;
@@ -67,15 +63,15 @@ typedef struct {
 } ht_reflection_t;
 
 typedef struct {
-    Mat data;
+    int rows, cols, channels;
+    unsigned char* data;
 } ht_frame_t;
 
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename);
-HT_API(ht_config_t) ht_load_config(FILE* stream);
-HT_API(ht_config_t) ht_load_config_from_file(const char* filename);
+HT_API(void) ht_load_config(FILE* stream, ht_config_t* cfg);
 HT_API(void) ht_free_context(headtracker_t* ctx);
-HT_API(ht_frame_t) ht_get_bgr_frame(headtracker_t* ctx);
-HT_API(ht_config_t) ht_make_config();
+HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret);
+HT_API(void) ht_make_config(ht_config_t* cfg);
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
 
 HT_API(void) ht_store_config(const headtracker_t* ctx, FILE* stream);

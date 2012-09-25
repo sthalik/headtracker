@@ -65,7 +65,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Min eigenval for Lukas-Kanade"),
     F(max_best_error, double, 100, 10, 1000,
     "Max RANSAC error"),
-    F(debug, bool, true, 0, 1),
+    F(debug, bool, false, 0, 1),
     F(ransac_max_threads, int, 6, 1, 256,
     "Max threads for RANSAC"),
     F(ransac_min_features, int, 40, 20, 100,
@@ -81,35 +81,37 @@ ht_reflection_t ht_find_config_entry(const char* name) {
     throw exception();
 }
 
-HT_API(ht_config_t) ht_make_config() {
-    ht_config_t ret;
-
+HT_API(void) ht_make_config(ht_config_t* ret) {
     for (int i = 0; ht_reflection_info[i].name; i++) {
         const ht_reflection_t& field = ht_reflection_info[i];
-        void* ptr = ((char*) &ret) + field.offset;
+        void* ptr = ((char*) ret) + field.offset;
         switch (field.type) {
         case cfg_type_bool:
             *(bool*) ptr = field.default_value.i ? 1 : 0;
+            printf("%s = %d\n", field.name, field.default_value.i);
             break;
         case cfg_type_float:
             *(float*) ptr = field.default_value.f;
+            printf("%s = %f\n", field.name, field.default_value.f);
             break;
         case cfg_type_double:
             *(double*) ptr = field.default_value.d;
+            printf("%s = %f\n", field.name, field.default_value.d);
             break;
         case cfg_type_int:
             *(int*) ptr = field.default_value.i;
+            printf("%s = %d\n", field.name, field.default_value.i);
             break;
         default:
+            fprintf(stderr, "bad config type for field %s\n", field.name);
             continue;
         }
     }
-    return ret;
 }
 
-HT_API(ht_config_t) ht_load_config(FILE* stream) {
+HT_API(void) ht_load_config(FILE* stream, ht_config_t* cfg) {
     char buf[256];
-    ht_config_t cfg = ht_make_config();
+    ht_make_config(cfg);
 
     buf[255] = '\0';
 
@@ -121,7 +123,7 @@ HT_API(ht_config_t) ht_load_config(FILE* stream) {
         if (strlen(value) == 0)
             continue;
         ht_reflection_t info = ht_find_config_entry(buf);
-        void* ptr = ((char*) &cfg) + info.offset;
+        void* ptr = ((char*) cfg) + info.offset;
         switch (info.type) {
         case cfg_type_bool:
             *(bool*) ptr = strtol(value, NULL, 10) ? 1 : 0;
@@ -145,8 +147,6 @@ HT_API(ht_config_t) ht_load_config(FILE* stream) {
             continue;
         }
     }
-
-    return cfg;
 }
 
 static void ht_store_config_internal(const ht_config_t& config, FILE* stream) {

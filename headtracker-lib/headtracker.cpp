@@ -28,6 +28,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * ar * HT_PI / 180.0);
             ctx->focal_length = ctx->focal_length_w;
+            fprintf(stderr, "focal length = %f\n", ctx->focal_length);
 		}
 		ht_track_features(*ctx);
         if (ht_initial_guess(*ctx, ctx->grayscale, rotation_matrix, translation_vector))
