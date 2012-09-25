@@ -82,6 +82,7 @@ int main(int argc, char** argv)
         ht_get_bgr_frame(ctx, &frame);
         Mat foo(frame.rows, frame.cols, CV_8UC3, frame.data);
         imshow("capture", foo);
+        free(frame.data);
         waitKey(1);
     }
 
