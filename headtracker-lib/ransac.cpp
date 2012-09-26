@@ -68,6 +68,7 @@ bool ht_ransac(const headtracker_t& ctx,
 
     *best_error = 1.0e20;
     *best_keypoint_cnt = 0;
+    double best_score = -1;
 
     int kppos = 0;
 
@@ -94,7 +95,7 @@ bool ht_ransac(const headtracker_t& ctx,
         memset(rotation_matrix, 0, sizeof(float) * 9);
         memset(translation_vector, 0, sizeof(float) * 3);
 
-        double cur_error = 1.0e15;
+        double cur_error = ctx.config.max_best_error;
 
         CvPOSITObject* posit_obj = NULL;
 
@@ -118,11 +119,14 @@ bool ht_ransac(const headtracker_t& ctx,
 
             ipos++;
 
+            double score = ipos * (1.0 - bias + bias * (ctx.config.max_best_error - cur_error) / ctx.config.max_best_error);
+
             if (ipos >= N &&
-                ipos * (1.0f - bias + (*best_error / cur_error) * bias) > *best_keypoint_cnt &&
+                score > best_score &&
                 cur_error < ctx.config.max_best_error &&
                 ipos >= ctx.config.ransac_min_features)
             {
+                best_score = score;
                 ret = true;
                 *best_error = cur_error;
                 *best_keypoint_cnt = ipos;
@@ -196,14 +200,17 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         t->wait();
     }
     int best = -1;
-    double cur_error = 1.0e15;
+    double best_err = ctx.config.max_best_error;
+    double best_score = -1;
+    int best_cnt = 0;
     const double bias = ctx.config.ransac_smaller_error_preference;
     for (int i = 0; i < max_threads; i++) {
         RansacThread* t = threads[i];
-        double score = t->best_keypoint_cnt * (1.0f - bias + (t->best_error / cur_error) * bias);
-        if (t->ret && score > t->best_error) {
+        double score = t->best_keypoint_cnt * (1.0 - bias + bias * (ctx.config.max_best_error - t->best_error) / ctx.config.max_best_error);
+        if (t->ret && score > best_score) {
             best = i;
-            cur_error = t->best_error;
+            best_err + t->best_error;
+            best_cnt = t->best_keypoint_cnt;
         }
     }
     if (best != -1) {
@@ -222,7 +229,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         }
         delete[] kusedp;
         ret = true;
-        *best_error = cur_error;
+        *best_error = best_err;
     }
     while(!threads.empty()) {
         delete threads.back();
