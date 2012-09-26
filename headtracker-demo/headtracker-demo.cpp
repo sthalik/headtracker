@@ -36,12 +36,12 @@ int main(int argc, char** argv)
 	ht_config_t conf;
 	FILE* cfg;
 
+    ht_make_config(&conf);
+
 	if ((cfg = fopen("config.txt", "r")) != NULL) {
         ht_load_config(cfg, &conf);
 		fclose(cfg);
-	} else {
-        ht_make_config(&conf);
-	}
+    }
 
     headtracker_t* ctx = ht_make_context(&conf, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
