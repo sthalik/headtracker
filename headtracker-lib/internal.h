@@ -9,8 +9,8 @@ using namespace cv;
 #define HT_PI 3.1415926535
 #define HT_STD_DEPTH 650.0f
 
-#define HT_CENTROID_DEPTH 135.0f
-#define HT_CENTROID_Y 0.0f
+#define HT_CENTROID_DEPTH 95.0f
+#define HT_CENTROID_Y 37.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2
