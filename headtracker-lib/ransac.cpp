@@ -119,7 +119,7 @@ bool ht_ransac(const headtracker_t& ctx,
             ipos++;
 
             if (ipos >= N &&
-                ipos * ((1.0f - bias) + bias * (*best_error / cur_error)) > *best_keypoint_cnt &&
+                ipos * (1.0f - bias + (*best_error / cur_error) * bias) > *best_keypoint_cnt &&
                 cur_error < ctx.config.max_best_error &&
                 ipos >= ctx.config.ransac_min_features)
             {
@@ -196,12 +196,14 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         t->wait();
     }
     int best = -1;
-    double error = 1e15;
+    double cur_error = 1.0e15;
+    const double bias = ctx.config.ransac_smaller_error_preference;
     for (int i = 0; i < max_threads; i++) {
         RansacThread* t = threads[i];
-        if (t->ret && error > t->best_error) {
+        double score = t->best_keypoint_cnt * (1.0f - bias + (t->best_error / cur_error) * bias);
+        if (t->ret && score > t->best_error) {
             best = i;
-            error = t->best_error;
+            cur_error = t->best_error;
         }
     }
     if (best != -1) {
@@ -220,7 +222,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         }
         delete[] kusedp;
         ret = true;
-        *best_error = error;
+        *best_error = cur_error;
     }
     while(!threads.empty()) {
         delete threads.back();
