@@ -7,10 +7,10 @@ using namespace cv;
 #include "common.h"
 #include <opencv2/opencv.hpp>
 #define HT_PI 3.1415926535
-#define HT_STD_DEPTH 650.0f
+#define HT_STD_DEPTH 550.0f
 
-#define HT_CENTROID_DEPTH 95.0f
-#define HT_CENTROID_Y 37.0f
+#define HT_CENTROID_DEPTH 80.0f
+#define HT_CENTROID_Y 50.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2

@@ -60,12 +60,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_draw_model(*ctx, ctx->model);
 			ht_draw_features(*ctx);
+            circle(ctx->color, centroid, 3, Scalar(255, 255, 0));
 			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
             euler->confidence = -best_error;
 			if (ctx->config.debug)
-                printf("keypoints %d/%d (%d)\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality);
+                printf("keypoints %d/%d (%d); confidence=%f\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality, best_error);
         } else {
             if (ctx->abortp)
                 abort();

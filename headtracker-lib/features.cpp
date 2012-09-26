@@ -11,12 +11,10 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    if (ctx.config.max_keypoints * 4 / 5 > ctx.keypoint_count)
-        return;
-    float mindist = max(2.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
+    float mindist = max(3.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
     mindist /= 1.1;
     mindist *= mindist;
-    for (int i = 0; i < ctx.config.max_keypoints; i++) {
+    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 3 / 4 > ctx.keypoint_count; i++) {
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -138,7 +136,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     Mat mat = ctx.grayscale(roi);
 
-    float max_dist = max(2.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
+    float max_dist = max(3.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {

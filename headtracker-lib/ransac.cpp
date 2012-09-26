@@ -209,7 +209,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         double score = t->best_keypoint_cnt * (1.0 - bias + bias * (ctx.config.max_best_error - t->best_error) / ctx.config.max_best_error);
         if (t->ret && score > best_score) {
             best = i;
-            best_err + t->best_error;
+            best_err = t->best_error;
             best_cnt = t->best_keypoint_cnt;
         }
     }
