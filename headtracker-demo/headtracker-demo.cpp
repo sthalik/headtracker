@@ -57,14 +57,6 @@ int main(int argc, char** argv)
     while (!ht_quitp && ht_cycle(ctx, &result)) {
         if (result.filled) {
             start = true;
-			printf("%.3f | %.2f %.2f %.2f | %.1f %.1f %.1f\n",
-				   result.confidence,
-				   result.rotx * 180.0f / HT_PI,
-				   result.roty * 180.0f / HT_PI,
-				   result.rotz * 180.0f / HT_PI,
-				   result.tx,
-				   result.ty,
-                   result.tz);
             pose.frame_number = frameno;
             pose.x = result.tx;
             pose.y = result.ty;

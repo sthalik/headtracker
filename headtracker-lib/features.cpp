@@ -10,8 +10,11 @@ void ht_draw_features(headtracker_t& ctx) {
     }
 }
 
-static void remove_lumps(headtracker_t& ctx) {
+static void ht_remove_lumps(headtracker_t& ctx) {
+    if (ctx.config.max_keypoints * 4 / 5 > ctx.keypoint_count)
+        return;
     float mindist = max(2.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
+    mindist /= 1.1;
     mindist *= mindist;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         bool foundp = false;
@@ -35,7 +38,7 @@ static void remove_lumps(headtracker_t& ctx) {
 }
 
 void ht_track_features(headtracker_t& ctx) {
-    remove_lumps(ctx);
+    ht_remove_lumps(ctx);
     if (ctx.restarted)
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
@@ -71,7 +74,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 50, 0.009),
+                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.09),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {
@@ -140,7 +143,7 @@ start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
         max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 24, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
