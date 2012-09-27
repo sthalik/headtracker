@@ -12,8 +12,9 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
-    mindist *= 1.25;
+    mindist *= 2;
     mindist *= mindist;
+    mindist = max(1.0f, mindist);
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 3 / 4 < ctx.keypoint_count; i++) {
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
@@ -36,7 +37,6 @@ static void ht_remove_lumps(headtracker_t& ctx) {
 }
 
 void ht_track_features(headtracker_t& ctx) {
-    ht_remove_lumps(ctx);
     if (ctx.restarted)
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
@@ -98,6 +98,8 @@ static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 }
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
+    ht_remove_lumps(ctx);
+
     if (ctx.keypoint_count >= ctx.config.max_keypoints)
           return;
 
@@ -136,12 +138,12 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     Mat mat = ctx.grayscale(roi);
 
-    float max_dist = max(2.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
+    float max_dist = max(1.5f, ctx.config.keypoint_distance / ctx.zoom_ratio);
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
         max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 16, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
@@ -178,7 +180,7 @@ start_keypoints:
                     goto start_keypoints;
                 }
             }
-        } else if (good + ctx.keypoint_count > ctx.config.max_keypoints * 2) {
+        } else if (good > ctx.config.max_keypoints) {
             if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL)
                 ctx.config.keypoint_quality++;
         }
