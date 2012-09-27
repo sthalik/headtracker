@@ -42,7 +42,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	ctx->ticks_last_classification = ht_tickcount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
-	ctx->model = ht_load_model("head.raw", cvPoint3D32f(1, 1, 1), cvPoint3D32f(0, 0, 0));
+    ctx->model = ht_load_model("head.raw", cvPoint3D32f(23, 23, 23), cvPoint3D32f(0, 0, 0));
     ctx->keypoint_uv = new CvPoint3D32f[ctx->config.max_keypoints];
 	ctx->state = HT_STATE_INITIALIZING;
 	ctx->init_retries = 0;
