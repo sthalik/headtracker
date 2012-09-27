@@ -98,14 +98,5 @@ bool ht_estimate_pose(headtracker_t& ctx,
 }
 
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2) {
-	int sz = ctx.config.depth_avg_frames;
-    ctx.depths[ctx.depth_counter_pos] = translation_2;
-	ctx.depth_counter_pos = (ctx.depth_counter_pos + 1) % sz;
-	if (ctx.depth_frame_count < sz)
-		ctx.depth_frame_count++;
-	float zoom_scale = 0.0f;
-	for (int i = 0; i < ctx.depth_frame_count; i++)
-		zoom_scale += ctx.depths[i];
-    zoom_scale /= ctx.depth_frame_count;
-    ctx.zoom_ratio = zoom_scale / HT_STD_DEPTH;
+    ctx.zoom_ratio = translation_2 / HT_STD_DEPTH;
 }

@@ -101,8 +101,6 @@ typedef struct ht_context {
     Mat last_image;
     int init_retries;
 	bool restarted;
-	float* depths;
-	int depth_frame_count;
 	unsigned char depth_counter_pos;
 	float zoom_ratio;
 	ht_config_t config;

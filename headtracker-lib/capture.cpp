@@ -47,10 +47,8 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	ctx->state = HT_STATE_INITIALIZING;
 	ctx->init_retries = 0;
 	ctx->restarted = 1;
-	ctx->depth_frame_count = 0;
 	ctx->depth_counter_pos = 0;
 	ctx->zoom_ratio = 1.0;
-	ctx->depths = new float[ctx->config.depth_avg_frames];
 	ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
 	for (int i = 0; i < ctx->config.max_keypoints; i++)
 		ctx->keypoints[i].idx = -1;
@@ -65,7 +63,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->abortp = filename != NULL;
     ctx->pyr_a = new vector<Mat>();
     ctx->depth_counter_pos = 0;
-    ctx->depth_frame_count = 0;
     ctx->pyr_b = new vector<Mat>();
 	return ctx;
 }
@@ -81,8 +78,6 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->model.centers;
     if (ctx->model.projected_depths)
         delete[] ctx->model.projected_depths;
-	if (ctx->depths)
-		delete[] ctx->depths;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;

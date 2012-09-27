@@ -77,7 +77,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->init_retries = 0;
 		ctx->restarted = true;
-		ctx->depth_frame_count = 0;
 		ctx->depth_counter_pos = 0;
 		ctx->zoom_ratio = 1.0f;
 		ctx->keypoint_count = 0;
