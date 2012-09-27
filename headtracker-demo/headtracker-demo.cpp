@@ -72,9 +72,11 @@ int main(int argc, char** argv)
         frameno++;
         ht_frame_t frame;
         ht_get_bgr_frame(ctx, &frame);
-        Mat foo(frame.rows, frame.cols, CV_8UC3, frame.data);
-        imshow("capture", foo);
-        free(frame.data);
+        if (frame.data) {
+            Mat foo(frame.rows, frame.cols, CV_8UC3, frame.data);
+            imshow("capture", foo);
+            delete[] frame.data;
+        }
         waitKey(1);
     }
 

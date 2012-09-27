@@ -72,7 +72,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 																		 translation_vector,
 																		 ctx.focal_length);
 				for (int i = 0; i < k; i++) {
-					tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x, model_points[i].y + HT_CENTROID_Y, model_points[i].z + HT_CENTROID_DEPTH);
+                    tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x, model_points[i].y + HT_CENTROID_Y, model_points[i].z + HT_CENTROID_DEPTH);
 					tmp_image_points[i+1] = image_points[i];
 				}
 				ret = ht_posit(tmp_image_points,
@@ -82,6 +82,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 							   translation_vector2,
                                cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-10),
 							   ctx.focal_length);
+
 				if (ret)
 					ht_update_zoom_scale(ctx, translation_vector2[2]);
 			}

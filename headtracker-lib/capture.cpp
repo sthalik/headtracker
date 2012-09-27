@@ -99,5 +99,7 @@ HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret) {
     if (ret->cols > 0) {
         ret->data = new unsigned char[ret->cols * ret->rows * ret->channels];
         memcpy(ret->data, ctx->color.data, ret->cols * ret->rows * ret->channels);
+    } else {
+        ret->data = NULL;
     }
 }
