@@ -84,8 +84,8 @@ bool ht_ransac(const headtracker_t& ctx,
         goto end;
     }
 
-    float rotation_matrix[9], best_rotation_matrix[9];
-    float translation_vector[3], best_translation_vector[3];
+    float rotation_matrix[9];
+    float translation_vector[3];
 
     for (int iter = 0; iter < K; iter++) {
         ht_fisher_yates(keypoint_indices, kppos);
@@ -134,8 +134,6 @@ bool ht_ransac(const headtracker_t& ctx,
                 *best_keypoint_cnt = ipos;
                 for (int i = 0; i < ipos; i++)
                     best_keypoints[i] = model_keypoint_indices[i];
-                memcpy(best_rotation_matrix, rotation_matrix, sizeof(float) * 9);
-                memcpy(best_translation_vector, translation_vector, sizeof(float) * 3);
             }
         }
 
