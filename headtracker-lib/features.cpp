@@ -11,8 +11,8 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    float mindist = max(2.0f, ctx.config.keypoint_distance / ctx.zoom_ratio);
-    mindist *= 1.5;
+    float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
+    mindist *= 1.25;
     mindist *= mindist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 3 / 4 < ctx.keypoint_count; i++) {
         bool foundp = false;
@@ -170,7 +170,7 @@ start_keypoints:
             keypoints_to_add[good++] = corners[i].pt;
         }
 
-        if (good < ctx.config.max_keypoints) {
+        if (good + ctx.keypoint_count < ctx.config.max_keypoints) {
             if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL) {
                 ctx.config.keypoint_quality--;
                 if (ctx.state == HT_STATE_INITIALIZING) {
@@ -178,7 +178,7 @@ start_keypoints:
                     goto start_keypoints;
                 }
             }
-        } else {
+        } else if (good + ctx.keypoint_count > ctx.config.max_keypoints * 2) {
             if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL)
                 ctx.config.keypoint_quality++;
         }

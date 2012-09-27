@@ -35,7 +35,7 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
             foo = tmp;
         bar += tmp;
     }
-    return sqrt(foo) * 0.5 + sqrt(bar / point_cnt) * 0.5;
+    return sqrt(foo) * 0.25 + sqrt(bar / point_cnt) * 0.75;
 }
 
 void ht_fisher_yates(int* indices, int count) {
