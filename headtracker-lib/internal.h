@@ -10,7 +10,7 @@ using namespace cv;
 #define HT_STD_DEPTH 500.0f
 
 #define HT_CENTROID_DEPTH 70.0f
-#define HT_CENTROID_Y 8.0f
+#define HT_CENTROID_Y 16.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2
