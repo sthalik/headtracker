@@ -13,7 +13,7 @@ using namespace cv;
 #define HT_CENTROID_Y 8.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 5
+#define HT_FEATURE_MIN_QUALITY_LEVEL 2
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -70,7 +70,7 @@ static __inline int ht_tickcount(void) {
 	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
 }
 
-static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, const float* rotation_matrix, const float* translation_vector, const double f) {
+static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, const double* rotation_matrix, const double* translation_vector, const double f) {
 	double x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
 	double y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
 	double z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
@@ -117,7 +117,7 @@ void ht_free_model(model_t& model);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
 bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
 
-bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, double focal_length);
+bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, double* rotation_matrix, double* translation_vector, CvTermCriteria term_crit, double focal_length);
 
 classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f min_size);
 bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& ret);
@@ -133,14 +133,14 @@ typedef enum {
 
 bool ht_get_image(headtracker_t& ctx);
 
-bool ht_initial_guess(headtracker_t& ctx, Mat& frame, float* rotation_matrix, float* translation_vector);
-ht_result_t ht_matrix_to_euler(float* rotation_matrix, float* translation_vector);
+bool ht_initial_guess(headtracker_t& ctx, Mat& frame, double *rotation_matrix, double *translation_vector);
+ht_result_t ht_matrix_to_euler(double *rotation_matrix, double *translation_vector);
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight);
 void ht_project_model(headtracker_t& ctx,
-					  float* rotation_matrix,
-					  float* translation_vector,
-					  model_t& model,
-					  CvPoint3D32f origin);
+                      double *rotation_matrix,
+                      double *translation_vector,
+                      model_t& model,
+                      CvPoint3D32f origin);
 bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv);
 bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model);
 void ht_draw_model(headtracker_t& ctx, model_t& model);
@@ -159,10 +159,10 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 }
 
 bool ht_estimate_pose(headtracker_t& ctx,
-					  float* rotation_matrix,
-					  float* translation_vector,
-					  float* rotation_matrix2,
-					  float* translation_vector2,
+                      double* rotation_matrix,
+                      double* translation_vector,
+                      double* rotation_matrix2,
+                      double* translation_vector2,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid);
 bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);

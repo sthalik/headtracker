@@ -4,10 +4,10 @@ using namespace std;
 using namespace cv;
 
 bool ht_estimate_pose(headtracker_t& ctx,
-					  float* rotation_matrix,
-					  float* translation_vector,
-					  float* rotation_matrix2,
-					  float* translation_vector2,
+                      double* rotation_matrix,
+                      double* translation_vector,
+                      double* rotation_matrix2,
+                      double* translation_vector2,
 					  CvPoint3D32f* offset,
 					  CvPoint2D32f* image_centroid)
 {

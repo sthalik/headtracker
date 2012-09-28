@@ -7,8 +7,8 @@ using namespace std;
 using namespace cv;
 
 void ht_project_model(headtracker_t& ctx,
-					  float* rotation_matrix,
-					  float* translation_vector,
+                      double* rotation_matrix,
+                      double* translation_vector,
 					  model_t& model,
 					  CvPoint3D32f origin)
 {

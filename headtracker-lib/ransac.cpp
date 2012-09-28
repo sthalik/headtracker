@@ -13,22 +13,19 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
                                         CvPoint2D32f* image_points,
                                         int point_cnt,
                                         CvPOSITObject** prev_pObject,
-                                        float* rotation_matrix,
-                                        float* translation_vector) {
+                                        double* rotation_matrix,
+                                        double* translation_vector) {
     double focal_length = ctx.focal_length;
 
-    CvPOSITObject* posit_obj = cvCreatePOSITObject(model_points, point_cnt);
-    if (*prev_pObject)
-        cvReleasePOSITObject(prev_pObject);
-    *prev_pObject = posit_obj;
-    cvPOSIT(posit_obj,
-            image_points,
-            focal_length,
-            cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER,
-                           ctx.config.ransac_posit_iter,
-                           ctx.config.ransac_posit_eps),
-            rotation_matrix,
-            translation_vector);
+    ht_posit(image_points,
+             model_points,
+             point_cnt,
+             rotation_matrix,
+             translation_vector,
+             cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER,
+                            ctx.config.ransac_posit_iter,
+                            ctx.config.ransac_posit_eps),
+             ctx.focal_length);
 
     double foo = 0;
     for (int i = 0; i < point_cnt; i++) {
@@ -86,8 +83,8 @@ bool ht_ransac(const headtracker_t& ctx,
         goto end;
     }
 
-    float rotation_matrix[9];
-    float translation_vector[3];
+    double rotation_matrix[9];
+    double translation_vector[3];
 
     for (int iter = 0; iter < K; iter++) {
         ht_fisher_yates(keypoint_indices, kppos);

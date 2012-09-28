@@ -8,10 +8,10 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 }
 
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
-	float rotation_matrix[9];
-	float translation_vector[3];
-	float rotation_matrix2[9];
-	float translation_vector2[3];
+    double rotation_matrix[9];
+    double translation_vector[3];
+    double rotation_matrix2[9];
+    double translation_vector2[3];
 
 	memset(rotation_matrix, 0, sizeof(float) * 9);
 	memset(translation_vector, 0, sizeof(float) * 3);
