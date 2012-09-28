@@ -66,7 +66,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			euler->filled = true;
             euler->confidence = -best_error;
 			if (ctx->config.debug)
-                printf("keypoints %d/%d (%d); confidence=%f\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality, best_error);
+                printf("keypoints %d/%d (%d); confidence=%f\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality, -best_error);
         } else {
             if (ctx->abortp)
                 abort();

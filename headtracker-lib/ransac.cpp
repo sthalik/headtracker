@@ -32,9 +32,11 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
 
     double foo = 0;
     for (int i = 0; i < point_cnt; i++) {
-        foo += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+        double tmp = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
+        if (tmp > foo)
+            foo = tmp;
     }
-    return sqrt(foo / point_cnt);
+    return sqrt(foo);
 }
 
 void ht_fisher_yates(int* indices, int count) {
