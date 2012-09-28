@@ -48,7 +48,7 @@ void ht_fisher_yates(int* indices, int count) {
 }
 
 bool ht_ransac(const headtracker_t& ctx,
-               float max_error,
+               double max_error,
                int* best_keypoint_cnt,
                double* best_error,
                int* best_keypoints,
@@ -60,7 +60,7 @@ bool ht_ransac(const headtracker_t& ctx,
     bool ret = false;
     int* keypoint_indices = new int[ctx.keypoint_count];
     int* model_keypoint_indices = new int[ctx.keypoint_count];
-    const float bias = ctx.config.ransac_smaller_error_preference;
+    const double bias = ctx.config.ransac_smaller_error_preference;
     const int K = ctx.config.ransac_num_iters;
     const int N = 4;
 
@@ -87,6 +87,7 @@ bool ht_ransac(const headtracker_t& ctx,
     double translation_vector[3];
 
     for (int iter = 0; iter < K; iter++) {
+        double max_error = max_error;
         ht_fisher_yates(keypoint_indices, kppos);
         int ipos = 0;
 
@@ -116,6 +117,7 @@ bool ht_ransac(const headtracker_t& ctx,
                 if (e*max_error > cur_error)
                     continue;
                 cur_error = e;
+                max_error += (1.0 - ctx.config.ransac_max_error) / ctx.config.max_keypoints;
             }
 
             ipos++;
