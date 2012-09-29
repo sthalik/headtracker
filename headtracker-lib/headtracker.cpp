@@ -53,13 +53,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	} case HT_STATE_TRACKING: {
 		ht_track_features(*ctx);
         double best_error = 1.0e10;
-		CvPoint3D32f offset;
-		CvPoint2D32f centroid;
+        CvPoint3D32f offset;
+        CvPoint2D32f centroid;
 
         if (ht_ransac_best_indices(*ctx, &best_error) &&
             ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid))
         {
-			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
+            ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_draw_model(*ctx, ctx->model);
 			ht_draw_features(*ctx);
             circle(ctx->color, centroid, 3, Scalar(255, 255, 0));

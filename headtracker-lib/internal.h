@@ -9,9 +9,6 @@ using namespace cv;
 #define HT_PI 3.1415926535
 #define HT_STD_DEPTH 500.0f
 
-#define HT_CENTROID_DEPTH 70.0f
-#define HT_CENTROID_Y 16.0f
-
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
 #define HT_FEATURE_MIN_QUALITY_LEVEL 2
 
@@ -166,8 +163,8 @@ bool ht_estimate_pose(headtracker_t& ctx,
                       double* translation_vector,
                       double* rotation_matrix2,
                       double* translation_vector2,
-					  CvPoint3D32f* offset,
-					  CvPoint2D32f* image_centroid);
+                      CvPoint3D32f* offset,
+                      CvPoint2D32f* image_centroid);
 bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);

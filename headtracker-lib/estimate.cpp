@@ -8,8 +8,8 @@ bool ht_estimate_pose(headtracker_t& ctx,
                       double* translation_vector,
                       double* rotation_matrix2,
                       double* translation_vector2,
-					  CvPoint3D32f* offset,
-					  CvPoint2D32f* image_centroid)
+                      CvPoint3D32f* offset,
+                      CvPoint2D32f* image_centroid)
 {
     int total = ctx.keypoint_count;
 	CvPoint3D32f* model_points = new CvPoint3D32f[total+1];
@@ -32,7 +32,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 		float center_distance = 1e10;
 
 		for (int i = 0; i < k; i++) {
-            float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, 0, 0));
+            float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, -25.62292, -23.25507));
 
             if (center_distance > d) {
 				center_distance = d;
@@ -64,30 +64,10 @@ bool ht_estimate_pose(headtracker_t& ctx,
                            cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-16),
 						   ctx.focal_length);
 
-			if (ret) {
-				*offset = c;
-				tmp_model_points[0] = cvPoint3D32f(0, 0, 0);
-                tmp_image_points[0] = ht_project_point(cvPoint3D32f(-c.x, -c.y - HT_CENTROID_Y, -c.z - HT_CENTROID_DEPTH),
-																		 rotation_matrix,
-																		 translation_vector,
-																		 ctx.focal_length);
-				for (int i = 0; i < k; i++) {
-                    tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x, model_points[i].y + HT_CENTROID_Y, model_points[i].z + HT_CENTROID_DEPTH);
-					tmp_image_points[i+1] = image_points[i];
-				}
-				ret = ht_posit(tmp_image_points,
-							   tmp_model_points,
-							   k+1,
-							   rotation_matrix2,
-							   translation_vector2,
-                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-16),
-							   ctx.focal_length);
-
-                if (ret) {
-                    *image_centroid = ht_project_point(cvPoint3D32f(0, 0, 0), rotation_matrix2, translation_vector2, ctx.focal_length);
-					ht_update_zoom_scale(ctx, translation_vector2[2]);
-                }
-			}
+            if (ret) {
+                *offset = c;
+                *image_centroid = image_points[centermost];
+            }
 		}
     }
 
