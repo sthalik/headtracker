@@ -14,8 +14,8 @@ static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
     mindist *= mindist;
     //mindist /= 1.25;
-    mindist = max(1.1f, mindist);
-    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 3 / 4 < ctx.keypoint_count; i++) {
+    mindist = max(2.0f, mindist);
+    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 2 / 3 < ctx.keypoint_count; i++) {
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -72,7 +72,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 50, 0.01),
+                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.01),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {
@@ -143,7 +143,7 @@ start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
         max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 16, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

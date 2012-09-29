@@ -12,11 +12,8 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
                                         CvPoint3D32f* model_points,
                                         CvPoint2D32f* image_points,
                                         int point_cnt,
-                                        CvPOSITObject** prev_pObject,
                                         double* rotation_matrix,
                                         double* translation_vector) {
-    double focal_length = ctx.focal_length;
-
     ht_posit(image_points,
              model_points,
              point_cnt,
@@ -33,7 +30,7 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
         if (tmp > foo)
             foo = tmp;
     }
-    return sqrt(foo);
+    return sqrt(foo) * 1.0;
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -87,13 +84,10 @@ bool ht_ransac(const headtracker_t& ctx,
     double translation_vector[3];
 
     for (int iter = 0; iter < K; iter++) {
-        double max_error = max_error;
         ht_fisher_yates(keypoint_indices, kppos);
         int ipos = 0;
 
         double cur_error = ctx.config.max_best_error;
-
-        CvPOSITObject* posit_obj = NULL;
 
         for (int kpos = 0; kpos < kppos; kpos++) {
             int idx = keypoint_indices[kpos];
@@ -110,14 +104,12 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      model_points,
                                                      image_points,
                                                      ipos+1,
-                                                     &posit_obj,
                                                      rotation_matrix,
                                                      translation_vector);
                 e *= error_scale;
                 if (e*max_error > cur_error)
                     continue;
                 cur_error = e;
-                max_error += (1.0 - ctx.config.ransac_max_error) / ctx.config.max_keypoints;
             }
 
             ipos++;
@@ -137,9 +129,6 @@ bool ht_ransac(const headtracker_t& ctx,
                     best_keypoints[i] = model_keypoint_indices[i];
             }
         }
-
-        if (posit_obj)
-            cvReleasePOSITObject(&posit_obj);
     }
 
 end:
