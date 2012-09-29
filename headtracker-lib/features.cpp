@@ -12,10 +12,9 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
+    mindist /= 1.05;
     mindist *= mindist;
-    mindist /= 1.25;
-    mindist = max(2.0f, mindist);
-    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 2 / 3 < ctx.keypoint_count; i++) {
+    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 5 / 6 < ctx.keypoint_count; i++) {
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -72,7 +71,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 30, 0.01),
+                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 50, 0.009),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {

@@ -24,13 +24,14 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
                             ctx.config.ransac_posit_eps),
              ctx.focal_length);
 
-    double foo = 0;
+    double foo = 0, bar = 0;
     for (int i = 0; i < point_cnt; i++) {
         double tmp = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length), image_points[i]);
         if (tmp > foo)
             foo = tmp;
+        bar += tmp;
     }
-    return sqrt(foo) * 1.0;
+    return sqrt(foo) * 0.25  + sqrt(bar / point_cnt) * 0.75;
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -45,7 +46,6 @@ void ht_fisher_yates(int* indices, int count) {
 }
 
 bool ht_ransac(const headtracker_t& ctx,
-               double max_error,
                int* best_keypoint_cnt,
                double* best_error,
                int* best_keypoints,
@@ -76,17 +76,19 @@ bool ht_ransac(const headtracker_t& ctx,
     CvPoint3D32f* model_points = new CvPoint3D32f[kppos];
     CvPoint3D32f first_point = ctx.keypoint_uv[keypoint_indices[0]];
 
+    double rotation_matrix[9];
+    double translation_vector[3];
+    double max_keypoints = ctx.config.max_keypoints;
+    double one_error = (ctx.config.ransac_end_error - ctx.config.ransac_start_error) / max_keypoints;
+
     if (kppos < N || kppos == 0) {
         goto end;
     }
 
-    double rotation_matrix[9];
-    double translation_vector[3];
-
     for (int iter = 0; iter < K; iter++) {
         ht_fisher_yates(keypoint_indices, kppos);
         int ipos = 0;
-
+        double max_error = ctx.config.ransac_start_error;
         double cur_error = ctx.config.max_best_error;
 
         for (int kpos = 0; kpos < kppos; kpos++) {
@@ -110,6 +112,7 @@ bool ht_ransac(const headtracker_t& ctx,
                 if (e*max_error > cur_error)
                     continue;
                 cur_error = e;
+                max_error += one_error;
             }
 
             ipos++;
@@ -149,8 +152,7 @@ class RansacThread : public QThread
 public:
     void run();
     RansacThread(const headtracker_t& ctx,
-                 float error_scale,
-                 float max_error);
+                 float error_scale);
     int best_keypoint_cnt;
     double best_error;
     int* best_keypoints;
@@ -161,29 +163,28 @@ public:
 private:
     const headtracker_t& ctx;
     float error_scale;
-    float max_error;
 };
 
 void RansacThread::run()
 {
-    ret = ht_ransac(ctx, max_error, &best_keypoint_cnt, &best_error, best_keypoints, error_scale);
+    ret = ht_ransac(ctx, &best_keypoint_cnt, &best_error, best_keypoints, error_scale);
 }
 
 RansacThread::RansacThread(const headtracker_t& ctx,
-                           float error_scale,
-                           float max_error)
-    : ctx(ctx), error_scale(error_scale), max_error(max_error), ret(false)
+                           float error_scale) :
+    ctx(ctx),
+    error_scale(error_scale),
+    ret(false)
 {
     best_keypoints = new int[ctx.config.max_keypoints];
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
-    double max_error = ctx.config.ransac_max_error;
     bool ret = false;
     const int max_threads = ctx.config.ransac_max_threads;
     vector<RansacThread*> threads;
     for (int i = 0; i < max_threads; i++) {
-        RansacThread* t = new RansacThread(ctx, ctx.zoom_ratio, max_error);
+        RansacThread* t = new RansacThread(ctx, ctx.zoom_ratio);
         t->start();
         threads.push_back(t);
     }
