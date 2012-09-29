@@ -13,7 +13,7 @@ void ht_draw_features(headtracker_t& ctx) {
 static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
     mindist *= mindist;
-    //mindist /= 1.25;
+    mindist /= 1.25;
     mindist = max(2.0f, mindist);
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 2 / 3 < ctx.keypoint_count; i++) {
         bool foundp = false;
@@ -143,7 +143,7 @@ start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
         max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 12, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

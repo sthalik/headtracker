@@ -3,7 +3,7 @@
 using namespace std;
 using namespace cv;
 
-// some copyrighted opencv code follows
+// Copyright (C) 2000, Intel Corporation, all rights reserved.
 
 struct CvPOSITObject
 {
@@ -243,6 +243,8 @@ static  void  ht_icvCreatePOSITObject( CvPoint3D32f *points,
 
     *ppObject = pObject;
 }
+
+// end intel copyrighted code
 
 bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, double* rotation_matrix, double* translation_vector, CvTermCriteria term_crit, double focal_length) {
 	if (point_cnt < 4)

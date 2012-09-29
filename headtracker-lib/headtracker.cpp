@@ -3,6 +3,8 @@
 using namespace std;
 using namespace cv;
 
+#include <string>
+
 HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
 }
@@ -61,6 +63,21 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_draw_model(*ctx, ctx->model);
 			ht_draw_features(*ctx);
             circle(ctx->color, centroid, 3, Scalar(255, 255, 0));
+            ctx->hz++;
+            int ticks = ht_tickcount() / 1000;
+            if (ctx->ticks_last_second != ticks) {
+                ctx->ticks_last_second = ticks;
+                ctx->hz_last_second = ctx->hz;
+                ctx->hz = 0;
+            }
+            if (ctx->hz_last_second != -1) {
+                char buf2[42];
+                string buf;
+                buf.append("Hz: ");
+                sprintf(buf2, "%d", ctx->hz_last_second);
+                buf.append(buf2);
+                putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
+            }
 			ht_get_features(*ctx, ctx->model);
 			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
@@ -83,6 +100,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         ctx->abortp = false;
 		for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
+        ctx->hz = 0;
 		break;
 	}
 	default:

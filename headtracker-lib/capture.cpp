@@ -8,9 +8,6 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.isOpened())
         return false;
 
-    if (!ctx.camera.grab())
-        return false;
-
     if (!ctx.camera.read(ctx.color))
         return false;
 
@@ -64,6 +61,9 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->pyr_a = new vector<Mat>();
     ctx->depth_counter_pos = 0;
     ctx->pyr_b = new vector<Mat>();
+    ctx->hz = 0;
+    ctx->hz_last_second = -1;
+    ctx->ticks_last_second = ht_tickcount() / 1000;
 	return ctx;
 }
 

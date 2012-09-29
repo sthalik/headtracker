@@ -106,7 +106,10 @@ typedef struct ht_context {
 	ht_config_t config;
 	ht_keypoint* keypoints;
 	int keypoint_count;
-	CvPoint3D32f* keypoint_uv;
+    CvPoint3D32f* keypoint_uv;
+    int ticks_last_second;
+    int hz;
+    int hz_last_second;
     bool abortp;
 } headtracker_t;
 
