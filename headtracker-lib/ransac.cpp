@@ -55,13 +55,12 @@ bool ht_ransac(const headtracker_t& ctx,
     int* keypoint_indices = new int[ctx.keypoint_count];
     int* orig_indices = new int[ctx.keypoint_count];
     int* model_keypoint_indices = new int[ctx.keypoint_count];
-    const double bias = ctx.config.ransac_smaller_error_preference;
     const int K = ctx.config.ransac_num_iters;
     const int N = 4;
 
     *best_error = 1.0e20;
     *best_keypoint_cnt = 0;
-    double best_score = -1;
+    double best_score = -1e20;
 
     int kppos = 0;
 
@@ -106,7 +105,7 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      ipos+1,
                                                      rotation_matrix,
                                                      translation_vector);
-                if (e > ctx.config.max_best_error && ipos > ctx.config.ransac_min_features)
+                if (e > ctx.config.max_best_error*1.2 && ipos > ctx.config.ransac_min_features)
                     goto end2;
                 if (e*max_avg_error > avg_error)
                     continue;
@@ -116,7 +115,7 @@ bool ht_ransac(const headtracker_t& ctx,
 
             ipos++;
 
-            double score = ipos * (1.0 - bias) / ctx.config.max_keypoints + bias * (ctx.config.max_best_error - avg_error) / ctx.config.max_best_error;
+            double score = ipos;
 
             if (ipos >= N &&
                 score > best_score &&
@@ -192,12 +191,11 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
     }
     int best = -1;
     double best_err = ctx.config.max_best_error;
-    double best_score = -1e9;
+    double best_score = -1e20;
     int best_cnt = 0;
-    const double bias = ctx.config.ransac_smaller_error_preference;
     for (int i = 0; i < max_threads; i++) {
         RansacThread* t = threads[i];
-        double score = t->best_keypoint_cnt * (1.0 - bias) / ctx.config.max_keypoints + bias * (ctx.config.max_best_error - t->best_error) / ctx.config.max_best_error;
+        double score = t->best_keypoint_cnt;
         if (t->ret && score > best_score) {
             best = i;
             best_err = t->best_error;

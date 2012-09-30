@@ -35,7 +35,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
             ht_get_features(*ctx, ctx->model);
-            if (ctx->keypoint_count >= ctx->config.ransac_min_features * 5 / 3) {
+            if (ctx->keypoint_count >= ctx->config.ransac_min_features * 6 / 5) {
                 double best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
