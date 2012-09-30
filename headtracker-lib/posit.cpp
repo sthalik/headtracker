@@ -19,7 +19,7 @@ static  void  ht_icvReleasePOSITObject( CvPOSITObject ** ppObject )
 }
 
 static void
-ht_icvPseudoInverse3D( double *a, double *b, int n, int method )
+ht_icvPseudoInverse3D( double * __restrict a, double * __restrict b, int n, int method )
 {
     int k;
 
@@ -87,9 +87,9 @@ ht_icvPseudoInverse3D( double *a, double *b, int n, int method )
     return;
 }
 
-static  void  ht_icvPOSIT( CvPOSITObject *pObject, CvPoint2D32f *imagePoints,
+static  void  ht_icvPOSIT( CvPOSITObject *pObject, CvPoint2D32f * __restrict imagePoints,
                             double focalLength, CvTermCriteria criteria,
-                            double* rotation, double* translation )
+                            double* __restrict rotation, double* __restrict translation )
 {
     int i, j, k;
     int count = 0, converged = 0;
@@ -199,7 +199,7 @@ static  void  ht_icvPOSIT( CvPOSITObject *pObject, CvPoint2D32f *imagePoints,
     translation[2] = 1 / inv_Z;
 }
 
-static  void  ht_icvCreatePOSITObject( CvPoint3D32f *points,
+static  void  ht_icvCreatePOSITObject( CvPoint3D32f * __restrict points,
                                     int numPoints,
                                     CvPOSITObject **ppObject )
 {

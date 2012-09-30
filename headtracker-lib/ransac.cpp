@@ -8,11 +8,7 @@
 using namespace std;
 using namespace cv;
 
-typedef struct err {
-    double max, avg;
-} error_t;
-
-static error_t ht_avg_reprojection_error(const headtracker_t& ctx,
+static double ht_avg_reprojection_error(const headtracker_t& ctx,
                                         CvPoint3D32f* model_points,
                                         CvPoint2D32f* image_points,
                                         int point_cnt,
@@ -36,10 +32,7 @@ static error_t ht_avg_reprojection_error(const headtracker_t& ctx,
             foo = tmp;
         bar += tmp;
     }
-    error_t ret;
-    ret.max = sqrt(foo);
-    ret.avg = sqrt(bar / point_cnt);
-    return ret;
+    return sqrt(bar / point_cnt);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -63,10 +56,11 @@ bool ht_ransac(const headtracker_t& ctx,
 
     bool ret = false;
     int* keypoint_indices = new int[ctx.keypoint_count];
+    int* orig_indices = new int[ctx.keypoint_count];
     int* model_keypoint_indices = new int[ctx.keypoint_count];
     const double bias = ctx.config.ransac_smaller_error_preference;
     const int K = ctx.config.ransac_num_iters;
-    const int N = 4;
+    const int N = 5;
 
     *best_error = 1.0e20;
     *best_keypoint_cnt = 0;
@@ -76,29 +70,30 @@ bool ht_ransac(const headtracker_t& ctx,
 
     for (int i = 0; i < ctx.keypoint_count; i++) {
         if (ctx.keypoints[i].idx != -1)
-            keypoint_indices[kppos++] = i;
+            orig_indices[kppos++] = i;
     }
 
     CvPoint2D32f* image_points = new CvPoint2D32f[kppos];
     CvPoint3D32f* model_points = new CvPoint3D32f[kppos];
-    CvPoint3D32f first_point = ctx.keypoint_uv[keypoint_indices[0]];
 
     double rotation_matrix[9];
     double translation_vector[3];
-    double max_avg_error = ctx.config.ransac_avg_error;
-    double max_max_error = ctx.config.ransac_max_error;
+    double max_max_error = (ctx.config.ransac_max_error - ctx.config.ransac_avg_error) / (ctx.config.max_keypoints - N);
 
     if (kppos < N || kppos == 0) {
         goto end;
     }
 
     for (int iter = 0; iter < K; iter++) {
+        memcpy(keypoint_indices, orig_indices, sizeof(int) * kppos);
         ht_fisher_yates(keypoint_indices, kppos);
+        CvPoint3D32f first_point = ctx.keypoint_uv[keypoint_indices[0]];
         int ipos = 0;
-        double max_error = 1.0e20;
         double avg_error = 1.0e20;
+        bool ok = false;
 
         for (int kpos = 0; kpos < kppos; kpos++) {
+            double max_avg_error = ctx.config.ransac_avg_error;
             int idx = keypoint_indices[kpos];
             ht_keypoint& kp = ctx.keypoints[idx];
             model_points[ipos] = ctx.keypoint_uv[idx];
@@ -109,23 +104,25 @@ bool ht_ransac(const headtracker_t& ctx,
             model_keypoint_indices[ipos] = idx;
 
             if (ipos - 1 >= N) {
-                error_t e = ht_avg_reprojection_error(ctx,
-                                                      model_points,
-                                                      image_points,
-                                                      ipos+1,
-                                                      rotation_matrix,
-                                                      translation_vector);
-                if (e.avg*max_avg_error > avg_error)
+                double e = ht_avg_reprojection_error(ctx,
+                                                     model_points,
+                                                     image_points,
+                                                     ipos+1,
+                                                     rotation_matrix,
+                                                     translation_vector);
+                if (e > ctx.config.max_best_error && ipos > ctx.config.ransac_min_features)
+                    goto end2;
+                if (e*max_avg_error > avg_error)
                     continue;
-                if (e.max*max_max_error > max_error)
-                    continue;
-                avg_error = e.avg;
-                max_error = e.max;
+                avg_error = e;
+                max_avg_error += max_max_error;
+                if (ipos >= ctx.config.ransac_min_features)
+                    ok = true;
             }
 
             ipos++;
 
-            double score = ipos * (1.0 - bias) / ctx.config.max_keypoints + bias * (ctx.config.max_best_error - max_error) / ctx.config.max_best_error;
+            double score = ipos * (1.0 - bias) / ctx.config.max_keypoints + bias * (ctx.config.max_best_error - avg_error) / ctx.config.max_best_error;
 
             if (ipos >= N &&
                 score > best_score &&
@@ -140,6 +137,10 @@ bool ht_ransac(const headtracker_t& ctx,
                     best_keypoints[i] = model_keypoint_indices[i];
             }
         }
+end2:
+        if (!ok) {
+            fprintf(stderr, "iteration failed completely!\n");
+        }
     }
 
 end:
@@ -151,6 +152,7 @@ end:
     delete[] image_points;
     delete[] model_points;
     delete[] model_keypoint_indices;
+    delete[] orig_indices;
 
     return ret;
 }
@@ -198,12 +200,12 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
     }
     int best = -1;
     double best_err = ctx.config.max_best_error;
-    double best_score = -1e10;
+    double best_score = -1e9;
     int best_cnt = 0;
     const double bias = ctx.config.ransac_smaller_error_preference;
     for (int i = 0; i < max_threads; i++) {
         RansacThread* t = threads[i];
-        double score = -ctx.config.max_best_error;
+        double score = t->best_keypoint_cnt * (1.0 - bias) / ctx.config.max_keypoints + bias * (ctx.config.max_best_error - t->best_error) / ctx.config.max_best_error;
         if (t->ret && score > best_score) {
             best = i;
             best_err = t->best_error;

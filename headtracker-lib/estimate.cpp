@@ -30,7 +30,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 		float center_distance = 1e10;
 
 		for (int i = 0; i < k; i++) {
-            float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, -25.62292, -23.25507));
+            float d = ht_distance3d_squared(model_points[i], cvPoint3D32f(0, -15.62292, -23.25507));
 
             if (center_distance > d) {
 				center_distance = d;
@@ -59,7 +59,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10000, 1.0e-10),
+                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 500, 1.0e-6),
 						   ctx.focal_length);
 
             if (ret) {

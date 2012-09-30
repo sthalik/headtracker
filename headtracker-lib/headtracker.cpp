@@ -35,7 +35,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
             ht_get_features(*ctx, ctx->model);
-            if (ctx->keypoint_count >= ctx->config.ransac_min_features * 4 / 3) {
+            if (ctx->keypoint_count >= ctx->config.ransac_min_features * 5 / 3) {
                 double best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
@@ -49,7 +49,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		}
 		break;
 	} case HT_STATE_TRACKING: {
-		ht_track_features(*ctx);
+        ht_track_features(*ctx);
+        ht_remove_outliers(*ctx);
         double best_error = 1.0e10;
         CvPoint3D32f offset;
         CvPoint2D32f centroid;
@@ -76,7 +77,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 buf.append(buf2);
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
-			ht_get_features(*ctx, ctx->model);
+            ht_get_features(*ctx, ctx->model);
             *euler = ht_matrix_to_euler(rotation_matrix, translation_vector);
 			euler->filled = true;
             euler->confidence = -best_error;

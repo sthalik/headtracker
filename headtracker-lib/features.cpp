@@ -12,10 +12,13 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
-    mindist /= 2;
-    mindist = max(mindist, 2.0f);
+    mindist /= 2.0;
+    mindist = max(mindist, 1.01f);
     mindist *= mindist;
+    float min4dist = ctx.config.keypoint_4distance / ctx.zoom_ratio;
+    min4dist *= min4dist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 5 / 6 < ctx.keypoint_count; i++) {
+        int fours = 0;
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -24,12 +27,26 @@ static void ht_remove_lumps(headtracker_t& ctx) {
                 continue;
             float x = ctx.keypoints[j].position.x - ctx.keypoints[i].position.x;
             float y = ctx.keypoints[j].position.y - ctx.keypoints[i].position.y;
-            if (x * x + y * y < mindist) {
+            float d = x * x + y * y;
+            if (d < mindist) {
+                foundp = true;
+                break;
+            }
+            if (d < min4dist && ++fours >= 4) {
                 foundp = true;
                 break;
             }
         }
         if (foundp) {
+            ctx.keypoints[i].idx = -1;
+            ctx.keypoint_count--;
+        }
+    }
+}
+
+void ht_remove_outliers(headtracker_t& ctx) {
+    for (int i = 0; i < ctx.config.max_keypoints; i++) {
+        if (ctx.keypoints[i].idx != -1 && !ht_triangle_exists(ctx.keypoints[i].position, ctx.model)) {
             ctx.keypoints[i].idx = -1;
             ctx.keypoint_count--;
         }
@@ -72,7 +89,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 50, 0.01),
+                                 TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 30, 0.05),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {
@@ -139,11 +156,12 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     Mat mat = ctx.grayscale(roi);
 
     float max_dist = max(1.5f, ctx.config.keypoint_distance / ctx.zoom_ratio);
+    float max_4dist = max(2.0f, ctx.config.keypoint_4distance / ctx.zoom_ratio);
+    max_dist *= max_dist;
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 8, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
@@ -190,9 +208,15 @@ start_keypoints:
             for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
                 CvPoint2D32f kp = keypoints_to_add[i];
                 bool overlap = false;
+                int fours = 0;
 
                 for (int j = 0; j < ctx.config.max_keypoints; j++) {
                     if (ctx.keypoints[j].idx != -1 && ht_distance2d_squared(kp, ctx.keypoints[j].position) < max_dist) {
+                        overlap = true;
+                        break;
+                    }
+                    if (ht_distance2d_squared(kp, corners[j].pt) < max_4dist &&
+                            ++fours >= 4) {
                         overlap = true;
                         break;
                     }

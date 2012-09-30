@@ -43,7 +43,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->keypoint_uv = new CvPoint3D32f[ctx->config.max_keypoints];
 	ctx->state = HT_STATE_INITIALIZING;
 	ctx->init_retries = 0;
-	ctx->restarted = 1;
+    ctx->restarted = true;
 	ctx->depth_counter_pos = 0;
 	ctx->zoom_ratio = 1.0;
 	ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
