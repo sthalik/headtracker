@@ -15,10 +15,11 @@ static void ht_remove_lumps(headtracker_t& ctx) {
     mindist /= 2.0;
     mindist = max(mindist, 1.01f);
     mindist *= mindist;
-    float min4dist = ctx.config.keypoint_4distance / ctx.zoom_ratio;
-    min4dist *= min4dist;
+    float min3dist = ctx.config.keypoint_3distance / ctx.zoom_ratio;
+    min3dist /= 3.0f;
+    min3dist *= min3dist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 5 / 6 < ctx.keypoint_count; i++) {
-        int fours = 0;
+        int threes = 0;
         bool foundp = false;
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -32,7 +33,7 @@ static void ht_remove_lumps(headtracker_t& ctx) {
                 foundp = true;
                 break;
             }
-            if (d < min4dist && ++fours >= 4) {
+            if (d < min3dist && ++threes >= 3) {
                 foundp = true;
                 break;
             }
@@ -115,7 +116,8 @@ static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 }
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
-    ht_remove_lumps(ctx);
+    if (ctx.keypoint_count > ctx.config.max_keypoints * 3/4)
+        ht_remove_lumps(ctx);
 
     if (ctx.keypoint_count >= ctx.config.max_keypoints)
           return;
@@ -156,12 +158,12 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     Mat mat = ctx.grayscale(roi);
 
     float max_dist = max(1.5f, ctx.config.keypoint_distance / ctx.zoom_ratio);
-    float max_4dist = max(2.0f, ctx.config.keypoint_4distance / ctx.zoom_ratio);
+    float max_3dist = max(2.0f, ctx.config.keypoint_3distance / ctx.zoom_ratio);
     max_dist *= max_dist;
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 32, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 8, 1.15f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
@@ -208,15 +210,15 @@ start_keypoints:
             for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
                 CvPoint2D32f kp = keypoints_to_add[i];
                 bool overlap = false;
-                int fours = 0;
+                int threes = 0;
 
                 for (int j = 0; j < ctx.config.max_keypoints; j++) {
                     if (ctx.keypoints[j].idx != -1 && ht_distance2d_squared(kp, ctx.keypoints[j].position) < max_dist) {
                         overlap = true;
                         break;
                     }
-                    if (ht_distance2d_squared(kp, corners[j].pt) < max_4dist &&
-                            ++fours >= 4) {
+                    if (ht_distance2d_squared(kp, corners[j].pt) < max_3dist &&
+                            ++threes >= 3) {
                         overlap = true;
                         break;
                     }
