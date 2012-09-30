@@ -24,13 +24,10 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
                             ctx.config.ransac_posit_eps),
              ctx.focal_length);
 
-    double foo = 0, bar = 0;
+    double bar = 0;
     for (int i = 0; i < point_cnt; i++) {
-        double tmp = ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length),
-                                           image_points[i]);
-        if (tmp > foo)
-            foo = tmp;
-        bar += tmp;
+        bar += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length),
+                                     image_points[i]);
     }
     return sqrt(bar / point_cnt);
 }
@@ -90,7 +87,6 @@ bool ht_ransac(const headtracker_t& ctx,
         CvPoint3D32f first_point = ctx.keypoint_uv[keypoint_indices[0]];
         int ipos = 0;
         double avg_error = 1.0e20;
-        bool ok = false;
 
         for (int kpos = 0; kpos < kppos; kpos++) {
             double max_avg_error = ctx.config.ransac_avg_error;
@@ -116,8 +112,6 @@ bool ht_ransac(const headtracker_t& ctx,
                     continue;
                 avg_error = e;
                 max_avg_error += max_max_error;
-                if (ipos >= ctx.config.ransac_min_features)
-                    ok = true;
             }
 
             ipos++;
@@ -138,9 +132,7 @@ bool ht_ransac(const headtracker_t& ctx,
             }
         }
 end2:
-        if (!ok) {
-            fprintf(stderr, "iteration failed completely!\n");
-        }
+        ;
     }
 
 end:

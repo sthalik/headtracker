@@ -50,7 +50,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
 	} case HT_STATE_TRACKING: {
         ht_track_features(*ctx);
-        ht_remove_outliers(*ctx);
         double best_error = 1.0e10;
         CvPoint3D32f offset;
         CvPoint2D32f centroid;
@@ -77,6 +76,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 buf.append(buf2);
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
+            ht_remove_outliers(*ctx);
             ht_get_features(*ctx, ctx->model);
             *euler = ht_matrix_to_euler(rotation_matrix, translation_vector);
 			euler->filled = true;
