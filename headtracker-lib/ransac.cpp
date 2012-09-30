@@ -57,7 +57,7 @@ bool ht_ransac(const headtracker_t& ctx,
     int* model_keypoint_indices = new int[ctx.keypoint_count];
     const double bias = ctx.config.ransac_smaller_error_preference;
     const int K = ctx.config.ransac_num_iters;
-    const int N = 5;
+    const int N = 4;
 
     *best_error = 1.0e20;
     *best_keypoint_cnt = 0;
