@@ -10,7 +10,7 @@ using namespace cv;
 #define HT_STD_DEPTH 500.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 2
+#define HT_FEATURE_MIN_QUALITY_LEVEL 13
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -161,8 +161,6 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 bool ht_estimate_pose(headtracker_t& ctx,
                       double* rotation_matrix,
                       double* translation_vector,
-                      double* rotation_matrix2,
-                      double* translation_vector2,
                       CvPoint3D32f* offset,
                       CvPoint2D32f* image_centroid);
 bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);

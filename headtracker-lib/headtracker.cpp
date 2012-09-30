@@ -12,8 +12,6 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     double rotation_matrix[9];
     double translation_vector[3];
-    double rotation_matrix2[9];
-    double translation_vector2[3];
 
 	memset(rotation_matrix, 0, sizeof(float) * 9);
 	memset(translation_vector, 0, sizeof(float) * 3);
@@ -37,7 +35,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
             ht_get_features(*ctx, ctx->model);
-            if (ctx->keypoint_count >= 4) {
+            if (ctx->keypoint_count >= ctx->config.ransac_min_features * 4 / 3) {
                 double best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
@@ -57,7 +55,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         CvPoint2D32f centroid;
 
         if (ht_ransac_best_indices(*ctx, &best_error) &&
-            ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset, &centroid))
+            ht_estimate_pose(*ctx, rotation_matrix, translation_vector, &offset, &centroid))
         {
             ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
 			ht_draw_model(*ctx, ctx->model);
@@ -79,7 +77,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
 			ht_get_features(*ctx, ctx->model);
-			*euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
+            *euler = ht_matrix_to_euler(rotation_matrix, translation_vector);
 			euler->filled = true;
             euler->confidence = -best_error;
 			if (ctx->config.debug)

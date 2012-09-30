@@ -10,8 +10,8 @@ typedef struct ht_config {
 	int   pyrlk_win_size_w;
 	int   pyrlk_win_size_h;
 	int   max_init_retries;
-    float ransac_end_error;
-    float ransac_start_error;
+    double ransac_max_error;
+    double ransac_avg_error;
 	int   max_keypoints;
 	int   keypoint_quality;
 	float keypoint_distance;

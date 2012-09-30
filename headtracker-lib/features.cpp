@@ -12,7 +12,8 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
-    mindist /= 1.5;
+    mindist /= 2;
+    mindist = max(mindist, 2.0f);
     mindist *= mindist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 5 / 6 < ctx.keypoint_count; i++) {
         bool foundp = false;
@@ -71,7 +72,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 50, 0.009),
+                                 TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 50, 0.01),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {
@@ -142,7 +143,7 @@ start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
         max_dist *= max_dist;
-        ORB detector = ORB(ctx.config.max_keypoints * 12, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, 0, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 8, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

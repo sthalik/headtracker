@@ -6,8 +6,6 @@ using namespace cv;
 bool ht_estimate_pose(headtracker_t& ctx,
                       double* rotation_matrix,
                       double* translation_vector,
-                      double* rotation_matrix2,
-                      double* translation_vector2,
                       CvPoint3D32f* offset,
                       CvPoint2D32f* image_centroid)
 {
@@ -61,7 +59,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 2000, 1.0e-16),
+                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 10000, 1.0e-10),
 						   ctx.focal_length);
 
             if (ret) {
