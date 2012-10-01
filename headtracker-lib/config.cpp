@@ -60,7 +60,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "RANSAC iterations per frame"),
     F(ransac_max_error, double, 11.0, 2.0, 50.0,
     ""),
-    F(ransac_avg_error, double, 0.96, 0.0, 1.0,
+    F(ransac_avg_error, double, 0.965, 0.0, 1.0,
     ""),
     F(pyrlk_min_eigenval, double, 1.0e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
@@ -69,7 +69,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     F(debug, bool, true, 0, 1),
     F(ransac_max_threads, int, 6, 1, 256,
     "Max threads for RANSAC"),
-    F(ransac_min_features, double, 0.6, 0.1, 1.0,
+    F(ransac_min_features, double, 0.7, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };
