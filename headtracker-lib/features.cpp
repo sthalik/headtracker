@@ -21,7 +21,7 @@ static void ht_remove_lumps(headtracker_t& ctx) {
     double min10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
     min10dist *= 0.5;
     min10dist *= min10dist;
-    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 8 / 10 < ctx.keypoint_count; i++) {
+    for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 7 / 10 < ctx.keypoint_count; i++) {
         bool foundp = false;
         int threes = 0;
         int tens = 0;
@@ -119,8 +119,7 @@ static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 }
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
-    if (ctx.keypoint_count > ctx.config.max_keypoints * 3/4)
-        ht_remove_lumps(ctx);
+    ht_remove_lumps(ctx);
 
     if (ctx.keypoint_count >= ctx.config.max_keypoints)
           return;
@@ -162,14 +161,14 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
     float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
-    float max_10dist = ctx.config.keypoint_10distance;
+    float max_10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     max_10dist *= max_10dist;
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 10, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
