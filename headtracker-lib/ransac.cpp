@@ -105,8 +105,11 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      ipos+1,
                                                      rotation_matrix,
                                                      translation_vector);
-                if (e*max_avg_error > avg_error)
+                if (e*max_avg_error > avg_error) {
+                    if (avg_error > ctx.config.ransac_max_error * 2)
+                        goto end2;
                     continue;
+                }
                 avg_error = e;
             }
 
@@ -122,6 +125,8 @@ bool ht_ransac(const headtracker_t& ctx,
                 pivot = first_point;
             }
         }
+end2:
+        ;
     }
 
 end:
