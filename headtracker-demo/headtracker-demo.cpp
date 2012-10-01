@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     THeadPoseData pose;
     int frameno = 0;
 
-    namedWindow("capture");
+    //namedWindow("capture");
 
     while (!ht_quitp && ht_cycle(ctx, &result)) {
         if (result.filled) {
