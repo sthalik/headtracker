@@ -62,7 +62,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(ransac_avg_error, double, 0.97, 0.0, 1.0,
     ""),
-    F(pyrlk_min_eigenval, double, 1.0e-4, 1.0e-10, 1.0e-1,
+    F(pyrlk_min_eigenval, double, 1.0e-6, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
     F(max_best_error, double, 8.0, 4, 1000,
     "Max RANSAC error"),
