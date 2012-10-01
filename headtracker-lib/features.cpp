@@ -93,7 +93,7 @@ void ht_track_features(headtracker_t& ctx) {
                                  noArray(),
                                  cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
-                                 TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 50, 0.008),
+                                 TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 30, 0.01),
                                  OPTFLOW_LK_GET_MIN_EIGENVALS,
                                  ctx.config.pyrlk_min_eigenval);
             for (int i = 0, j = 0; i < k; i++, j++) {
@@ -169,7 +169,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 10, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 8, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

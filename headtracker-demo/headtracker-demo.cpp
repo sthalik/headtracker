@@ -26,7 +26,6 @@ struct THeadPoseData {
 
 int main(int argc, char** argv)
 {
-    cv::setNumThreads(4);
     bool start = false;
 #ifdef __unix
     (void) signal(SIGTERM, ht_quit_handler);
@@ -42,6 +41,8 @@ int main(int argc, char** argv)
         ht_load_config(cfg, &conf);
 		fclose(cfg);
     }
+
+    cv::setNumThreads(conf.ransac_max_threads);
 
     headtracker_t* ctx = ht_make_context(&conf, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
