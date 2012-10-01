@@ -131,8 +131,8 @@ end:
 
     if (ret) {
         double max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
-        max_error *= max_error;
         int j = 0;
+        max_error *= max_error;
         double f = ctx.focal_length;
         for (int i = 0; i < kppos; i++) {
             int idx = orig_indices[i];

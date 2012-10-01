@@ -12,15 +12,19 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     double mindist = ctx.config.keypoint_distance * ctx.zoom_ratio;
-    mindist *= 0.5;
+    mindist *= 0.8;
     mindist = max(1.0, mindist);
     mindist *= mindist;
     double min3dist = ctx.config.keypoint_3distance * ctx.zoom_ratio;
-    min3dist *= 0.5;
+    min3dist *= 0.75;
     min3dist *= min3dist;
+    double min10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
+    min10dist *= 0.75;
+    min10dist *= min10dist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 8 / 10 < ctx.keypoint_count; i++) {
         bool foundp = false;
         int threes = 0;
+        int tens = 0;
         if (ctx.keypoints[i].idx == -1)
             continue;
         for (int j = 0; j < i; j++) {
@@ -30,7 +34,9 @@ static void ht_remove_lumps(headtracker_t& ctx) {
             float y = ctx.keypoints[j].position.y - ctx.keypoints[i].position.y;
             float d = x * x + y * y;
             if (d < mindist ||
-                (d < min3dist && ++threes >= 3)) {
+                (d < min3dist && ++threes >= 3) ||
+                (d < min10dist && ++tens >= 10))
+            {
                 foundp = true;
                 break;
             }
@@ -156,7 +162,10 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
     float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
+    float max_10dist = ctx.config.keypoint_10distance;
     max_dist *= max_dist;
+    max_3dist *= max_3dist;
+    max_10dist *= max_10dist;
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
@@ -208,14 +217,15 @@ start_keypoints:
                 CvPoint2D32f kp = keypoints_to_add[i];
                 bool overlap = false;
                 int threes = 0;
+                int tens = 0;
 
                 for (int j = 0; j < ctx.config.max_keypoints; j++) {
-                    if (ctx.keypoints[j].idx != -1 && ht_distance2d_squared(kp, ctx.keypoints[j].position) < max_dist) {
-                        overlap = true;
-                        break;
-                    }
-                    if (ht_distance2d_squared(kp, corners[j].pt) < max_3dist &&
-                            ++threes >= 3) {
+                    float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
+                    if (ctx.keypoints[j].idx != -1 &&
+                        (dist < max_dist ||
+                         (dist < max_3dist && ++threes >= 3) ||
+                         (dist < max_10dist && ++tens >= 10)))
+                    {
                         overlap = true;
                         break;
                     }
