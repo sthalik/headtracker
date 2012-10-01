@@ -56,8 +56,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_estimate_pose(*ctx, rotation_matrix, translation_vector, rotation_matrix2, translation_vector2, &offset))
         {
             ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
-            //ht_draw_model(*ctx, ctx->model);
-            //ht_draw_features(*ctx);
+            ht_draw_model(*ctx, ctx->model);
+            ht_draw_features(*ctx);
             ctx->hz++;
             int ticks = ht_tickcount() / 1000;
             if (ctx->ticks_last_second != ticks) {
