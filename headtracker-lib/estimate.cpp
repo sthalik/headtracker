@@ -6,8 +6,9 @@ using namespace cv;
 bool ht_estimate_pose(headtracker_t& ctx,
                       double* rotation_matrix,
                       double* translation_vector,
-                      CvPoint3D32f* offset,
-                      CvPoint2D32f* image_centroid)
+                      double* rotation_matrix2,
+                      double* translation_vector2,
+                      CvPoint3D32f* offset)
 {
     int total = ctx.keypoint_count;
 	CvPoint3D32f* model_points = new CvPoint3D32f[total+1];
@@ -63,8 +64,24 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   ctx.focal_length);
 
             if (ret) {
+                CvPoint3D32f obj_center = cvPoint3D32f(0, 0, -20);
+                CvPoint2D32f foo = ht_project_point(obj_center, rotation_matrix, translation_vector, ctx.focal_length);
                 *offset = c;
-                *image_centroid = image_points[centermost];
+                tmp_model_points[0] = obj_center;
+                tmp_image_points[0] = foo;
+                for (int i = 0; i < k; i++) {
+                    tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x - obj_center.x,
+                                                         model_points[i].y - obj_center.y,
+                                                         model_points[i].z - obj_center.z);
+                    tmp_image_points[i+1] = image_points[i];
+                }
+                ret = ht_posit(tmp_image_points,
+                               tmp_model_points,
+                               k + 1,
+                               rotation_matrix2,
+                               translation_vector2,
+                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-8),
+                               ctx.focal_length);
             }
 		}
     }
@@ -78,5 +95,5 @@ bool ht_estimate_pose(headtracker_t& ctx,
 }
 
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2) {
-    ctx.zoom_ratio = translation_2 / HT_STD_DEPTH;
+    ctx.zoom_ratio = HT_STD_DEPTH / translation_2;
 }

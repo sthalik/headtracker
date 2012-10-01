@@ -28,7 +28,7 @@ typedef struct ht_config {
     double pyrlk_min_eigenval;
     double max_best_error;
     int ransac_max_threads;
-    int ransac_min_features;
+    double ransac_min_features;
 } ht_config_t;
 
 typedef struct {

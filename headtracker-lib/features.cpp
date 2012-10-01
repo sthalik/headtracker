@@ -11,11 +11,16 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    float mindist = ctx.config.keypoint_distance / ctx.zoom_ratio;
-    mindist /= 2.0;
+    double mindist = ctx.config.keypoint_distance * ctx.zoom_ratio;
+    mindist *= 0.5;
+    mindist = max(1.0, mindist);
     mindist *= mindist;
+    double min3dist = ctx.config.keypoint_3distance * ctx.zoom_ratio;
+    min3dist *= 0.5;
+    min3dist *= min3dist;
     for (int i = 0; i < ctx.config.max_keypoints && ctx.config.max_keypoints * 8 / 10 < ctx.keypoint_count; i++) {
         bool foundp = false;
+        int threes = 0;
         if (ctx.keypoints[i].idx == -1)
             continue;
         for (int j = 0; j < i; j++) {
@@ -24,7 +29,8 @@ static void ht_remove_lumps(headtracker_t& ctx) {
             float x = ctx.keypoints[j].position.x - ctx.keypoints[i].position.x;
             float y = ctx.keypoints[j].position.y - ctx.keypoints[i].position.y;
             float d = x * x + y * y;
-            if (d < mindist) {
+            if (d < mindist ||
+                (d < min3dist && ++threes >= 3)) {
                 foundp = true;
                 break;
             }
@@ -148,13 +154,13 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     Mat mat = ctx.grayscale(roi);
 
-    float max_dist = max(1.5f, ctx.config.keypoint_distance / ctx.zoom_ratio);
-    float max_3dist = max(2.0f, ctx.config.keypoint_3distance / ctx.zoom_ratio);
+    float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
+    float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
     max_dist *= max_dist;
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 4, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 10, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

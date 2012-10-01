@@ -160,9 +160,8 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 
 bool ht_estimate_pose(headtracker_t& ctx,
                       double* rotation_matrix,
-                      double* translation_vector,
-                      CvPoint3D32f* offset,
-                      CvPoint2D32f* image_centroid);
+                      double* translation_vector, double *rotation_matrix2, double *translation_vector2,
+                      CvPoint3D32f* offset);
 bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);
