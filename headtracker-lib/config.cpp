@@ -58,7 +58,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Choose a different camera by its platform-specific index."),
     F(ransac_num_iters, int, 6, 5, 100,
     "RANSAC iterations per frame"),
-    F(ransac_max_error, double, 11.0, 2.0, 20.0,
+    F(ransac_max_error, double, 12.0, 2.0, 50.0,
     ""),
     F(ransac_avg_error, double, 0.88, 0.0, 1.0,
     ""),
