@@ -168,7 +168,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 10, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 20, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();

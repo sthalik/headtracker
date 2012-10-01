@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     THeadPoseData pose;
     int frameno = 0;
 
-    namedWindow("capture");
+    //namedWindow("capture");
 
     while (!ht_quitp && ht_cycle(ctx, &result)) {
         if (result.filled) {
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
             break;
         }
         frameno++;
-#if 1
+#if 0
         ht_frame_t frame;
         ht_get_bgr_frame(ctx, &frame);
         if (frame.data) {

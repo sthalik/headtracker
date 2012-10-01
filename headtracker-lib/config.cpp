@@ -69,7 +69,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     F(debug, bool, true, 0, 1),
     F(ransac_max_threads, int, 8, 1, 256,
     "Max threads for RANSAC"),
-    F(ransac_min_features, double, 0.65, 0.1, 1.0,
+    F(ransac_min_features, double, 0.6, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };
