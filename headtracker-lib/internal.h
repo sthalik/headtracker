@@ -10,7 +10,7 @@ using namespace cv;
 #define HT_STD_DEPTH 500.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 10
+#define HT_FEATURE_MIN_QUALITY_LEVEL 12
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
