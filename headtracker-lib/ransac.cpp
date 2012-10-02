@@ -29,7 +29,7 @@ static double ht_avg_reprojection_error(const headtracker_t& ctx,
         bar += ht_distance2d_squared(ht_project_point(model_points[i], rotation_matrix, translation_vector, ctx.focal_length),
                                      image_points[i]);
     }
-    return sqrt(bar / point_cnt) / ctx.zoom_ratio;
+    return sqrt(bar / point_cnt) * ctx.zoom_ratio;
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -107,8 +107,6 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      rotation_matrix,
                                                      translation_vector);
                 if (e*max_avg_error > avg_error) {
-                    if (ipos >= minf/3 && max_avg_error > avg_error * 2)
-                        goto end2;
                     continue;
                 }
                 avg_error = e;
@@ -143,7 +141,7 @@ end:
                        best_count,
                        rotation_matrix,
                        translation_vector,
-                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-7),
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 80, 1e-5),
                        f);
         if (ret) {
             double max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
@@ -161,10 +159,10 @@ end:
                                                            translation_vector,
                                                            f);
                 double error = ht_distance2d_squared(projection, pt2d);
+                cur_error += error;
                 if (error > max_error)
                     continue;
                 best_keypoints[j++] = idx;
-                cur_error += error;
             }
             *best_keypoint_cnt = j;
             *best_error = sqrt(cur_error / j);

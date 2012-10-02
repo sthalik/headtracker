@@ -13,7 +13,7 @@ void ht_draw_features(headtracker_t& ctx) {
 static void ht_remove_lumps(headtracker_t& ctx) {
     double mindist = ctx.config.keypoint_distance * ctx.zoom_ratio;
     mindist *= 0.75;
-    mindist = max(1.0, mindist);
+    mindist = max(1.1, mindist);
     mindist *= mindist;
     double min3dist = ctx.config.keypoint_3distance * ctx.zoom_ratio;
     min3dist *= 0.334;
@@ -168,7 +168,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 start_keypoints:
     int good = 0;
     if (ctx.keypoint_count < ctx.config.max_keypoints) {
-        ORB detector = ORB(ctx.config.max_keypoints * 20, 1.1f, 12, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
+        ORB detector = ORB(ctx.config.max_keypoints * 20, 1.2f, 8, ctx.config.keypoint_quality, 0, 2, ORB::HARRIS_SCORE, ctx.config.keypoint_quality);
         detector(mat, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
