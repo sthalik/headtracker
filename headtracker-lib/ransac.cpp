@@ -106,8 +106,11 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      ipos+1,
                                                      rotation_matrix,
                                                      translation_vector);
-                if (e*max_avg_error > avg_error)
+                if (e*max_avg_error > avg_error) {
+                    if (ipos >= minf/3 && max_avg_error > avg_error * 2)
+                        goto end2;
                     continue;
+                }
                 avg_error = e;
             }
 
@@ -124,6 +127,8 @@ bool ht_ransac(const headtracker_t& ctx,
                 pivot = first_point;
             }
         }
+end2:
+        ;
     }
 
 end:
@@ -138,11 +143,12 @@ end:
                        best_count,
                        rotation_matrix,
                        translation_vector,
-                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-8),
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-7),
                        f);
         if (ret) {
             double max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
             int j = 0;
+            double cur_error = 0;
             max_error *= max_error;
             for (int i = 0; i < kppos; i++) {
                 int idx = orig_indices[i];
@@ -158,8 +164,10 @@ end:
                 if (error > max_error)
                     continue;
                 best_keypoints[j++] = idx;
+                cur_error += error;
             }
             *best_keypoint_cnt = j;
+            *best_error = sqrt(cur_error / j);
         }
     }
 
@@ -215,7 +223,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, double* best_error) {
         t->wait();
     }
     int best = -1;
-    double best_err = ctx.config.max_best_error;
+    double best_err = 1.0e20;
     for (int i = 0; i < max_threads; i++) {
         RansacThread* t = threads[i];
         if (t->ret && t->best_error < best_err) {
