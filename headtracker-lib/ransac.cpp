@@ -165,7 +165,7 @@ end:
                 best_keypoints[j++] = idx;
             }
             *best_keypoint_cnt = j;
-            *best_error = sqrt(cur_error / j);
+            *best_error = sqrt(cur_error / kppos);
         }
     }
 
