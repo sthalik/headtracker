@@ -72,7 +72,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 buf.append("Hz: ");
                 sprintf(buf2, "%d", ctx->hz_last_second);
                 buf.append(buf2);
-                //putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
+                putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
             ht_remove_outliers(*ctx);
             ht_get_features(*ctx, ctx->model);

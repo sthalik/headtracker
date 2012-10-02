@@ -71,11 +71,12 @@ bool ht_ransac(const headtracker_t& ctx,
 
     double rotation_matrix[9];
     double translation_vector[3];
-    double best_rotation_matrix[9];
-    double best_translation_vector[3];
     double max_avg_error = ctx.config.ransac_avg_error;
     double minf = ctx.config.ransac_min_features * kppos;
 
+    CvPoint3D32f* best_obj_points = new CvPoint3D32f[kppos];
+    CvPoint2D32f* best_img_points = new CvPoint2D32f[kppos];
+    int best_count;
     CvPoint3D32f pivot;
 
     if (kppos < N || kppos == 0) {
@@ -105,11 +106,8 @@ bool ht_ransac(const headtracker_t& ctx,
                                                      ipos+1,
                                                      rotation_matrix,
                                                      translation_vector);
-                if (e*max_avg_error > avg_error) {
-                    if (avg_error > ctx.config.ransac_max_error * 2)
-                        goto end2;
+                if (e*max_avg_error > avg_error)
                     continue;
-                }
                 avg_error = e;
             }
 
@@ -120,13 +118,12 @@ bool ht_ransac(const headtracker_t& ctx,
             {
                 *best_error = avg_error;
                 ret = true;
-                memcpy(best_rotation_matrix, rotation_matrix, sizeof(double) * 9);
-                memcpy(best_translation_vector, translation_vector, sizeof(double) * 3);
+                memcpy(best_img_points, image_points, ipos * sizeof(CvPoint2D32f));
+                memcpy(best_obj_points, model_points, ipos * sizeof(CvPoint3D32f));
+                best_count = ipos;
                 pivot = first_point;
             }
         }
-end2:
-        ;
     }
 
 end:
@@ -135,32 +132,43 @@ end:
         abort();
 
     if (ret) {
-        double max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
-        int j = 0;
-        max_error *= max_error;
         double f = ctx.focal_length;
-        for (int i = 0; i < kppos; i++) {
-            int idx = orig_indices[i];
-            CvPoint3D32f pt = ctx.keypoint_uv[idx];
-            CvPoint2D32f pt2d = ctx.keypoints[idx].position;
-            CvPoint2D32f projection = ht_project_point(cvPoint3D32f(pt.x - pivot.x,
-                                                                    pt.y - pivot.y,
-                                                                    pt.z - pivot.z),
-                                                       best_rotation_matrix,
-                                                       best_translation_vector,
-                                                       f);
-            double error = ht_distance2d_squared(projection, pt2d);
-            if (error > max_error)
-                continue;
-            best_keypoints[j++] = idx;
+        ret = ht_posit(best_img_points,
+                       best_obj_points,
+                       best_count,
+                       rotation_matrix,
+                       translation_vector,
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-8),
+                       f);
+        if (ret) {
+            double max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
+            int j = 0;
+            max_error *= max_error;
+            for (int i = 0; i < kppos; i++) {
+                int idx = orig_indices[i];
+                CvPoint3D32f pt = ctx.keypoint_uv[idx];
+                CvPoint2D32f pt2d = ctx.keypoints[idx].position;
+                CvPoint2D32f projection = ht_project_point(cvPoint3D32f(pt.x - pivot.x,
+                                                                        pt.y - pivot.y,
+                                                                        pt.z - pivot.z),
+                                                           rotation_matrix,
+                                                           translation_vector,
+                                                           f);
+                double error = ht_distance2d_squared(projection, pt2d);
+                if (error > max_error)
+                    continue;
+                best_keypoints[j++] = idx;
+            }
+            *best_keypoint_cnt = j;
         }
-        *best_keypoint_cnt = j;
     }
 
     delete[] keypoint_indices;
     delete[] image_points;
     delete[] model_points;
     delete[] orig_indices;
+    delete[] best_img_points;
+    delete[] best_obj_points;
 
     return ret;
 }

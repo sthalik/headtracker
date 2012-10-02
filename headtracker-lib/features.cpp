@@ -12,11 +12,11 @@ void ht_draw_features(headtracker_t& ctx) {
 
 static void ht_remove_lumps(headtracker_t& ctx) {
     double mindist = ctx.config.keypoint_distance * ctx.zoom_ratio;
-    mindist *= 0.4;
+    mindist *= 0.6;
     mindist = max(1.0, mindist);
     mindist *= mindist;
     double min3dist = ctx.config.keypoint_3distance * ctx.zoom_ratio;
-    min3dist *= 0.4;
+    min3dist *= 0.5;
     min3dist *= min3dist;
     double min10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
     min10dist *= 0.4;
