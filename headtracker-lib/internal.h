@@ -10,7 +10,7 @@ using namespace cv;
 #define HT_STD_DEPTH 500.0f
 
 #define HT_FEATURE_MAX_QUALITY_LEVEL 60
-#define HT_FEATURE_MIN_QUALITY_LEVEL 12
+#define HT_FEATURE_MIN_QUALITY_LEVEL 2
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -40,15 +40,15 @@ typedef struct {
 } classifier_t;
 
 typedef struct {
-	CvPoint3D32f p1;
-	CvPoint3D32f p2;
-	CvPoint3D32f p3;
+    CvPoint3D32f p1;
+    CvPoint3D32f p2;
+    CvPoint3D32f p3;
 } triangle_t;
 
 typedef struct {
-	CvPoint2D32f p1;
-	CvPoint2D32f p2;
-	CvPoint2D32f p3;
+    CvPoint2D32f p1;
+    CvPoint2D32f p2;
+    CvPoint2D32f p3;
 } triangle2d_t;
 
 typedef struct {
@@ -67,24 +67,26 @@ static __inline int ht_tickcount(void) {
 	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
 }
 
-static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, const double* rotation_matrix, const double* translation_vector, const double f) {
-	double x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
-	double y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
-	double z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
+static __inline CvPoint2D32f ht_project_point(CvPoint3D32f point, const float* rotation_matrix, const float* translation_vector, const float f) {
+    float x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
+    float y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
+    float z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
 
-	return cvPoint2D32f(x * f / z,
+    return cvPoint2D32f(x * f / z,
 						y * f / z);
 }
 
 typedef struct {
 	int idx;
 	CvPoint2D32f position;
+    int frames;
+    KeyPoint descriptor;
 } ht_keypoint;
 
 typedef struct ht_context {
-    double focal_length;
-	double focal_length_w;
-	double focal_length_h;
+    float focal_length;
+    float focal_length_w;
+    float focal_length_h;
     VideoCapture camera;
     Mat grayscale;
     Mat color;
@@ -108,6 +110,7 @@ typedef struct ht_context {
     int hz;
     int hz_last_second;
     bool abortp;
+    int start_frames;
 } headtracker_t;
 
 HT_API(void) ht_reset(headtracker_t* ctx);
@@ -117,7 +120,7 @@ void ht_free_model(model_t& model);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
 bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
 
-bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, double* rotation_matrix, double* translation_vector, CvTermCriteria term_crit, double focal_length);
+bool ht_posit(CvPoint2D32f* image_points, CvPoint3D32f* model_points, int point_cnt, float* rotation_matrix, float* translation_vector, CvTermCriteria term_crit, float focal_length);
 
 classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f min_size);
 bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& ret);
@@ -133,12 +136,12 @@ typedef enum {
 
 bool ht_get_image(headtracker_t& ctx);
 
-bool ht_initial_guess(headtracker_t& ctx, Mat& frame, double *rotation_matrix, double *translation_vector);
-ht_result_t ht_matrix_to_euler(double *rotation_matrix, double *translation_vector);
+bool ht_initial_guess(headtracker_t& ctx, Mat& frame, float *rotation_matrix, float *translation_vector);
+ht_result_t ht_matrix_to_euler(float *rotation_matrix, float *translation_vector);
 bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight);
 void ht_project_model(headtracker_t& ctx,
-                      double *rotation_matrix,
-                      double *translation_vector,
+                      float *rotation_matrix,
+                      float *translation_vector,
                       model_t& model,
                       CvPoint3D32f origin);
 bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv);
@@ -159,10 +162,12 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 }
 
 bool ht_estimate_pose(headtracker_t& ctx,
-                      double* rotation_matrix,
-                      double* translation_vector, double *rotation_matrix2, double *translation_vector2,
+                      float *rotation_matrix,
+                      float *translation_vector, float *rotation_matrix2, float *translation_vector2,
                       CvPoint3D32f* offset);
-bool ht_ransac_best_indices(headtracker_t& ctx, double *best_error);
+bool ht_ransac_best_indices(headtracker_t& ctx, float *best_error);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);
 void ht_remove_outliers(headtracker_t& ctx);
+CvRect ht_get_roi(const headtracker_t& ctx, model_t& model);
+

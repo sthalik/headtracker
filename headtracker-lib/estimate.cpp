@@ -4,10 +4,10 @@ using namespace std;
 using namespace cv;
 
 bool ht_estimate_pose(headtracker_t& ctx,
-                      double* rotation_matrix,
-                      double* translation_vector,
-                      double* rotation_matrix2,
-                      double* translation_vector2,
+                      float* rotation_matrix,
+                      float* translation_vector,
+                      float* rotation_matrix2,
+                      float* translation_vector2,
                       CvPoint3D32f* offset)
 {
     int total = ctx.keypoint_count;
@@ -21,6 +21,8 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
 			continue;
+        if (ctx.keypoints[i].frames < ctx.config.feature_good_nframes && ctx.start_frames == 0)
+            continue;
 		model_points[k] = ctx.keypoint_uv[i];
 		image_points[k] = ctx.keypoints[i].position;
 		k++;
@@ -68,7 +70,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
                 CvPoint2D32f foo = ht_project_point(obj_center, rotation_matrix, translation_vector, ctx.focal_length);
                 *offset = c;
                 tmp_model_points[0] = obj_center;
-                tmp_image_points[0] = foo;
+                tmp_image_points[0] = cvPoint2D32f(foo.x, foo.y);
                 for (int i = 0; i < k; i++) {
                     tmp_model_points[i+1] = cvPoint3D32f(model_points[i].x - obj_center.x,
                                                          model_points[i].y - obj_center.y,

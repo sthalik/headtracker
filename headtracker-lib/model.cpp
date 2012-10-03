@@ -7,8 +7,8 @@ using namespace std;
 using namespace cv;
 
 void ht_project_model(headtracker_t& ctx,
-                      double* rotation_matrix,
-                      double* translation_vector,
+                      float* rotation_matrix,
+                      float* translation_vector,
 					  model_t& model,
 					  CvPoint3D32f origin)
 {
@@ -53,7 +53,7 @@ bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model) {
 		return false;
 
 	int sz = model.count;
-	CvPoint2D32f uv;
+    CvPoint2D32f uv;
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
@@ -153,13 +153,13 @@ void ht_free_model(model_t& model) {
 }
 
 bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv) {
-	CvPoint2D32f v0 = cvPoint2D32f(
+    CvPoint2D32f v0 = cvPoint2D32f(
 		c.x - a.x,
 		c.y - a.y);
-	CvPoint2D32f v1 = cvPoint2D32f(
+    CvPoint2D32f v1 = cvPoint2D32f(
 		b.x - a.x,
 		b.y - a.y);
-	CvPoint2D32f v2 = cvPoint2D32f(
+    CvPoint2D32f v2 = cvPoint2D32f(
 		point.x - a.x,
 		point.y - a.y);
 	float dot00 = ht_dot_product2d(v0, v0);

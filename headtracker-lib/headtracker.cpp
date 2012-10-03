@@ -10,32 +10,34 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 }
 
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
-    double rotation_matrix[9];
-    double translation_vector[3];
-    double rotation_matrix2[9];
-    double translation_vector2[3];
+    float rotation_matrix[9];
+    float translation_vector[3];
+    float rotation_matrix2[9];
+    float translation_vector2[3];
 
 	euler->filled = false;
 
 	if (!ht_get_image(*ctx))
 		return false;
-		
+
 	switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
+        ctx->start_frames = ctx->config.feature_good_nframes;
 		if (!(ctx->focal_length > 0)) {
-            double inv_ar = (ctx->grayscale.rows / (double) ctx->grayscale.cols);
+            float inv_ar = (ctx->grayscale.rows / (float) ctx->grayscale.cols);
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * inv_ar * HT_PI / 180.0);
             ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
             fprintf(stderr, "focal length = %f\n", ctx->focal_length);
 		}
-		ht_track_features(*ctx);
         if (ht_initial_guess(*ctx, ctx->grayscale, rotation_matrix, translation_vector))
 		{
 			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
+            imshow("grayscale", ctx->grayscale);
+            ht_track_features(*ctx);
             ht_get_features(*ctx, ctx->model);
             if (ctx->keypoint_count >= ctx->config.max_keypoints * 2 / 3) {
-                double best_error;
+                float best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
                     ctx->state = HT_STATE_TRACKING;
@@ -47,9 +49,11 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             }
 		}
 		break;
-	} case HT_STATE_TRACKING: {
+    } case HT_STATE_TRACKING: {
+        ctx->start_frames = max(0, ctx->start_frames - 1);
+        imshow("grayscale", ctx->grayscale);
         ht_track_features(*ctx);
-        double best_error = 1.0e10;
+        float best_error = 1.0e10;
         CvPoint3D32f offset;
 
         if (ht_ransac_best_indices(*ctx, &best_error) &&
@@ -80,7 +84,12 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			euler->filled = true;
             euler->confidence = -best_error;
 			if (ctx->config.debug)
-                printf("keypoints %d/%d (%d); confidence=%f\n", ctx->keypoint_count, ctx->config.max_keypoints, ctx->config.keypoint_quality, -best_error);
+                printf("keypoints %d/%d (%d); confidence=%f; dist=%f\n",
+                       ctx->keypoint_count,
+                       ctx->config.max_keypoints,
+                       ctx->config.keypoint_quality,
+                       -best_error,
+                       ctx->zoom_ratio);
         } else {
             if (ctx->abortp)
                 abort();

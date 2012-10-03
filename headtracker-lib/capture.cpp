@@ -83,7 +83,7 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
     delete ctx->pyr_a;
     delete ctx->pyr_b;
     delete[] ctx->classifiers;
-	delete ctx;
+    delete ctx;
 }
 
 HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret) {
