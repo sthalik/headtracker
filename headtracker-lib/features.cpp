@@ -17,13 +17,9 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    float mindist = ctx.config.keypoint_distance * 0.5 * ctx.zoom_ratio;
-    mindist *= mindist;
-    if (mindist < 1.05)
-        mindist = 1.05;
-    float min3dist = ctx.config.keypoint_3distance * 0.75 * ctx.zoom_ratio;
+    float min3dist = ctx.config.keypoint_3distance * 0.6 * ctx.zoom_ratio;
     min3dist *= min3dist;
-    float min10dist = ctx.config.keypoint_10distance * 0.66 * ctx.zoom_ratio;
+    float min10dist = ctx.config.keypoint_10distance * 0.75 * ctx.zoom_ratio;
     min10dist *= min10dist;
     int max = ctx.config.max_keypoints;
     for (int i = 0; i < max; i++) {
@@ -42,7 +38,7 @@ static void ht_remove_lumps(headtracker_t& ctx) {
                 threes++;
             if (d < min10dist)
                 tens++;
-            if ((d < mindist || tens >= 10 || threes >= 3) && ctx.keypoints[i].frames < ctx.keypoints[j].frames)
+            if ((tens >= 10 || threes >= 3) && ctx.keypoints[i].frames < ctx.keypoints[j].frames)
             {
                 foundp = true;
                 break;
@@ -142,8 +138,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     int cnt = ctx.keypoint_count;
     if (cnt < ctx.config.max_keypoints) {
         vector<KeyPoint> corners;
-#if 1
-        ORB detector = ORB(ctx.config.max_keypoints * 20,
+        ORB detector = ORB(ctx.config.max_keypoints * 8,
                            1.2f,
                            8,
                            ctx.config.keypoint_quality,
@@ -151,7 +146,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
                            2,
                            ORB::HARRIS_SCORE,
                            ctx.config.keypoint_quality);
-#endif
         Mat img = ctx.grayscale(roi);
         detector(img, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
@@ -192,13 +186,14 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
             keypoints_to_add[good++] = corners[i].pt;
         }
 
-        if (good < ctx.config.max_keypoints) {
+        if (good < ctx.config.max_keypoints/2) {
             if (ctx.config.keypoint_quality > HT_FEATURE_MIN_QUALITY_LEVEL)
                 ctx.config.keypoint_quality--;
         } else {
             if (ctx.config.keypoint_quality < HT_FEATURE_MAX_QUALITY_LEVEL)
                 ctx.config.keypoint_quality++;
         }
+
         int kpidx = 0;
         for (int i = 0; i < good && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
             CvPoint2D32f kp = keypoints_to_add[i];
