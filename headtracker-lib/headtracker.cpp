@@ -31,7 +31,7 @@ CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    CvRect rect = cvRect(min_x-width/8, min_y-height/8, width*10/8, height*10/8);
+    CvRect rect = cvRect(min_x-width/5, min_y-height/5, width*7/5, height*7/5);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -70,8 +70,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             float inv_ar = (ctx->grayscale.rows / (float) ctx->grayscale.cols);
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * inv_ar * HT_PI / 180.0);
-            //ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
-            ctx->focal_length = ctx->focal_length_w;
+            ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
+            //ctx->focal_length = ctx->focal_length_w;
             fprintf(stderr, "focal length = %f\n", ctx->focal_length);
 		}
         ht_draw_features(*ctx);
@@ -83,9 +83,10 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
             if (ctx->config.debug)
-                printf("INIT: got %d/%d keypoints\n",
+                printf("INIT: got %d/%d keypoints (%d)\n",
                        ctx->keypoint_count,
-                       ctx->config.max_keypoints);
+                       ctx->config.max_keypoints,
+                       ctx->config.keypoint_quality);
             if (ctx->keypoint_count >= ctx->config.max_keypoints/2) {
                 float best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))

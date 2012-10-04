@@ -17,7 +17,6 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    return;
     float mindist = ctx.config.keypoint_distance * 0.5 * ctx.zoom_ratio;
     mindist *= mindist;
     if (mindist < 1.05)
@@ -143,6 +142,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     int cnt = ctx.keypoint_count;
     if (cnt < ctx.config.max_keypoints) {
         vector<KeyPoint> corners;
+#if 1
         ORB detector = ORB(ctx.config.max_keypoints * 10,
                            1.2f,
                            8,
@@ -151,6 +151,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
                            2,
                            ORB::HARRIS_SCORE,
                            ctx.config.keypoint_quality);
+#endif
         Mat img = ctx.grayscale(roi);
         detector(img, noArray(), corners);
         sort(corners.begin(), corners.end(), ht_feature_quality_level);
@@ -164,12 +165,23 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
             CvPoint2D32f kp = corners[i].pt;
 
             bool overlap = false;
+            int threes = 0;
+            int tens = 0;
 
-            for (int j = 0; j < i; j++)
-                if (ht_distance2d_squared(kp, corners[j].pt) < max_dist) {
+            for (int j = 0; j < i; j++) {
+                float d = ht_distance2d_squared(kp, corners[j].pt);
+
+                if (d < max_3dist)
+                    threes++;
+
+                if (d < max_10dist)
+                    tens++;
+
+                if (d < max_dist || threes >= 3 || tens >= 10) {
                     overlap = true;
                     break;
                 }
+            }
 
             if (overlap)
                 continue;
@@ -196,13 +208,15 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
             for (int j = 0; j < ctx.config.max_keypoints; j++) {
                 float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
-                if (ctx.keypoints[j].idx != -1 &&
-                    (dist < max_dist ||
-                     (dist < max_3dist && ++threes >= 3) ||
-                     (dist < max_10dist && ++tens >= 10)))
-                {
-                    overlap = true;
-                    break;
+                if (ctx.keypoints[j].idx != -1) {
+                    if (dist < max_3dist)
+                        ++threes;
+                    if (dist < max_10dist)
+                        ++tens;
+                    if (dist < max_dist || threes >= 3 || tens >= 10) {
+                        overlap = true;
+                        break;
+                    }
                 }
             }
 
