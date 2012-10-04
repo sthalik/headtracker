@@ -13,7 +13,7 @@ typedef struct ht_config {
     float ransac_max_error;
     float ransac_avg_error;
 	int   max_keypoints;
-	int   keypoint_quality;
+    int   keypoint_quality;
 	float keypoint_distance;
     float keypoint_3distance;
     float keypoint_10distance;

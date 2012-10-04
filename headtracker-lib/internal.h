@@ -80,7 +80,6 @@ typedef struct {
 	int idx;
 	CvPoint2D32f position;
     int frames;
-    KeyPoint descriptor;
 } ht_keypoint;
 
 typedef struct ht_context {
@@ -104,13 +103,15 @@ typedef struct ht_context {
 	float zoom_ratio;
 	ht_config_t config;
 	ht_keypoint* keypoints;
-	int keypoint_count;
+    int keypoint_count;
     CvPoint3D32f* keypoint_uv;
     int ticks_last_second;
     int hz;
     int hz_last_second;
     bool abortp;
     int start_frames;
+    Mat face_histogram;
+    Mat tmp;
 } headtracker_t;
 
 HT_API(void) ht_reset(headtracker_t* ctx);
@@ -127,11 +128,11 @@ bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& re
 
 typedef enum {
 	HT_CLASSIFIER_HEAD = 0,
-	HT_CLASSIFIER_NOSE = 1,
-	HT_CLASSIFIER_EYE1 = 2,
-	HT_CLASSIFIER_EYE2 = 3,
-	HT_CLASSIFIER_MOUTH = 4,
-	HT_CLASSIFIER_COUNT = 5
+    HT_CLASSIFIER_NOSE = 1,
+    HT_CLASSIFIER_EYE1 = 2,
+    HT_CLASSIFIER_EYE2 = 3,
+    HT_CLASSIFIER_MOUTH = 4,
+    HT_CLASSIFIER_COUNT = 5
 } classifiers_t;
 
 bool ht_get_image(headtracker_t& ctx);

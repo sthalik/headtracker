@@ -11,7 +11,10 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.read(ctx.color))
         return false;
 
+    ctx.grayscale = Mat();
+
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
+    ctx.grayscale.copyTo(ctx.tmp);
     equalizeHist(ctx.grayscale, ctx.grayscale);
 	return true;
 }
@@ -46,10 +49,10 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->restarted = true;
 	ctx->depth_counter_pos = 0;
 	ctx->zoom_ratio = 1.0;
-	ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
-	for (int i = 0; i < ctx->config.max_keypoints; i++)
+    ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
+    for (int i = 0; i < ctx->config.max_keypoints; i++)
 		ctx->keypoints[i].idx = -1;
-	ctx->keypoint_count = 0;
+    ctx->keypoint_count = 0;
     ctx->focal_length = -1;
 	if (ctx->config.force_width)
         ctx->camera.set(CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
@@ -59,8 +62,8 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
         ctx->camera.set(CV_CAP_PROP_FPS, ctx->config.force_fps);
     ctx->abortp = filename != NULL;
     ctx->pyr_a = new vector<Mat>();
-    ctx->depth_counter_pos = 0;
     ctx->pyr_b = new vector<Mat>();
+    ctx->depth_counter_pos = 0;
     ctx->hz = 0;
     ctx->hz_last_second = -1;
     ctx->ticks_last_second = ht_tickcount() / 1000;

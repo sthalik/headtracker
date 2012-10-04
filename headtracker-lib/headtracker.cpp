@@ -9,13 +9,56 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
 }
 
+CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
+    float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
+    float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
+
+    for (int i = 0; i < ctx.model.count; i++) {
+        float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
+        float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
+        float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
+        float maxy = max(model.projection[i].p1.y, max(model.projection[i].p2.y, model.projection[i].p3.y));
+        if (maxx > max_x)
+            max_x = maxx;
+        if (minx < min_x)
+            min_x = minx;
+        if (maxy > max_y)
+            max_y = maxy;
+        if (miny < min_y)
+            min_y = miny;
+    }
+
+    int width = max_x - min_x;
+    int height = max_y - min_y;
+
+    CvRect rect = cvRect(min_x-width/8, min_y-height/8, width*10/8, height*10/8);
+
+    if (rect.x < 0)
+        rect.x = 0;
+    if (rect.y < 0)
+        rect.y = 0;
+    if (rect.width + rect.x > ctx.grayscale.cols)
+        rect.width = ctx.grayscale.cols - rect.x;
+    if (rect.height + rect.y > ctx.grayscale.rows)
+        rect.height = ctx.grayscale.rows - rect.y;
+
+    return rect;
+}
+
+static void ht_get_face_histogram(headtracker_t& ctx) {
+    CvRect roi = ht_get_roi(ctx, ctx.model);
+    equalizeHist(ctx.tmp(roi), ctx.face_histogram);
+    ctx.face_histogram.copyTo(ctx.grayscale(Rect(roi.x, roi.y, roi.width, roi.height)));
+    equalizeHist(ctx.tmp, ctx.tmp);
+}
+
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     float rotation_matrix[9];
     float translation_vector[3];
     float rotation_matrix2[9];
     float translation_vector2[3];
 
-	euler->filled = false;
+    euler->filled = false;
 
 	if (!ht_get_image(*ctx))
 		return false;
@@ -27,21 +70,27 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             float inv_ar = (ctx->grayscale.rows / (float) ctx->grayscale.cols);
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * inv_ar * HT_PI / 180.0);
-            ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
+            //ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
+            ctx->focal_length = ctx->focal_length_w;
             fprintf(stderr, "focal length = %f\n", ctx->focal_length);
 		}
+        ht_draw_features(*ctx);
         if (ht_initial_guess(*ctx, ctx->grayscale, rotation_matrix, translation_vector))
 		{
-			ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
-            imshow("grayscale", ctx->grayscale);
+            ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
+            ht_get_face_histogram(*ctx);
             ht_track_features(*ctx);
             ht_get_features(*ctx, ctx->model);
-            if (ctx->keypoint_count >= ctx->config.max_keypoints * 2 / 3) {
+            ctx->restarted = false;
+            if (ctx->config.debug)
+                printf("INIT: got %d/%d keypoints\n",
+                       ctx->keypoint_count,
+                       ctx->config.max_keypoints);
+            if (ctx->keypoint_count >= ctx->config.max_keypoints/2) {
                 float best_error;
                 if (ht_ransac_best_indices(*ctx, &best_error))
                 {
                     ctx->state = HT_STATE_TRACKING;
-                    ctx->restarted = false;
                 } else {
                     if (++ctx->init_retries > ctx->config.max_init_retries)
                         ctx->state = HT_STATE_LOST;
@@ -51,7 +100,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
     } case HT_STATE_TRACKING: {
         ctx->start_frames = max(0, ctx->start_frames - 1);
-        imshow("grayscale", ctx->grayscale);
+        ht_get_face_histogram(*ctx);
+        imshow("gray", ctx->grayscale);
         ht_track_features(*ctx);
         float best_error = 1.0e10;
         CvPoint3D32f offset;
@@ -78,7 +128,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 buf.append(buf2);
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
-            ht_remove_outliers(*ctx);
+            //ht_remove_outliers(*ctx);
             ht_get_features(*ctx, ctx->model);
             *euler = ht_matrix_to_euler(rotation_matrix2, translation_vector2);
 			euler->filled = true;
@@ -102,9 +152,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		ctx->restarted = true;
 		ctx->depth_counter_pos = 0;
 		ctx->zoom_ratio = 1.0f;
-		ctx->keypoint_count = 0;
+        ctx->keypoint_count = 0;
         ctx->abortp = false;
-		for (int i = 0; i < ctx->config.max_keypoints; i++)
+        for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->hz = 0;
 		break;

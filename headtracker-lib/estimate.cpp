@@ -18,7 +18,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 	int k = 0;
 	bool ret = false;
 
-	for (int i = 0; i < ctx.config.max_keypoints; i++) {
+    for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
 			continue;
         if (ctx.keypoints[i].frames < ctx.config.feature_good_nframes && ctx.start_frames == 0)
@@ -62,7 +62,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-8),
+                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 1.0e-6),
 						   ctx.focal_length);
 
             if (ret) {
@@ -82,7 +82,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
                                k + 1,
                                rotation_matrix2,
                                translation_vector2,
-                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 1000, 1.0e-8),
+                               cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 1.0e-6),
                                ctx.focal_length);
                 if (ret)
                     ht_update_zoom_scale(ctx, translation_vector2[2]);

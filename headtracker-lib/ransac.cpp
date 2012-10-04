@@ -13,8 +13,8 @@ static float ht_avg_reprojection_error(const headtracker_t& ctx,
                                         CvPoint2D32f* image_points,
                                         int point_cnt,
                                         float* rotation_matrix,
-                                        float* translation_vector,
-                                        CvPoint3D32f pivot) {
+                                        float* translation_vector)
+{
     ht_posit(image_points,
              model_points,
              point_cnt,
@@ -26,18 +26,14 @@ static float ht_avg_reprojection_error(const headtracker_t& ctx,
              ctx.focal_length);
 
     float bar = 0;
-    for (int i = 0; i < ctx.config.max_keypoints; i++) {
-        if (ctx.keypoints[i].idx == -1)
-            continue;
-        bar += ht_distance2d_squared(ht_project_point(cvPoint3D32f(ctx.keypoint_uv[i].x - pivot.x,
-                                                                   ctx.keypoint_uv[i].y - pivot.y,
-                                                                   ctx.keypoint_uv[i].z - pivot.z),
+    for (int i = 0; i < point_cnt; i++) {
+        bar += ht_distance2d_squared(ht_project_point(model_points[i],
                                                       rotation_matrix,
                                                       translation_vector,
                                                       ctx.focal_length),
-                                     ctx.keypoints[i].position);
+                                     image_points[i]);
     }
-    return sqrt(bar / ctx.keypoint_count);
+    return sqrt(bar / point_cnt);
 }
 
 void ht_fisher_yates(int* indices, int count) {
@@ -56,12 +52,14 @@ bool ht_ransac(const headtracker_t& ctx,
                float* best_error,
                int* best_keypoints)
 {
-    if (ctx.keypoint_count == 0)
+    int total = ctx.keypoint_count;
+
+    if (total < 4)
         return false;
 
     bool ret = false;
-    int* keypoint_indices = new int[ctx.keypoint_count];
-    int* orig_indices = new int[ctx.keypoint_count];
+    int* keypoint_indices = new int[total];
+    int* orig_indices = new int[total];
     const int K = ctx.config.ransac_num_iters;
     const int N = 4;
 
@@ -69,7 +67,7 @@ bool ht_ransac(const headtracker_t& ctx,
 
     int kppos = 0;
 
-    for (int i = 0; i < ctx.keypoint_count; i++) {
+    for (int i = 0; i < total; i++) {
         if (ctx.keypoints[i].idx != -1)
             orig_indices[kppos++] = i;
     }
@@ -110,8 +108,7 @@ bool ht_ransac(const headtracker_t& ctx,
                                                          image_points,
                                                          ipos+1,
                                                          rotation_matrix,
-                                                         translation_vector,
-                                                         first_point);
+                                                         translation_vector);
                     if (e*max_avg_error > avg_error) {
                         continue;
                     }
@@ -144,7 +141,7 @@ bool ht_ransac(const headtracker_t& ctx,
                        best_count,
                        rotation_matrix,
                        translation_vector,
-                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-6),
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 80, 1e-5),
                        f);
         if (ret) {
             float max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
@@ -244,7 +241,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float* best_error) {
         for (int i = 0; i < ctx.config.max_keypoints; i++) {
             if (!kusedp[i] && ctx.keypoints[i].idx != -1) {
                 ctx.keypoints[i].idx = -1;
-                ctx.keypoint_count--;
+                    ctx.keypoint_count--;
             } else if (kusedp[i]) {
                 ctx.keypoints[i].frames = min(ctx.config.feature_good_nframes,
                                               ctx.keypoints[i].frames + 1);
