@@ -143,7 +143,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (cnt < ctx.config.max_keypoints) {
         vector<KeyPoint> corners;
 #if 1
-        ORB detector = ORB(ctx.config.max_keypoints * 10,
+        ORB detector = ORB(ctx.config.max_keypoints * 20,
                            1.2f,
                            8,
                            ctx.config.keypoint_quality,
