@@ -65,7 +65,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 
 	switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
-        ctx->start_frames = ctx->config.feature_good_nframes;
 		if (!(ctx->focal_length > 0)) {
             float inv_ar = (ctx->grayscale.rows / (float) ctx->grayscale.cols);
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
@@ -100,7 +99,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		}
 		break;
     } case HT_STATE_TRACKING: {
-        ctx->start_frames = max(0, ctx->start_frames - 1);
         ht_get_face_histogram(*ctx);
         imshow("gray", ctx->grayscale);
         ht_track_features(*ctx);

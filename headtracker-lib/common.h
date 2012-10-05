@@ -30,7 +30,6 @@ typedef struct ht_config {
     float max_best_error;
     int   ransac_max_threads;
     float ransac_min_features;
-    int   feature_good_nframes;
 } ht_config_t;
 
 typedef struct {

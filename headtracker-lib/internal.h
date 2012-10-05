@@ -109,7 +109,6 @@ typedef struct ht_context {
     int hz;
     int hz_last_second;
     bool abortp;
-    int start_frames;
     Mat face_histogram;
     Mat tmp;
 } headtracker_t;

@@ -21,8 +21,6 @@ bool ht_estimate_pose(headtracker_t& ctx,
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
 			continue;
-        if (ctx.keypoints[i].frames < ctx.config.feature_good_nframes && ctx.start_frames == 0)
-            continue;
 		model_points[k] = ctx.keypoint_uv[i];
 		image_points[k] = ctx.keypoints[i].position;
 		k++;

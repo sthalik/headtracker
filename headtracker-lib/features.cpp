@@ -6,21 +6,17 @@ using namespace cv;
 void ht_draw_features(headtracker_t& ctx) {
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            Scalar color;
-            if (ctx.keypoints[i].frames < ctx.config.feature_good_nframes)
-                color = Scalar(0, 255, 255);
-            else
-                color = Scalar(255, 255, 0);
-            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, color, -1);
+            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
         }
     }
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
-    float mindist = 1;
-    float min3dist = ctx.config.keypoint_3distance * 0.6 * ctx.zoom_ratio;
+    return;
+    float mindist = 0.95;
+    float min3dist = ctx.config.keypoint_3distance * 0.5 * ctx.zoom_ratio;
     min3dist *= min3dist;
-    float min10dist = ctx.config.keypoint_10distance * 0.7 * ctx.zoom_ratio;
+    float min10dist = ctx.config.keypoint_10distance * 0.5 * ctx.zoom_ratio;
     min10dist *= min10dist;
     int max = ctx.config.max_keypoints;
     for (int i = 0; i < max; i++) {
@@ -35,11 +31,13 @@ static void ht_remove_lumps(headtracker_t& ctx) {
             float x = ctx.keypoints[j].position.x - ctx.keypoints[i].position.x;
             float y = ctx.keypoints[j].position.y - ctx.keypoints[i].position.y;
             float d = x * x + y * y;
+#if 0
             if (d < min3dist)
                 threes++;
             if (d < min10dist)
                 tens++;
-            if ((d < mindist || tens >= 10 || threes >= 3) && ctx.keypoints[i].frames < ctx.keypoints[j].frames)
+#endif
+            if ((d < mindist || tens >= 10 || threes >= 3) && ctx.keypoints[i].frames <= ctx.keypoints[j].frames)
             {
                 foundp = true;
                 break;

@@ -124,7 +124,6 @@ model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f off
 		triangle.p3.z *= scale.z;
 
 		triangles.push_back(triangle);
-
 	}
 
 	model_t ret;

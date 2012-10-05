@@ -28,7 +28,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Camera field of view in degrees."),
     F(max_init_retries, int, 150, 2, 1000,
     "Maximum retries before restarting the initialization process."),
-    F(pyrlk_pyramids, int, 4, 0, 10,
+    F(pyrlk_pyramids, int, 3, 0, 10,
     "Maximum mipmaps for optical flow tracking. See cvCalcOpticalFlowPyrLK"),
     F(pyrlk_win_size_w, int, 21, 4, 60,
     "Window size for optical flow tracking, vertical"),
@@ -58,9 +58,9 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Choose a different camera by its platform-specific index."),
     F(ransac_num_iters, int, 10, 5, 100,
     "RANSAC iterations per frame"),
-    F(ransac_max_error, float, 16, 2.0, 50.0,
+    F(ransac_max_error, float, 13, 2.0, 50.0,
     ""),
-    F(ransac_avg_error, float, 0.92, 0.0, 1.0,
+    F(ransac_avg_error, float, 0.95, 0.0, 1.0,
     ""),
     F(pyrlk_min_eigenval, float, 1.0e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
@@ -69,9 +69,8 @@ static const ht_reflection_t ht_reflection_info[] = {
     F(debug, bool, true, 0, 1),
     F(ransac_max_threads, int, 8, 1, 256,
     "Max threads for RANSAC"),
-    F(ransac_min_features, float, 0.5, 0.1, 1.0,
+    F(ransac_min_features, float, 0.55, 0.1, 1.0,
     "Min features for RANSAC"),
-    F(feature_good_nframes, int, 6, 1, 600),
     FIELD_END
 };
 
