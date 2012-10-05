@@ -17,9 +17,10 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 static void ht_remove_lumps(headtracker_t& ctx) {
+    float mindist = 1;
     float min3dist = ctx.config.keypoint_3distance * 0.6 * ctx.zoom_ratio;
     min3dist *= min3dist;
-    float min10dist = ctx.config.keypoint_10distance * 0.75 * ctx.zoom_ratio;
+    float min10dist = ctx.config.keypoint_10distance * 0.7 * ctx.zoom_ratio;
     min10dist *= min10dist;
     int max = ctx.config.max_keypoints;
     for (int i = 0; i < max; i++) {
@@ -38,7 +39,7 @@ static void ht_remove_lumps(headtracker_t& ctx) {
                 threes++;
             if (d < min10dist)
                 tens++;
-            if ((tens >= 10 || threes >= 3) && ctx.keypoints[i].frames < ctx.keypoints[j].frames)
+            if ((d < mindist || tens >= 10 || threes >= 3) && ctx.keypoints[i].frames < ctx.keypoints[j].frames)
             {
                 foundp = true;
                 break;
