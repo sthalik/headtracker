@@ -19,9 +19,6 @@ endif()
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS release debug)
 
-add_subdirectory(headtracker-lib)
-add_subdirectory(headtracker-demo)
-
 macro(configure_files srcDir destDir)
     message(STATUS "Configuring directory ${destDir}")
     make_directory(${destDir})
@@ -39,6 +36,23 @@ macro(configure_files srcDir destDir)
     endforeach(templateFile)
 endmacro(configure_files)
 
-configure_files(${CMAKE_SOURCE_DIR}/data/ ${CMAKE_BINARY_DIR}/headtracker-demo)
+configure_files(${CMAKE_SOURCE_DIR}/data/ ${CMAKE_BINARY_DIR})
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+
+file(GLOB headtracker-SRC
+    "*.h"
+    "*.cpp"
+)
+add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+target_link_libraries(headtracker opencv_core249 opencv_calib3d249 opencv_features2d249 opencv_imgproc249 opencv_objdetect249 opencv_video249 opencv_highgui249 ${QT_QTCORE_LIBRARY})
+file(GLOB headtracker-demo-SRC
+    "demo/*.h"
+    "demo/*.cpp"
+)
+add_executable(headtracker-demo ${headtracker-demo-SRC})
+target_link_libraries(headtracker-demo headtracker opencv_core249 opencv_highgui249 ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY})
 
 ADD_CUSTOM_TARGET(silly ALL)
