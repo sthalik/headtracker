@@ -61,7 +61,7 @@ bool ht_ransac(const headtracker_t& ctx,
     int* keypoint_indices = new int[total];
     int* orig_indices = new int[total];
     const int K = ctx.config.ransac_num_iters;
-    const int N = 4;
+    const int N = 5;
 
     *best_error = 1e20;
 
@@ -127,6 +127,9 @@ bool ht_ransac(const headtracker_t& ctx,
                     best_count = ipos;
                     pivot = first_point;
                 }
+
+                if (ipos >= minf)
+                    break;
             }
         }
     }

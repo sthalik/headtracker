@@ -58,7 +58,7 @@ bool ht_estimate_pose(headtracker_t& ctx,
 						   k,
 						   rotation_matrix,
 						   translation_vector,
-                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 120, 1.0e-6),
+                           cvTermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 200, 1.0e-8),
 						   ctx.focal_length);
 
             if (ret) {

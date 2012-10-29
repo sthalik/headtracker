@@ -116,7 +116,7 @@ static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
 }
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
-    ht_remove_lumps(ctx);
+    //ht_remove_lumps(ctx);
 
     if (!model.projection)
         return;
