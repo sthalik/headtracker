@@ -102,7 +102,7 @@ bool ht_ransac(const headtracker_t& ctx,
                 model_points[ipos].z -= first_point.z;
                 image_points[ipos] = kp.position;
 
-                if (ipos - 1 >= N) {
+                if (ipos - 1 >= N && (ipos & 1) == 0) {
                     float e = ht_avg_reprojection_error(ctx,
                                                          model_points,
                                                          image_points,
@@ -110,6 +110,7 @@ bool ht_ransac(const headtracker_t& ctx,
                                                          rotation_matrix,
                                                          translation_vector);
                     if (e*max_avg_error > avg_error) {
+                        ipos--;
                         continue;
                     }
                     avg_error = e;
@@ -144,7 +145,7 @@ bool ht_ransac(const headtracker_t& ctx,
                        best_count,
                        rotation_matrix,
                        translation_vector,
-                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 120, 1e-8),
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-8),
                        f);
         if (ret) {
             float max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
