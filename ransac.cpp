@@ -61,7 +61,7 @@ bool ht_ransac(const headtracker_t& ctx,
     int* keypoint_indices = new int[total];
     int* orig_indices = new int[total];
     const int K = ctx.config.ransac_num_iters;
-    const int N = 5;
+    const int N = 7;
 
     *best_error = 1e20;
 
@@ -145,7 +145,7 @@ bool ht_ransac(const headtracker_t& ctx,
                        best_count,
                        rotation_matrix,
                        translation_vector,
-                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 200, 1e-8),
+                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_NUMBER, 500, 1e-12),
                        f);
         if (ret) {
             float max_error = ctx.config.ransac_max_error * ctx.zoom_ratio;
