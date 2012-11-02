@@ -2,22 +2,7 @@ project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
 find_package(Qt COMPONENTS QtCore QtNetwork REQUIRED)
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-
-string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
-if(NOT cmake_build_type_tolower STREQUAL "debug"
-   AND NOT cmake_build_type_tolower STREQUAL "release")
-  message(FATAL_ERROR "Unknown build type")
-endif()
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release")
-endif()
-
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS release debug)
+FIND_PACKAGE( OpenCV REQUIRED )
 
 macro(configure_files srcDir destDir)
     message(STATUS "Configuring directory ${destDir}")
@@ -47,12 +32,12 @@ file(GLOB headtracker-SRC
 add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
-target_link_libraries(headtracker opencv_core249 opencv_calib3d249 opencv_features2d249 opencv_imgproc249 opencv_objdetect249 opencv_video249 opencv_highgui249 ${QT_QTCORE_LIBRARY})
+target_link_libraries(headtracker ${OpenCV_LIBS} ${QT_QTCORE_LIBRARY})
 file(GLOB headtracker-demo-SRC
     "demo/*.h"
     "demo/*.cpp"
 )
 add_executable(headtracker-demo ${headtracker-demo-SRC})
-target_link_libraries(headtracker-demo headtracker opencv_core249 opencv_highgui249 ${QT_QTCORE_LIBRARY} ${QT_QTNETWORK_LIBRARY})
+target_link_libraries(headtracker-demo headtracker opencv_core249 opencv_highgui249 ${OpenCV_LIBS} ${QT_QTNETWORK_LIBRARY})
 
 ADD_CUSTOM_TARGET(silly ALL)

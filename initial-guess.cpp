@@ -33,8 +33,8 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
 
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
-    intrinsics.at<float> (0, 0) = ctx.focal_length_w;
-    intrinsics.at<float> (1, 1) = ctx.focal_length_w;
+    intrinsics.at<float> (0, 0) = ctx.focal_length;
+    intrinsics.at<float> (1, 1) = ctx.focal_length;
     intrinsics.at<float> (0, 2) = ctx.grayscale.cols/2;
     intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
 

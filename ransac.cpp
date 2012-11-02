@@ -8,8 +8,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         return false;
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
-    intrinsics.at<float> (0, 0) = ctx.focal_length_w;
-    intrinsics.at<float> (1, 1) = ctx.focal_length_w;
+    intrinsics.at<float> (0, 0) = ctx.focal_length;
+    intrinsics.at<float> (1, 1) = ctx.focal_length;
     intrinsics.at<float> (0, 2) = ctx.grayscale.cols/2;
     intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
 

@@ -1,4 +1,4 @@
-#include "api.h"
+#include "ht-api.h"
 #include "stdafx.h"
 
 using namespace std;
@@ -36,11 +36,11 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Maximum keypoints to track"),
     F(keypoint_quality, int, 31, 10, 60,
     "Starting keypoint quality"),
-    F(keypoint_distance, float, 3.3, 1.5f, 50.0f,
+    F(keypoint_distance, float, 3.8, 1.5f, 50.0f,
     "Minimum Euclidean distance between keypoints"),
-    F(keypoint_3distance, float, 6.5, 1.5f, 50.0f,
+    F(keypoint_3distance, float, 9, 1.5f, 50.0f,
     "Minimum Euclidean distance between keypoints"),
-    F(keypoint_10distance, float, 15.0, 1.5f, 50.0f,
+    F(keypoint_10distance, float, 18, 1.5f, 50.0f,
     "Minimum Euclidean distance between keypoints"),
     F(force_width, int, 640, 0, 10000,
     "Force capture width of a webcam."),
@@ -52,16 +52,16 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Choose a different camera by its platform-specific index."),
     F(ransac_num_iters, int, 100, 5, 100,
     "RANSAC iterations per frame"),
-    F(ransac_max_reprojection_error, float, 6.9, 2.0, 50.0,
+    F(ransac_max_reprojection_error, float, 7.75, 2.0, 50.0,
     ""),
-    F(ransac_max_inlier_error, float, 7, 2.0, 50.0,
+    F(ransac_max_inlier_error, float, 7.5, 2.0, 50.0,
     ""),
     F(ransac_max_mean_error, float, 6, 2.0, 50.0,
     ""),
     F(pyrlk_min_eigenval, float, 1e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
     F(debug, bool, true, 0, 1),
-    F(ransac_min_features, float, 0.75, 0.1, 1.0,
+    F(ransac_min_features, float, 0.8, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };

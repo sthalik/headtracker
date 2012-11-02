@@ -51,6 +51,33 @@ static void ht_get_face_histogram(headtracker_t& ctx) {
     ctx.face_histogram.copyTo(ctx.grayscale(Rect(roi.x, roi.y, roi.width, roi.height)));
 }
 
+static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
+    ht_result_t ret;
+    Mat rotation_matrix = Mat::zeros(3, 3, CV_64FC1);
+
+    Rodrigues(rvec, rotation_matrix);
+
+    if (rotation_matrix.at<double>(0, 2) > 0.9998) {
+        ret.rotx = HT_PI/2.0;
+        ret.roty = atan2(rotation_matrix.at<double>(1, 0), rotation_matrix.at<double>(1, 1));
+        ret.rotz = 0.0f;
+    } else if (rotation_matrix.at<double>(0, 2) < -0.9998) {
+        ret.rotx = HT_PI/-2.0;
+        ret.roty = -atan2(rotation_matrix.at<double>(1, 0), rotation_matrix.at<double>(1, 1));
+        ret.rotz = 0.0f;
+    } else {
+        ret.rotx = asin(rotation_matrix.at<double>(0, 2));
+        ret.roty = -atan2(rotation_matrix.at<double>(1, 2), rotation_matrix.at<double>(2, 2));
+        ret.rotz = atan2(-rotation_matrix.at<double>(0, 1), rotation_matrix.at<double>(0 ,0));
+    }
+
+    ret.tx = tvec.at<double>(0, 0) / 10;
+    ret.ty = tvec.at<double>(0, 1) / 10;
+    ret.tz = tvec.at<double>(0, 2) / 10;
+
+    return ret;
+}
+
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     euler->filled = false;
 
@@ -60,11 +87,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
 		if (!(ctx->focal_length > 0)) {
-            float inv_ar = (ctx->grayscale.rows / (float) ctx->grayscale.cols);
-            ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
-            ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * inv_ar * HT_PI / 180.0);
-            //ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
-            ctx->focal_length = ctx->focal_length_w;
+            ctx->focal_length = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
             fprintf(stderr, "focal length = %f\n", ctx->focal_length);
         }
         ht_draw_features(*ctx);
@@ -124,7 +147,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             }
             //ht_remove_outliers(*ctx);
             ht_get_features(*ctx, ctx->model);
-            //*euler = ht_matrix_to_euler(rvec, tvec);
+            *euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
             if (ctx->config.debug)
                 printf("keypoints %d/%d (%d); dist=%f; error=%f\n",

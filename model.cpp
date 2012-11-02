@@ -19,8 +19,8 @@ void ht_project_model(headtracker_t& ctx,
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
-    intrinsics.at<float> (0, 0) = ctx.focal_length_w;
-    intrinsics.at<float> (1, 1) = ctx.focal_length_w;
+    intrinsics.at<float> (0, 0) = ctx.focal_length;
+    intrinsics.at<float> (1, 1) = ctx.focal_length;
     intrinsics.at<float> (0, 2) = ctx.grayscale.cols/2;
     intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
 
@@ -182,7 +182,7 @@ bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, con
 	float dot11 = ht_dot_product2d(v1, v1);
 	float dot12 = ht_dot_product2d(v1, v2);
 	float denom = dot00 * dot11 - dot01 * dot01;
-    if (fabs(denom) < 1.0e-3)
+    if (fabs(denom) < 1.0e-6)
         return false;
 	float invDenom = 1.0f / denom;
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;

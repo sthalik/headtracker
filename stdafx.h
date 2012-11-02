@@ -4,5 +4,5 @@
 #include <stddef.h>
 #include <math.h>
 #include <opencv2/opencv.hpp>
-#include "common.h"
-#include "internal.h"
+#include "ht-common.h"
+#include "ht-internal.h"
