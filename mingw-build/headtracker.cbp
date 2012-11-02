@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="headtracker" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\opencv\;CMake Files\data\;CMake Files\data\\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="edit_cache">
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 edit_cache" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="headtracker">
+         <Option output="C:/Users/Administrator/Projects/headtracker/mingw-build/libheadtracker.dll" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option object_output="./" />
+         <Option type="3" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DQT_DLL" />
+            <Add option="-DQT_GUI_LIB" />
+            <Add option="-DQT_CORE_LIB" />
+            <Add option="-DQT_DLL" />
+            <Add directory="C:/Users/Administrator/Projects/headtracker" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtCore" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtGui" />
+            <Add directory="C:/opencv/include" />
+            <Add directory="C:/opencv/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 headtracker" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="headtracker/fast">
+         <Option output="C:/Users/Administrator/Projects/headtracker/mingw-build/libheadtracker.dll" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option object_output="./" />
+         <Option type="3" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DQT_DLL" />
+            <Add option="-DQT_GUI_LIB" />
+            <Add option="-DQT_CORE_LIB" />
+            <Add option="-DQT_DLL" />
+            <Add directory="C:/Users/Administrator/Projects/headtracker" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtCore" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtGui" />
+            <Add directory="C:/opencv/include" />
+            <Add directory="C:/opencv/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 headtracker/fast" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="headtracker-demo">
+         <Option output="C:/Users/Administrator/Projects/headtracker/mingw-build/headtracker-demo.exe" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DQT_DLL" />
+            <Add option="-DQT_GUI_LIB" />
+            <Add option="-DQT_CORE_LIB" />
+            <Add option="-DQT_DLL" />
+            <Add directory="C:/Users/Administrator/Projects/headtracker" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtCore" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtGui" />
+            <Add directory="C:/opencv/include" />
+            <Add directory="C:/opencv/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 headtracker-demo" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="headtracker-demo/fast">
+         <Option output="C:/Users/Administrator/Projects/headtracker/mingw-build/headtracker-demo.exe" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add option="-DQT_DLL" />
+            <Add option="-DQT_GUI_LIB" />
+            <Add option="-DQT_CORE_LIB" />
+            <Add option="-DQT_DLL" />
+            <Add directory="C:/Users/Administrator/Projects/headtracker" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtCore" />
+            <Add directory="C:/Users/Administrator/Projects/qt/include/QtGui" />
+            <Add directory="C:/opencv/include" />
+            <Add directory="C:/opencv/include/opencv" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 headtracker-demo/fast" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="silly">
+         <Option working_dir="C:/Users/Administrator/Projects/headtracker/mingw-build" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 silly" />
+            <CompileFile command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/Administrator/Projects/headtracker/mingw-build/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/capture.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/classify.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/config.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/demo/headtracker-demo.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/features.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/headtracker.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/initial-guess.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/model.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/ransac.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/stdafx.cpp">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/headtracker.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/ht-api.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/ht-common.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/ht-internal.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/stdafx.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/targetver.h">
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/../../../../opencv/OpenCVConfig-version.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\opencv\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/../../../../opencv/OpenCVConfig.cmake">
+          <Option virtualFolder="CMake Files\..\..\..\..\opencv\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//haarcascade_frontalface_alt2.xml">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//haarcascade_lefteye_2splits.xml">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//haarcascade_mcs_mouth.xml">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//haarcascade_mcs_nose.xml">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//haarcascade_righteye_2splits.xml">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//head.blend">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+      <Unit filename="C:/Users/Administrator/Projects/headtracker/data//head.raw">
+          <Option virtualFolder="CMake Files\data\\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

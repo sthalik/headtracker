@@ -1,0 +1,3 @@
+C:/Users/Administrator/Projects/headtracker/mingw-build/CMakeFiles/headtracker.dir
+C:/Users/Administrator/Projects/headtracker/mingw-build/CMakeFiles/headtracker-demo.dir
+C:/Users/Administrator/Projects/headtracker/mingw-build/CMakeFiles/silly.dir
