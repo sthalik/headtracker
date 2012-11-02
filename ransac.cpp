@@ -31,13 +31,18 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         image_points.push_back(ctx.keypoints[i].position);
     }
 
+    if (ctx.has_pose) {
+        rvec = ctx.rvec;
+        tvec = ctx.tvec;
+    }
+
     solvePnPRansac(object_points,
                    image_points,
                    intrinsics,
                    dist_coeffs,
                    rvec,
                    tvec,
-                   false,
+                   ctx.has_pose,
                    ctx.config.ransac_num_iters,
                    ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
                    ctx.keypoint_count * ctx.config.ransac_min_features,
@@ -85,6 +90,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         }
 
         solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, CV_ITERATIVE);
+
+        ctx.has_pose = true;
 
         rvec_ = rvec;
         tvec_ = tvec;

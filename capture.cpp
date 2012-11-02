@@ -47,7 +47,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	ctx->state = HT_STATE_INITIALIZING;
 	ctx->init_retries = 0;
     ctx->restarted = true;
-	ctx->depth_counter_pos = 0;
 	ctx->zoom_ratio = 1.0;
     ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
     for (int i = 0; i < ctx->config.max_keypoints; i++)
@@ -63,10 +62,10 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->abortp = filename != NULL;
     ctx->pyr_a = new vector<Mat>();
     ctx->pyr_b = new vector<Mat>();
-    ctx->depth_counter_pos = 0;
     ctx->hz = 0;
     ctx->hz_last_second = -1;
     ctx->ticks_last_second = ht_tickcount() / 1000;
+    ctx->has_pose = false;
 	return ctx;
 }
 

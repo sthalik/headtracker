@@ -31,7 +31,7 @@ CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    CvRect rect = cvRect(min_x-width/5, min_y-height/5, width*7/5, height*7/5);
+    CvRect rect = cvRect(min_x-width/6, min_y-height/6, width*8/6, height*8/6);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -143,12 +143,12 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->init_retries = 0;
 		ctx->restarted = true;
-		ctx->depth_counter_pos = 0;
 		ctx->zoom_ratio = 1.0f;
         ctx->keypoint_count = 0;
         ctx->abortp = false;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
+        ctx->has_pose = false;
         ctx->hz = 0;
 		break;
 	}

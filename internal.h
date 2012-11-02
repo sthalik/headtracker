@@ -93,7 +93,6 @@ typedef struct ht_context {
     Mat last_image;
     int init_retries;
 	bool restarted;
-	unsigned char depth_counter_pos;
 	float zoom_ratio;
 	ht_config_t config;
 	ht_keypoint* keypoints;
@@ -105,6 +104,8 @@ typedef struct ht_context {
     bool abortp;
     Mat face_histogram;
     Mat tmp;
+    Mat rvec, tvec;
+    bool has_pose;
 } headtracker_t;
 
 HT_API(void) ht_reset(headtracker_t* ctx);
