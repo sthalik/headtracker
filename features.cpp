@@ -131,12 +131,12 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         max_3dist *= max_3dist;
         max_10dist *= max_10dist;
         vector<KeyPoint> corners;
-        ORB detector = ORB(ctx.config.max_keypoints * 4,
-                           1.2f,
-                           8,
+        ORB detector = ORB(ctx.config.max_keypoints * 2,
+                           1.18f,
+                           12,
                            ctx.config.keypoint_quality,
                            0,
-                           2,
+                           0,
                            ORB::HARRIS_SCORE,
                            ctx.config.keypoint_quality);
         Mat img = ctx.grayscale(roi);

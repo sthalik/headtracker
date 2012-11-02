@@ -11,8 +11,8 @@ typedef struct ht_config {
 	int   pyrlk_win_size_w;
 	int   pyrlk_win_size_h;
 	int   max_init_retries;
-    float ransac_max_error;
-    float ransac_avg_error;
+    float ransac_max_inlier_error;
+    float ransac_max_reprojection_error;
 	int   max_keypoints;
     int   keypoint_quality;
 	float keypoint_distance;
@@ -22,15 +22,11 @@ typedef struct ht_config {
 	int   force_height;
 	int   force_fps;
 	int   camera_index;
-	int   keypoint_max_failed_ransac;
 	bool  debug;
-    int   ransac_posit_iter;
-    float ransac_posit_eps;
     int   ransac_num_iters;
     float pyrlk_min_eigenval;
-    float max_best_error;
-    int   ransac_max_threads;
     float ransac_min_features;
+    float ransac_max_mean_error;
 } ht_config_t;
 
 typedef struct {

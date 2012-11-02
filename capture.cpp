@@ -33,11 +33,11 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 
     ctx->classifiers = new classifier_t[HT_CLASSIFIER_COUNT];
 	
-	ctx->classifiers[HT_CLASSIFIER_HEAD] = ht_make_classifier("haarcascade_frontalface_alt2.xml", ht_make_rect(0, 0, 1, 1), cvSize2D32f(0.1, 0.1));
-	ctx->classifiers[HT_CLASSIFIER_EYE1] = ht_make_classifier("haarcascade_lefteye_2splits.xml", ht_make_rect(0.00f, 0.0f, 0.49f, 0.6f), cvSize2D32f(0.1f, 0.05f));
-	ctx->classifiers[HT_CLASSIFIER_EYE2] = ht_make_classifier("haarcascade_righteye_2splits.xml", ht_make_rect(0.5f, 0.0f, 0.49f, 0.6f), cvSize2D32f(0.1f, 0.05f));
-	ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.25f, 0.3f, 0.5f, 0.55f), cvSize2D32f(0.2f, 0.1f));
-    ctx->classifiers[HT_CLASSIFIER_MOUTH] = ht_make_classifier("haarcascade_mcs_mouth.xml", ht_make_rect(0.2f, 0.4f, 0.6f, 0.599f), cvSize2D32f(0.1f, 0.05f));
+    ctx->classifiers[HT_CLASSIFIER_HEAD] = ht_make_classifier("haarcascade_frontalface_alt2.xml", ht_make_rect(0, 0, 1, 1), cvSize2D32f(0.2, 0.2));
+    ctx->classifiers[HT_CLASSIFIER_EYE1] = ht_make_classifier("haarcascade_lefteye_2splits.xml", ht_make_rect(0.10f, 0.0f, 0.39f, 0.6f), cvSize2D32f(0.15f, 0.15f));
+    ctx->classifiers[HT_CLASSIFIER_EYE2] = ht_make_classifier("haarcascade_righteye_2splits.xml", ht_make_rect(0.60f, 0.0f, 0.39f, 0.6f), cvSize2D32f(0.15f, 0.15f));
+    ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.25f, 0.3f, 0.5f, 0.45f), cvSize2D32f(0.2f, 0.1f));
+    ctx->classifiers[HT_CLASSIFIER_MOUTH] = ht_make_classifier("haarcascade_mcs_mouth.xml", ht_make_rect(0.2f, 0.6f, 0.6f, 0.4f), cvSize2D32f(0.1f, 0.05f));
 
 	ctx->ticks_last_classification = ht_tickcount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
@@ -77,10 +77,6 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->model.triangles;
 	if (ctx->model.projection)
 		delete[] ctx->model.projection;
-	if (ctx->model.centers)
-		delete[] ctx->model.centers;
-    if (ctx->model.projected_depths)
-        delete[] ctx->model.projected_depths;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;

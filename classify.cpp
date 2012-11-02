@@ -29,8 +29,8 @@ bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& re
     vector<Rect> seq;
     classifier.cascade.detectMultiScale(frame2,
                                         seq,
-                                        1.25,
-                                        1,
+                                        1.1,
+                                        3,
                                         CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT);
 
     if (seq.size() > 0) {

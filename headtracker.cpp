@@ -52,9 +52,6 @@ static void ht_get_face_histogram(headtracker_t& ctx) {
 }
 
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
-    float rotation_matrix[9];
-    float translation_vector[3];
-
     euler->filled = false;
 
 	if (!ht_get_image(*ctx))
@@ -69,23 +66,24 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             //ctx->focal_length = (ctx->focal_length_w + ctx->focal_length_h) * 0.5;
             ctx->focal_length = ctx->focal_length_w;
             fprintf(stderr, "focal length = %f\n", ctx->focal_length);
-		}
+        }
         ht_draw_features(*ctx);
-        if (ht_initial_guess(*ctx, ctx->grayscale, rotation_matrix, translation_vector))
+        Mat rvec, tvec;
+        if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
-            ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(0, 0, 0));
+            ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_get_face_histogram(*ctx);
             ht_track_features(*ctx);
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
+            float error = 0;
             if (ctx->config.debug)
                 printf("INIT: got %d/%d keypoints (%d)\n",
                        ctx->keypoint_count,
                        ctx->config.max_keypoints,
                        ctx->config.keypoint_quality);
-            if (ctx->keypoint_count >= ctx->config.max_keypoints/2) {
-                float best_error;
-                if (ht_ransac_best_indices(*ctx, &best_error))
+            if (ctx->keypoint_count >= 4) {
+                if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
                 {
                     ctx->state = HT_STATE_TRACKING;
                 } else {
@@ -98,14 +96,14 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     } case HT_STATE_TRACKING: {
         ht_get_face_histogram(*ctx);
         ht_track_features(*ctx);
-        float best_error = 1.0e10;
-        CvPoint3D32f offset;
+        float error = 0;
+        Mat rvec, tvec;
 
-        if (ht_ransac_best_indices(*ctx, &best_error) &&
-            ht_estimate_pose(*ctx, rotation_matrix, translation_vector, &offset) &&
-            best_error < ctx->config.max_best_error*2)
+        if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
+            error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio)
         {
-            ht_project_model(*ctx, rotation_matrix, translation_vector, ctx->model, cvPoint3D32f(offset.x, offset.y, offset.z));
+            ctx->zoom_ratio = HT_STD_DEPTH / tvec.at<double>(2);
+            ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
             ht_draw_features(*ctx);
             ctx->hz++;
@@ -126,16 +124,15 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             }
             //ht_remove_outliers(*ctx);
             ht_get_features(*ctx, ctx->model);
-            *euler = ht_matrix_to_euler(rotation_matrix, translation_vector);
+            //*euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
-            euler->confidence = -best_error;
-			if (ctx->config.debug)
-                printf("keypoints %d/%d (%d); confidence=%f; dist=%f\n",
+            if (ctx->config.debug)
+                printf("keypoints %d/%d (%d); dist=%f; error=%f\n",
                        ctx->keypoint_count,
                        ctx->config.max_keypoints,
                        ctx->config.keypoint_quality,
-                       -best_error,
-                       ctx->zoom_ratio);
+                       ctx->zoom_ratio,
+                       error);
         } else {
             if (ctx->abortp)
                 abort();

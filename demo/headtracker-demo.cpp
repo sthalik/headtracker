@@ -42,8 +42,6 @@ int main(int argc, char** argv)
 		fclose(cfg);
     }
 
-    cv::setNumThreads(conf.ransac_max_threads);
-
     headtracker_t* ctx = ht_make_context(&conf, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
 
