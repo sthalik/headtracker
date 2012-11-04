@@ -38,6 +38,6 @@ file(GLOB headtracker-demo-SRC
     "demo/*.cpp"
 )
 add_executable(headtracker-demo ${headtracker-demo-SRC})
-target_link_libraries(headtracker-demo headtracker opencv_core249 opencv_highgui249 ${OpenCV_LIBS} ${QT_QTNETWORK_LIBRARY})
+target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS} ${QT_QTNETWORK_LIBRARY})
 
 ADD_CUSTOM_TARGET(silly ALL)

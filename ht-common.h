@@ -27,6 +27,7 @@ typedef struct ht_config {
     float pyrlk_min_eigenval;
     float ransac_min_features;
     float ransac_max_mean_error;
+    float ransac_abs_max_mean_error;
 } ht_config_t;
 
 typedef struct {

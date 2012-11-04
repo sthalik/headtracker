@@ -108,6 +108,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             if (ctx->keypoint_count >= 4) {
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
                 {
+                    ctx->rvec = rvec;
+                    ctx->tvec = tvec;
                     ctx->state = HT_STATE_TRACKING;
                 } else {
                     if (++ctx->init_retries > ctx->config.max_init_retries)
@@ -122,9 +124,17 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         float error = 0;
         Mat rvec, tvec;
 
+        if (ctx->has_pose) {
+            rvec = ctx->rvec;
+            tvec = ctx->tvec;
+        }
+
         if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
-            error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio)
+            error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
+            error < ctx->config.ransac_abs_max_mean_error)
         {
+            ctx->rvec = rvec;
+            ctx->tvec = tvec;
             ctx->zoom_ratio = HT_STD_DEPTH / tvec.at<double>(2);
             ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
@@ -135,7 +145,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ctx->ticks_last_second = ticks;
                 ctx->hz_last_second = ctx->hz;
                 ctx->hz = 0;
-                fprintf(stderr, "hz: %d\n", ctx->hz_last_second);
             }
             if (ctx->hz_last_second != -1) {
                 char buf2[42];
