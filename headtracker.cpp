@@ -31,7 +31,7 @@ CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    CvRect rect = cvRect(min_x-width/6, min_y-height/6, width*8/6, height*8/6);
+    CvRect rect = cvRect(min_x-width/5, min_y-height/5, width*7/5, height*7/5);
 
     if (rect.x < 0)
         rect.x = 0;

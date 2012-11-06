@@ -27,10 +27,9 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
         image_points[i-1] = Point2d(rectangles[i].x + rectangles[i].width/2, rectangles[i].y + rectangles[i].height/2);
 
     object_points[HT_CLASSIFIER_NOSE-1] = Point3d(0, 0, 0);
-    object_points[HT_CLASSIFIER_EYE1-1] = Point3d(-23.23, -29, -31);
-    object_points[HT_CLASSIFIER_EYE2-1] = Point3d(23.23, -29, -31);
-    object_points[HT_CLASSIFIER_MOUTH-1] = Point3d(0, 29, -20);
-
+    object_points[HT_CLASSIFIER_EYE1-1] = Point3d(-15, -29, -31);
+    object_points[HT_CLASSIFIER_EYE2-1] = Point3d(15, -29, -31);
+    object_points[HT_CLASSIFIER_MOUTH-1] = Point3d(0, 28, -20);
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length;
@@ -46,7 +45,7 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
 
-    solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, CV_EPNP);
+    solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, CV_ITERATIVE);
 
     rvec_ = rvec;
     tvec_ = tvec;

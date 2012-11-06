@@ -79,6 +79,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
         mean_error = sqrt(mean_error / k);
 
+#if 0
+
         object_points.clear();
         image_points.clear();
 
@@ -90,6 +92,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         }
 
         solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, CV_ITERATIVE);
+#endif
 
         ctx.has_pose = true;
 
