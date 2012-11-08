@@ -77,7 +77,8 @@ typedef struct {
 } ht_keypoint;
 
 typedef struct ht_context {
-    float focal_length;
+    float focal_length_w;
+    float focal_length_h;
     VideoCapture camera;
     Mat grayscale;
     Mat color;
