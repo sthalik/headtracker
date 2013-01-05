@@ -9,7 +9,7 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
 }
 
-CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
+Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
     float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
@@ -31,7 +31,7 @@ CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    CvRect rect = cvRect(min_x-width/4, min_y-height/4, width*6/4, height*6/4);
+    Rect rect = Rect(min_x-width/5, min_y-height/5, width*7/5, height*7/5);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -45,10 +45,9 @@ CvRect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     return rect;
 }
 
-static void ht_get_face_histogram(headtracker_t& ctx) {
-    CvRect roi = ht_get_roi(ctx, ctx.model);
+static void ht_get_face_histogram(headtracker_t& ctx, const Rect roi) {
     equalizeHist(ctx.tmp(roi), ctx.face_histogram);
-    ctx.face_histogram.copyTo(ctx.grayscale(Rect(roi.x, roi.y, roi.width, roi.height)));
+    ctx.face_histogram.copyTo(ctx.grayscale(roi));
 }
 
 static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
@@ -78,6 +77,31 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
     return ret;
 }
 
+static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
+{
+    Mat rvec, tvec;
+    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
+    {
+        if (ctx.config.debug)
+            printf("Can't locate face!\n");
+        return;
+    }
+    else
+    {
+        if (ctx.config.debug)
+            printf("Face located!\n");
+    }
+    model_t tmp_model;
+
+    tmp_model.triangles = ctx.model.triangles;
+    tmp_model.count = ctx.model.count;
+    tmp_model.projection = new triangle2d_t[ctx.model.count];
+
+    ht_project_model(ctx, rvec, tvec, tmp_model);
+    ht_get_features(ctx, tmp_model);
+    delete[] tmp_model.projection;
+}
+
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     euler->filled = false;
 
@@ -88,6 +112,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
+            //ctx->focal_length_h = ctx->focal_length_w;
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * (ctx->grayscale.rows / (float) ctx->grayscale.cols) * HT_PI / 180.0);
             fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
@@ -96,7 +121,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
             ht_project_model(*ctx, rvec, tvec, ctx->model);
-            ht_get_face_histogram(*ctx);
+            Rect roi = ht_get_roi(*ctx, ctx->model);
+            ht_get_face_histogram(*ctx, roi);
             ht_track_features(*ctx);
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
@@ -120,7 +146,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		}
 		break;
     } case HT_STATE_TRACKING: {
-        ht_get_face_histogram(*ctx);
+        Rect roi = ht_get_roi(*ctx, ctx->model);
+        ht_get_face_histogram(*ctx, roi);
         ht_track_features(*ctx);
         float error = 0;
         Mat rvec, tvec;
@@ -156,7 +183,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
             //ht_remove_outliers(*ctx);
-            ht_get_features(*ctx, ctx->model);
+            ht_get_next_features(*ctx, roi);
             *euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
             if (ctx->config.debug)

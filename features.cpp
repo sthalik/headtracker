@@ -6,7 +6,7 @@ using namespace cv;
 void ht_draw_features(headtracker_t& ctx) {
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
+            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 0, Scalar(255, 255, 0), -1);
         }
     }
 }
@@ -131,7 +131,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         max_3dist *= max_3dist;
         max_10dist *= max_10dist;
         vector<KeyPoint> corners;
-        ORB detector = ORB(ctx.config.max_keypoints * 6,
+        ORB detector = ORB(ctx.config.max_keypoints * 3,
                            1.2f,
                            8,
                            ctx.config.keypoint_quality,

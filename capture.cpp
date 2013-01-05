@@ -11,9 +11,13 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.read(ctx.color))
         return false;
 
-    ctx.grayscale = Mat();
+    Mat tmp;
 
-    cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
+    resize(ctx.color, tmp, Size(320, 320 * ctx.color.rows / ctx.color.cols), 0, 0, CV_INTER_AREA);
+
+    ctx.color = tmp;
+
+    cvtColor(tmp, ctx.grayscale, CV_BGR2GRAY);
     ctx.grayscale.copyTo(ctx.tmp);
     equalizeHist(ctx.grayscale, ctx.grayscale);
 	return true;
@@ -31,13 +35,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
 
-    ctx->classifiers = new classifier_t[HT_CLASSIFIER_COUNT];
-	
-    ctx->classifiers[HT_CLASSIFIER_HEAD] = ht_make_classifier("haarcascade_frontalface_alt2.xml", ht_make_rect(0, 0, 1, 1), cvSize2D32f(0.15, 0.15));
-    ctx->classifiers[HT_CLASSIFIER_EYE1] = ht_make_classifier("haarcascade_lefteye_2splits.xml", ht_make_rect(0.0f, 0.0f, 0.49f, 0.5f), cvSize2D32f(0.15f, 0.15f));
-    ctx->classifiers[HT_CLASSIFIER_EYE2] = ht_make_classifier("haarcascade_righteye_2splits.xml", ht_make_rect(0.51f, 0.0f, 0.49f, 0.5f), cvSize2D32f(0.15f, 0.15f));
-    ctx->classifiers[HT_CLASSIFIER_NOSE] = ht_make_classifier("haarcascade_mcs_nose.xml", ht_make_rect(0.2f, 0.2f, 0.6f, 0.6f), cvSize2D32f(0.12f, 0.1f));
-    ctx->classifiers[HT_CLASSIFIER_MOUTH] = ht_make_classifier("haarcascade_mcs_mouth.xml", ht_make_rect(0.1f, 0.35f, 0.8f, 0.64f), cvSize2D32f(0.25f, 0.15f));
+    ctx->head_classifier = ht_make_classifier("haarcascade_frontalface_alt2.xml", ht_make_rect(0, 0, 1, 1));
 
 	ctx->ticks_last_classification = ht_tickcount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;
@@ -67,6 +65,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->hz_last_second = -1;
     ctx->ticks_last_second = ht_tickcount() / 1000;
     ctx->has_pose = false;
+    ctx->flandmark_model = flandmark_init("flandmark_model.dat");
 	return ctx;
 }
 
@@ -81,7 +80,7 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;
     delete ctx->pyr_b;
-    delete[] ctx->classifiers;
+    flandmark_free(ctx->flandmark_model);
     delete ctx;
 }
 

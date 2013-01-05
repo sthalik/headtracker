@@ -1,4 +1,4 @@
-<U+FEFF>Copyright (c) 2012 Stanisław Halik <sthalik@misaki.pl>
+<U+FEFF>Copyright (c) 2012-2013 Stanisław Halik <sthalik@misaki.pl>
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -17,3 +17,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 The original head mesh was originally made by Len Van Der Westhuizen and
 graciously put into the public domain. Mesh used in this project is a
 modified version.
+
+------------------------------------------------------------------------
+
+The project links against the flandmark library, written by
+Michal Uřičář and Vojtěch Franc. The library is GPL3-licensed.
+
+More info at: http://cmp.felk.cvut.cz/~uricamic/flandmark
+Github repo: https://github.com/uricamic/flandmark

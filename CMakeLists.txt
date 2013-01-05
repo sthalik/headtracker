@@ -16,7 +16,7 @@ macro(configure_files srcDir destDir)
             configure_file(
                     ${srcTemplatePath}
                     ${destDir}/${templateFile}
-                    @ONLY)
+                    COPYONLY)
         endif(NOT IS_DIRECTORY ${srcTemplatePath})
     endforeach(templateFile)
 endmacro(configure_files)
@@ -32,12 +32,12 @@ file(GLOB headtracker-SRC
 add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
-target_link_libraries(headtracker ${OpenCV_LIBS} ${QT_QTCORE_LIBRARY})
+target_link_libraries(headtracker ${OpenCV_LIBS} ${QT_QTCORE_LIBRARY} ${CMAKE_BINARY_DIR}/libflandmark_shared.dll)
 file(GLOB headtracker-demo-SRC
     "demo/*.h"
     "demo/*.cpp"
 )
 add_executable(headtracker-demo ${headtracker-demo-SRC})
-target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS} ${QT_QTNETWORK_LIBRARY})
+target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS} ${QT_QTNETWORK_LIBRARY} ${CMAKE_BINARY_DIR}/libflandmark_shared.dll)
 
 ADD_CUSTOM_TARGET(silly ALL)

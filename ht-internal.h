@@ -6,6 +6,7 @@ using namespace std;
 using namespace cv;
 #include "ht-common.h"
 #include <opencv2/opencv.hpp>
+#include "flandmark_detector.h"
 #define HT_PI 3.1415926535
 #define HT_STD_DEPTH 550.0f
 
@@ -82,7 +83,7 @@ typedef struct ht_context {
     VideoCapture camera;
     Mat grayscale;
     Mat color;
-	classifier_t* classifiers;
+    classifier_t head_classifier;
 	int ticks_last_classification;
 	int ticks_last_features;
 	model_t model;
@@ -105,6 +106,7 @@ typedef struct ht_context {
     Mat tmp;
     Mat rvec, tvec;
     bool has_pose;
+    FLANDMARK_Model* flandmark_model;
 } headtracker_t;
 
 HT_API(void) ht_reset(headtracker_t* ctx);
@@ -114,17 +116,8 @@ void ht_free_model(model_t& model);
 CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
 bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
 
-classifier_t ht_make_classifier(const char* filename, rect_t rect, CvSize2D32f min_size);
-bool ht_classify(classifier_t& classifier, Mat& frame, const Rect& roi, Rect& ret);
-
-typedef enum {
-	HT_CLASSIFIER_HEAD = 0,
-    HT_CLASSIFIER_NOSE = 1,
-    HT_CLASSIFIER_EYE1 = 2,
-    HT_CLASSIFIER_EYE2 = 3,
-    HT_CLASSIFIER_MOUTH = 4,
-    HT_CLASSIFIER_COUNT = 5
-} classifiers_t;
+classifier_t ht_make_classifier(const char* filename, rect_t rect);
+bool ht_classify(classifier_t& classifier, Mat& frame, Rect& ret);
 
 bool ht_get_image(headtracker_t& ctx);
 
@@ -155,5 +148,5 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Ma
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);
 void ht_remove_outliers(headtracker_t& ctx);
-CvRect ht_get_roi(const headtracker_t& ctx, model_t& model);
-
+Rect ht_get_roi(const headtracker_t& ctx, model_t& model);
+bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);
