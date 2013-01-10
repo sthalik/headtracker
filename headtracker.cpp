@@ -139,9 +139,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     ctx->rvec = rvec;
                     ctx->tvec = tvec;
                     ctx->state = HT_STATE_TRACKING;
-                } else {
-                    if (++ctx->init_retries > ctx->config.max_init_retries)
-                        ctx->state = HT_STATE_LOST;
                 }
             }
 		}

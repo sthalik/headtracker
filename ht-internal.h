@@ -147,6 +147,6 @@ static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
 bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Mat& tvec);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
 CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);
-void ht_remove_outliers(headtracker_t& ctx);
+//void ht_remove_outliers(headtracker_t& ctx);
 Rect ht_get_roi(const headtracker_t& ctx, model_t& model);
 bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);

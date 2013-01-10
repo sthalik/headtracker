@@ -11,6 +11,7 @@ void ht_draw_features(headtracker_t& ctx) {
     }
 }
 
+#if 0
 static void ht_remove_lumps(headtracker_t& ctx) {
     float min3dist = ctx.config.keypoint_3distance * 0.5 * ctx.zoom_ratio;
     min3dist *= min3dist;
@@ -54,6 +55,7 @@ void ht_remove_outliers(headtracker_t& ctx) {
         }
     }
 }
+#endif
 
 void ht_track_features(headtracker_t& ctx) {
     if (ctx.restarted) {
