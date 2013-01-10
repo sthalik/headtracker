@@ -50,7 +50,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     object_points[0] = Point3d(0, 0, 0);
     object_points[1] = Point3d(-18, -19, -18);
     object_points[2] = Point3d(18, -19, -18);
-    object_points[3] = Point3d(0, 22, -17);
+    object_points[3] = Point3d(0, 21, -16);
 
     image_points[0] = nose;
     image_points[1] = left_eye;

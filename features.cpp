@@ -6,7 +6,7 @@ using namespace cv;
 void ht_draw_features(headtracker_t& ctx) {
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 0, Scalar(255, 255, 0), -1);
+            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
         }
     }
 }
@@ -101,7 +101,7 @@ void ht_track_features(headtracker_t& ctx) {
                     break;
                 if (!features_found.at<char>(i)) {
                     ctx.keypoints[j].idx = -1;
-                        ctx.keypoint_count--;
+                    ctx.keypoint_count--;
                 } else {
                     ctx.keypoints[j].position = new_features[i];
                 }
@@ -110,10 +110,11 @@ void ht_track_features(headtracker_t& ctx) {
     }
     std::swap(ctx.pyr_a, ctx.pyr_b);
 }
-
+#if 0
 static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
     return x.response < y.response;
 }
+#endif
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
     //ht_remove_lumps(ctx);
@@ -131,7 +132,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         max_3dist *= max_3dist;
         max_10dist *= max_10dist;
         vector<KeyPoint> corners;
-        ORB detector = ORB(ctx.config.max_keypoints * 3,
+        ORB detector = ORB(ctx.config.max_keypoints * 4,
                            1.2f,
                            8,
                            ctx.config.keypoint_quality,
@@ -141,7 +142,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
                            ctx.config.keypoint_quality);
         Mat img = ctx.grayscale(roi);
         detector(img, noArray(), corners);
-        sort(corners.begin(), corners.end(), ht_feature_quality_level);
+        //sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
 
         int kpidx = 0;

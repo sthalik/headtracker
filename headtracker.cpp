@@ -31,7 +31,7 @@ Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect = Rect(min_x-width/5, min_y-height/5, width*7/5, height*7/5);
+    Rect rect = Rect(min_x-width/3, min_y-height/3, width*5/3, height*5/3);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -81,6 +81,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     Mat rvec, tvec;
     if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
+    //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
     {
         if (ctx.config.debug)
             printf("Can't locate face!\n");
@@ -112,8 +113,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
-            //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * (ctx->grayscale.rows / (float) ctx->grayscale.cols) * HT_PI / 180.0);
+            ctx->focal_length_h = ctx->focal_length_w;
+            //ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * (ctx->grayscale.rows / (float) ctx->grayscale.cols) * HT_PI / 180.0);
             fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
         ht_draw_features(*ctx);
@@ -148,6 +149,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     } case HT_STATE_TRACKING: {
         Rect roi = ht_get_roi(*ctx, ctx->model);
         ht_get_face_histogram(*ctx, roi);
+        //imshow("bw", ctx->grayscale);
         ht_track_features(*ctx);
         float error = 0;
         Mat rvec, tvec;
@@ -187,12 +189,14 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             *euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
             if (ctx->config.debug)
+            {
                 printf("keypoints %d/%d (%d); dist=%f; error=%f\n",
                        ctx->keypoint_count,
                        ctx->config.max_keypoints,
                        ctx->config.keypoint_quality,
                        ctx->zoom_ratio,
                        error);
+            }
         } else {
             if (ctx->abortp)
                 abort();

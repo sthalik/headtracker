@@ -13,11 +13,12 @@ bool ht_get_image(headtracker_t& ctx) {
 
     Mat tmp;
 
-    resize(ctx.color, tmp, Size(320, 320 * ctx.color.rows / ctx.color.cols), 0, 0, CV_INTER_AREA);
+    //ctx.color.copyTo(tmp);
+    //resize(ctx.color, tmp, Size(320, 320 * ctx.color.rows / ctx.color.cols), 0, 0, CV_INTER_AREA);
 
-    ctx.color = tmp;
+    //ctx.color = tmp;
 
-    cvtColor(tmp, ctx.grayscale, CV_BGR2GRAY);
+    cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     ctx.grayscale.copyTo(ctx.tmp);
     equalizeHist(ctx.grayscale, ctx.grayscale);
 	return true;
