@@ -90,7 +90,6 @@ typedef struct ht_context {
 	state_t state;
     vector<Mat>* pyr_a;
     vector<Mat>* pyr_b;
-    Mat last_image;
     int init_retries;
 	bool restarted;
 	float zoom_ratio;

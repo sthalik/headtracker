@@ -217,7 +217,5 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		return false;
 	}
 
-    ctx->grayscale.copyTo(ctx->last_image);
-
 	return true;
 }
