@@ -33,20 +33,19 @@ static __inline rect_t ht_make_rect(float x, float y, float w, float h) {
 
 typedef struct {
 	rect_t rect;
-	CvSize2D32f min_size;
     CascadeClassifier cascade;
 } classifier_t;
 
 typedef struct {
-    CvPoint3D32f p1;
-    CvPoint3D32f p2;
-    CvPoint3D32f p3;
+    Point3f p1;
+    Point3f p2;
+    Point3f p3;
 } triangle_t;
 
 typedef struct {
-    CvPoint2D32f p1;
-    CvPoint2D32f p2;
-    CvPoint2D32f p3;
+    Point2f p1;
+    Point2f p2;
+    Point2f p3;
 } triangle2d_t;
 
 typedef struct {
@@ -55,7 +54,7 @@ typedef struct {
 	int count;
 } model_t;
 
-static __inline float ht_dot_product2d(CvPoint2D32f point1, CvPoint2D32f point2) {
+static __inline float ht_dot_product2d(Point2f point1, Point2f point2) {
 	return point1.x * point2.x + point1.y * point2.y;
 }
 
@@ -63,18 +62,9 @@ static __inline int ht_tickcount(void) {
 	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
 }
 
-static __inline CvPoint2D32f ht_project_point(const CvPoint3D32f point, const float* rotation_matrix, const float* translation_vector, const float f) {
-    float x = point.x * rotation_matrix[0] + point.y * rotation_matrix[1] + point.z * rotation_matrix[2] + translation_vector[0];
-    float y = point.x * rotation_matrix[3] + point.y * rotation_matrix[4] + point.z * rotation_matrix[5] + translation_vector[1];
-    float z = point.x * rotation_matrix[6] + point.y * rotation_matrix[7] + point.z * rotation_matrix[8] + translation_vector[2];
-
-    return cvPoint2D32f(x * f / z,
-						y * f / z);
-}
-
 typedef struct {
 	int idx;
-	CvPoint2D32f position;
+    Point2f position;
 } ht_keypoint;
 
 typedef struct ht_context {
@@ -96,7 +86,7 @@ typedef struct ht_context {
 	ht_config_t config;
 	ht_keypoint* keypoints;
     int keypoint_count;
-    CvPoint3D32f* keypoint_uv;
+    Point3f* keypoint_uv;
     int ticks_last_second;
     int hz;
     int hz_last_second;
@@ -110,10 +100,9 @@ typedef struct ht_context {
 
 HT_API(void) ht_reset(headtracker_t* ctx);
 
-model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset);
+model_t ht_load_model(const char* filename, Point3f scale, Point3f offset);
 void ht_free_model(model_t& model);
-CvPoint2D32f ht_point_to_2d(CvPoint3D32f point);
-bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv);
+bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
 
 classifier_t ht_make_classifier(const char* filename, rect_t rect);
 bool ht_classify(classifier_t& classifier, Mat& frame, Rect& ret);
@@ -121,31 +110,31 @@ bool ht_classify(classifier_t& classifier, Mat& frame, Rect& ret);
 bool ht_get_image(headtracker_t& ctx);
 
 bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat &rvec, Mat &tvec);
-bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight);
+bool ht_point_inside_rectangle(Point2f p, Point2f topLeft, Point2f bottomRight);
 void ht_project_model(headtracker_t& ctx,
                       const Mat& rvec,
                       const Mat& tvec,
                       model_t& model);
-bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv);
-bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model);
+bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f &uv);
+bool ht_triangle_exists(Point2f pos, const model_t& model);
 void ht_draw_model(headtracker_t& ctx, model_t& model);
 void ht_get_features(headtracker_t& ctx, model_t& model);
 void ht_track_features(headtracker_t& ctx);
 void ht_draw_features(headtracker_t& ctx);
 
-static __inline float ht_distance2d_squared(CvPoint2D32f p1, CvPoint2D32f p2) {
+static __inline float ht_distance2d_squared(Point2f p1, Point2f p2) {
 	float x = p1.x - p2.x;
 	float y = p1.y - p2.y;
 	return x * x + y * y;
 }
 
-static __inline float ht_distance3d_squared(CvPoint3D32f p1, CvPoint3D32f p2) {
+static __inline float ht_distance3d_squared(Point3f p1, Point3f p2) {
 	return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Mat& tvec);
 void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
-CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t);
+Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t);
 //void ht_remove_outliers(headtracker_t& ctx);
 Rect ht_get_roi(const headtracker_t& ctx, model_t& model);
 bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);

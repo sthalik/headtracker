@@ -48,7 +48,7 @@ void ht_project_model(headtracker_t& ctx,
     }
 }
 
-bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const model_t& model, CvPoint2D32f& uv) {
+bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f& uv) {
 	if (!model.projection)
 		return false;
 
@@ -70,12 +70,12 @@ bool ht_triangle_at(const CvPoint2D32f pos, triangle_t* ret, int* idx, const mod
     return foundp;
 }
 
-bool ht_triangle_exists(CvPoint2D32f pos, const model_t& model) {
+bool ht_triangle_exists(Point2f pos, const model_t& model) {
 	if (!model.projection)
 		return false;
 
 	int sz = model.count;
-    CvPoint2D32f uv;
+    Point2f uv;
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
@@ -93,13 +93,13 @@ void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
 
-        line(ctx.color, cvPoint(t.p1.x, t.p1.y), cvPoint(t.p2.x, t.p2.y), Scalar(255, 0, 0));
-        line(ctx.color, cvPoint(t.p1.x, t.p1.y), cvPoint(t.p3.x, t.p3.y), Scalar(255, 0, 0));
-        line(ctx.color, cvPoint(t.p3.x, t.p3.y), cvPoint(t.p2.x, t.p2.y), Scalar(255, 0, 0));
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0));
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p3.x, t.p3.y), Scalar(255, 0, 0));
+        line(ctx.color, Point(t.p3.x, t.p3.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0));
 	}
 }
 
-model_t ht_load_model(const char* filename, CvPoint3D32f scale, CvPoint3D32f offset) {
+model_t ht_load_model(const char* filename, Point3f scale, Point3f offset) {
 	ifstream stream(filename, ifstream::in);
 	
 	char line[256];
@@ -166,14 +166,14 @@ void ht_free_model(model_t& model) {
 	delete model.triangles;
 }
 
-bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, const CvPoint2D32f c, const CvPoint2D32f point, CvPoint2D32f& uv) {
-    CvPoint2D32f v0 = cvPoint2D32f(
+bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv) {
+    Point2f v0 = Point2f(
 		c.x - a.x,
 		c.y - a.y);
-    CvPoint2D32f v1 = cvPoint2D32f(
+    Point2f v1 = Point2f(
 		b.x - a.x,
 		b.y - a.y);
-    CvPoint2D32f v2 = cvPoint2D32f(
+    Point2f v2 = Point2f(
 		point.x - a.x,
 		point.y - a.y);
 	float dot00 = ht_dot_product2d(v0, v0);
@@ -197,14 +197,14 @@ bool ht_point_inside_triangle_2d(const CvPoint2D32f a, const CvPoint2D32f b, con
 	return false;
 }
 
-bool ht_point_inside_rectangle(CvPoint2D32f p, CvPoint2D32f topLeft, CvPoint2D32f bottomRight) {
+bool ht_point_inside_rectangle(Point2f p, Point2f topLeft, Point2f bottomRight) {
 	return p.x >= topLeft.x && p.x <= bottomRight.x && p.y >= topLeft.y && p.y <= bottomRight.y;
 }
 
-CvPoint3D32f ht_get_triangle_pos(const CvPoint2D32f uv, const triangle_t& t) {
+Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t) {
 	float u = uv.x;
 	float v = uv.y;
-	CvPoint3D32f ret;
+    Point3f ret;
 
     ret.x = t.p1.x + u * (t.p3.x - t.p1.x) + v * (t.p2.x - t.p1.x);
     ret.y = t.p1.y + u * (t.p3.y - t.p1.y) + v * (t.p2.y - t.p1.y);

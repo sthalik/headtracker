@@ -13,6 +13,3 @@
 #if !defined(_WIN32) && !defined(_isnan)
 #  define _isnan isnan
 #endif
-#if defined(_WIN32) && !defined(MINGW)
-#include "targetver.h"
-#endif

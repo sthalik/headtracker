@@ -6,56 +6,10 @@ using namespace cv;
 void ht_draw_features(headtracker_t& ctx) {
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, cvPoint(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
+            circle(ctx.color, Point(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
         }
     }
 }
-
-#if 0
-static void ht_remove_lumps(headtracker_t& ctx) {
-    float min3dist = ctx.config.keypoint_3distance * 0.5 * ctx.zoom_ratio;
-    min3dist *= min3dist;
-    float min10dist = ctx.config.keypoint_10distance * 0.5 * ctx.zoom_ratio;
-    min10dist *= min10dist;
-    int max = ctx.config.max_keypoints;
-    for (int i = 0; i < max; i++) {
-        bool foundp = false;
-        if (ctx.keypoints[i].idx == -1)
-            continue;
-        int threes = 0;
-        int tens = 0;
-        for (int j = 0; j < i; j++) {
-            if (ctx.keypoints[j].idx == -1 )
-                continue;
-            float x = ctx.keypoints[j].position.x - ctx.keypoints[i].position.x;
-            float y = ctx.keypoints[j].position.y - ctx.keypoints[i].position.y;
-            float d = x * x + y * y;
-            if (d < min3dist)
-                threes++;
-            if (d < min10dist)
-                tens++;
-            if (tens >= 10 || threes >= 3)
-            {
-                foundp = true;
-                break;
-            }
-        }
-        if (foundp) {
-            ctx.keypoints[i].idx = -1;
-            ctx.keypoint_count--;
-        }
-    }
-}
-
-void ht_remove_outliers(headtracker_t& ctx) {
-    for (int i = 0; i < ctx.config.max_keypoints; i++) {
-        if (ctx.keypoints[i].idx != -1 && !ht_triangle_exists(ctx.keypoints[i].position, ctx.model)) {
-            ctx.keypoints[i].idx = -1;
-            ctx.keypoint_count--;
-        }
-    }
-}
-#endif
 
 void ht_track_features(headtracker_t& ctx) {
     if (ctx.restarted) {
@@ -126,7 +80,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     int cnt = ctx.keypoint_count;
     if (cnt < ctx.config.max_keypoints) {
-        CvRect roi = ht_get_roi(ctx, ctx.model);
+        Rect roi = ht_get_roi(ctx, ctx.model);
         float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
         float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
         float max_10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
@@ -149,7 +103,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
         int kpidx = 0;
         for (int i = 0; i < cnt && ctx.keypoint_count < ctx.config.max_keypoints; i++) {
-            CvPoint2D32f kp = corners[i].pt;
+            Point2f kp = corners[i].pt;
             kp.x += roi.x;
             kp.y += roi.y;
             bool overlap = false;
@@ -175,7 +129,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
             triangle_t t;
             int idx;
-            CvPoint2D32f uv;
+            Point2f uv;
 
             if (!ht_triangle_at(kp, &t, &idx, model, uv))
                 continue;
