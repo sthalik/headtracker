@@ -44,7 +44,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->model = ht_load_model("head.raw", Point3f(23, 23, 23), Point3f(0, 0, 0));
     ctx->keypoint_uv = new Point3f[ctx->config.max_keypoints];
 	ctx->state = HT_STATE_INITIALIZING;
-	ctx->init_retries = 0;
     ctx->restarted = true;
 	ctx->zoom_ratio = 1.0;
     ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];

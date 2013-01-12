@@ -202,7 +202,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
 	} case HT_STATE_LOST: {
 		ctx->state = HT_STATE_INITIALIZING;
-		ctx->init_retries = 0;
 		ctx->restarted = true;
 		ctx->zoom_ratio = 1.0f;
         ctx->keypoint_count = 0;

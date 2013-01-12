@@ -80,7 +80,6 @@ typedef struct ht_context {
 	state_t state;
     vector<Mat>* pyr_a;
     vector<Mat>* pyr_b;
-    int init_retries;
 	bool restarted;
 	float zoom_ratio;
 	ht_config_t config;
