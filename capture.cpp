@@ -11,7 +11,7 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.read(ctx.color))
         return false;
 
-    Mat tmp;
+    //Mat tmp;
 
     //ctx.color.copyTo(tmp);
     //resize(ctx.color, tmp, Size(320, 320 * ctx.color.rows / ctx.color.cols), 0, 0, CV_INTER_AREA);
