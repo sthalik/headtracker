@@ -83,10 +83,8 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         Rect roi = ht_get_roi(ctx, ctx.model);
         float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
         float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
-        float max_10dist = ctx.config.keypoint_10distance * ctx.zoom_ratio;
         max_dist *= max_dist;
         max_3dist *= max_3dist;
-        max_10dist *= max_10dist;
         vector<KeyPoint> corners;
         ORB detector = ORB(ctx.config.max_keypoints * 4,
                            1.2f,
@@ -108,16 +106,13 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
             kp.y += roi.y;
             bool overlap = false;
             int threes = 0;
-            int tens = 0;
 
             for (int j = 0; j < ctx.config.max_keypoints; j++) {
                 float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
                 if (ctx.keypoints[j].idx != -1) {
                     if (dist < max_3dist)
                         ++threes;
-                    if (dist < max_10dist)
-                        ++tens;
-                    if (dist < max_dist || threes >= 3 || tens >= 10) {
+                    if (dist < max_dist || threes >= 3) {
                         overlap = true;
                         break;
                     }
