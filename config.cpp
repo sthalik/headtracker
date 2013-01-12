@@ -61,7 +61,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     F(pyrlk_min_eigenval, float, 1e-4, 1.0e-10, 1.0e-1,
     "Min eigenval for Lukas-Kanade"),
     F(debug, bool, true, 0, 1),
-    F(ransac_min_features, float, 0.85, 0.1, 1.0,
+    F(ransac_min_features, float, 0.90, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };

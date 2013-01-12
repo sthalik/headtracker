@@ -31,7 +31,7 @@ Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect = Rect(min_x-width/3, min_y-height/3, width*5/3, height*5/3);
+    Rect rect = Rect(min_x-width*1/3, min_y-height*1/3, width*5/3, height*5/3);
 
     if (rect.x < 0)
         rect.x = 0;
