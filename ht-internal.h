@@ -17,22 +17,7 @@ typedef enum {
 } state_t;
 
 typedef struct {
-	float x, y, w, h;
-} rect_t;
-
-static __inline rect_t ht_make_rect(float x, float y, float w, float h) {
-	rect_t ret;
-
-	ret.x = x;
-	ret.y = y;
-	ret.w = w;
-	ret.h = h;
-
-	return ret;
-}
-
-typedef struct {
-	rect_t rect;
+    Rect rect;
     CascadeClassifier cascade;
 } classifier_t;
 
@@ -103,7 +88,7 @@ model_t ht_load_model(const char* filename, Point3f scale, Point3f offset);
 void ht_free_model(model_t& model);
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
 
-classifier_t ht_make_classifier(const char* filename, rect_t rect);
+classifier_t ht_make_classifier(const char* filename, Rect rect);
 bool ht_classify(classifier_t& classifier, Mat& frame, Rect& ret);
 
 bool ht_get_image(headtracker_t& ctx);

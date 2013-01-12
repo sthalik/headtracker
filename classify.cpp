@@ -3,7 +3,7 @@
 using namespace std;
 using namespace cv;
 
-classifier_t ht_make_classifier(const char* filename, rect_t rect)
+classifier_t ht_make_classifier(const char* filename, Rect rect)
 {
 	classifier_t ret;
 
