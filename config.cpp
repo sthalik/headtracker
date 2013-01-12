@@ -79,19 +79,15 @@ HT_API(void) ht_make_config(ht_config_t* ret) {
         switch (field.type) {
         case cfg_type_bool:
             *(bool*) ptr = field.default_value.i ? 1 : 0;
-            printf("%s = %d\n", field.name, field.default_value.i);
             break;
         case cfg_type_float:
             *(float*) ptr = field.default_value.f;
-            printf("%s = %f\n", field.name, field.default_value.f);
             break;
         case cfg_type_double:
             *(double*) ptr = field.default_value.d;
-            printf("%s = %f\n", field.name, field.default_value.d);
             break;
         case cfg_type_int:
             *(int*) ptr = field.default_value.i;
-            printf("%s = %d\n", field.name, field.default_value.i);
             break;
         default:
             fprintf(stderr, "bad config type for field %s\n", field.name);
