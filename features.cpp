@@ -45,11 +45,10 @@ void ht_track_features(headtracker_t& ctx) {
                                  new_features,
                                  features_found,
                                  noArray(),
-                                 cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+                                 Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                  ctx.config.pyrlk_pyramids,
                                  TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 30, 0.01),
-                                 OPTFLOW_LK_GET_MIN_EIGENVALS,
-                                 ctx.config.pyrlk_min_eigenval);
+                                 OPTFLOW_LK_GET_MIN_EIGENVALS);
             for (int i = 0, j = 0; i < k; i++, j++) {
                 for (; j < ctx.config.max_keypoints && ctx.keypoints[j].idx == -1; j++)
                     ;;
@@ -66,15 +65,8 @@ void ht_track_features(headtracker_t& ctx) {
     }
     std::swap(ctx.pyr_a, ctx.pyr_b);
 }
-#if 0
-static bool ht_feature_quality_level(const KeyPoint x, const KeyPoint y) {
-    return x.response < y.response;
-}
-#endif
 
 void ht_get_features(headtracker_t& ctx, model_t& model) {
-    //ht_remove_lumps(ctx);
-
     if (!model.projection)
         return;
 
@@ -96,7 +88,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
                            ctx.config.keypoint_quality);
         Mat img = ctx.grayscale(roi);
         detector(img, noArray(), corners);
-        //sort(corners.begin(), corners.end(), ht_feature_quality_level);
         int cnt = corners.size();
 
         int kpidx = 0;

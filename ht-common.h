@@ -22,7 +22,6 @@ typedef struct ht_config {
 	int   camera_index;
 	bool  debug;
     int   ransac_num_iters;
-    float pyrlk_min_eigenval;
     float ransac_min_features;
     float ransac_max_mean_error;
     float ransac_abs_max_mean_error;

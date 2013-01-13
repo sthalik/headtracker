@@ -182,8 +182,6 @@ bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f
 	float dot11 = ht_dot_product2d(v1, v1);
 	float dot12 = ht_dot_product2d(v1, v2);
 	float denom = dot00 * dot11 - dot01 * dot01;
-    if (fabs(denom) < 1.0e-6)
-        return false;
 	float invDenom = 1.0f / denom;
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;

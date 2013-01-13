@@ -17,11 +17,6 @@ typedef enum {
 } state_t;
 
 typedef struct {
-    Rect rect;
-    CascadeClassifier cascade;
-} classifier_t;
-
-typedef struct {
     Point3f p1;
     Point3f p2;
     Point3f p3;
@@ -58,7 +53,7 @@ typedef struct ht_context {
     VideoCapture camera;
     Mat grayscale;
     Mat color;
-    classifier_t head_classifier;
+    CascadeClassifier head_classifier;
 	int ticks_last_classification;
 	int ticks_last_features;
 	model_t model;
@@ -88,8 +83,7 @@ model_t ht_load_model(const char* filename, Point3f scale, Point3f offset);
 void ht_free_model(model_t& model);
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
 
-classifier_t ht_make_classifier(const char* filename, Rect rect);
-bool ht_classify(classifier_t& classifier, Mat& frame, Rect& ret);
+bool ht_classify(CascadeClassifier& classifier, Mat& frame, Rect& ret);
 
 bool ht_get_image(headtracker_t& ctx);
 

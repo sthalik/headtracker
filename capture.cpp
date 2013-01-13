@@ -36,7 +36,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
 
-    ctx->head_classifier = ht_make_classifier("haarcascade_frontalface_alt2.xml", Rect(0, 0, 1, 1));
+    ctx->head_classifier = CascadeClassifier("haarcascade_frontalface_alt2.xml");
 
 	ctx->ticks_last_classification = ht_tickcount();
 	ctx->ticks_last_features = ctx->ticks_last_classification;

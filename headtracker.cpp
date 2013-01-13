@@ -80,18 +80,9 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     Mat rvec, tvec;
-    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
     //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
-    {
-        if (ctx.config.debug)
-            printf("Can't locate face!\n");
+    if (!ht_fl_estimate(ctx, ctx.tmp, roi, rvec, tvec))
         return;
-    }
-    else
-    {
-        if (ctx.config.debug)
-            printf("Face located!\n");
-    }
     model_t tmp_model;
 
     tmp_model.triangles = ctx.model.triangles;
@@ -128,11 +119,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
             float error = 0;
-            if (ctx->config.debug)
-                printf("INIT: got %d/%d keypoints (%d)\n",
-                       ctx->keypoint_count,
-                       ctx->config.max_keypoints,
-                       ctx->config.keypoint_quality);
             if (ctx->keypoint_count >= 4) {
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
                 {
@@ -181,17 +167,14 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 buf.append(buf2);
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
-            //ht_remove_outliers(*ctx);
             ht_get_next_features(*ctx, roi);
             *euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
             if (ctx->config.debug)
             {
-                printf("keypoints %d/%d (%d); dist=%f; error=%f\n",
+                printf("keypoints %d/%d; error=%f\n",
                        ctx->keypoint_count,
                        ctx->config.max_keypoints,
-                       ctx->config.keypoint_quality,
-                       ctx->zoom_ratio,
                        error);
             }
         } else {
