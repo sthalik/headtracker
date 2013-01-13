@@ -48,9 +48,9 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Choose a different camera by its platform-specific index."),
     F(ransac_num_iters, int, 100, 50, 300,
     "RANSAC iterations per frame"),
-    F(ransac_max_reprojection_error, float, 7, 2.0, 50.0,
+    F(ransac_max_reprojection_error, float, 8, 2.0, 50.0,
     ""),
-    F(ransac_max_inlier_error, float, 7, 2.0, 50.0,
+    F(ransac_max_inlier_error, float, 8, 2.0, 50.0,
     ""),
     F(ransac_max_mean_error, float, 6, 2.0, 50.0,
     ""),
@@ -58,7 +58,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(debug, bool, true, 0, 1,
     ""),
-    F(ransac_min_features, float, 0.90, 0.1, 1.0,
+    F(ransac_min_features, float, 0.8, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };
