@@ -8,7 +8,7 @@ using namespace cv;
 #include <opencv2/opencv.hpp>
 #include "flandmark_detector.h"
 #define HT_PI 3.1415926535
-#define HT_STD_DEPTH 550.0f
+#define HT_STD_DEPTH 500.0f
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -34,7 +34,7 @@ typedef struct {
 	int count;
 } model_t;
 
-static __inline float ht_dot_product2d(Point2f point1, Point2f point2) {
+static __inline float ht_dot_product2d(const Point2f point1, const Point2f point2) {
 	return point1.x * point2.x + point1.y * point2.y;
 }
 
@@ -79,7 +79,7 @@ typedef struct ht_context {
 
 HT_API(void) ht_reset(headtracker_t* ctx);
 
-model_t ht_load_model(const char* filename, Point3f scale, Point3f offset);
+model_t ht_load_model(const char* filename);
 void ht_free_model(model_t& model);
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
 
@@ -100,19 +100,14 @@ void ht_get_features(headtracker_t& ctx, model_t& model);
 void ht_track_features(headtracker_t& ctx);
 void ht_draw_features(headtracker_t& ctx);
 
-static __inline float ht_distance2d_squared(Point2f p1, Point2f p2) {
+static __inline float ht_distance2d_squared(const Point2f p1, const Point2f p2) {
 	float x = p1.x - p2.x;
 	float y = p1.y - p2.y;
 	return x * x + y * y;
 }
 
-static __inline float ht_distance3d_squared(Point3f p1, Point3f p2) {
-	return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
-}
-
 bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Mat& tvec);
-void ht_update_zoom_scale(headtracker_t& ctx, float translation_2);
+void ht_update_zoom_scale(headtracker_t& ctx, const float translation_2);
 Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t);
-//void ht_remove_outliers(headtracker_t& ctx);
 Rect ht_get_roi(const headtracker_t& ctx, model_t& model);
 bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);

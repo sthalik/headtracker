@@ -99,7 +99,7 @@ void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	}
 }
 
-model_t ht_load_model(const char* filename, Point3f scale, Point3f offset) {
+model_t ht_load_model(const char* filename) {
 	ifstream stream(filename, ifstream::in);
 	
 	char line[256];
@@ -121,29 +121,9 @@ model_t ht_load_model(const char* filename, Point3f scale, Point3f offset) {
 		if (ret != 9)
 			throw new exception();
 
-		triangle.p1.x += offset.x;
-		triangle.p1.y += offset.y;
-		triangle.p1.z += offset.z;
-
-		triangle.p2.x += offset.x;
-		triangle.p2.y += offset.y;
-		triangle.p2.z += offset.z;
-
-		triangle.p3.x += offset.x;
-		triangle.p3.y += offset.y;
-		triangle.p3.z += offset.z;
-
-		triangle.p1.x *= scale.x;
-		triangle.p1.y *= -scale.y;
-		triangle.p1.z *= scale.z;
-
-		triangle.p2.x *= scale.x;
-		triangle.p2.y *= -scale.y;
-		triangle.p2.z *= scale.z;
-
-		triangle.p3.x *= scale.x;
-		triangle.p3.y *= -scale.y;
-		triangle.p3.z *= scale.z;
+        triangle.p1.y *= -1;
+        triangle.p2.y *= -1;
+        triangle.p3.y *= -1;
 
 		triangles.push_back(triangle);
 	}
@@ -186,7 +166,7 @@ bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f
 	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-    if (u > 0 && v > 0 && u + v <= 1) {
+    if (u >= 0 && v >= 0 && u + v <= 1) {
 		uv.x = u;
 		uv.y = v;
 		return true;
