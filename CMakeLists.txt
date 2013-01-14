@@ -1,7 +1,7 @@
 project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
-find_package(Qt COMPONENTS QtCore QtNetwork REQUIRED)
+FIND_PACKAGE(Qt COMPONENTS QtCore QtNetwork REQUIRED)
 FIND_PACKAGE( OpenCV REQUIRED )
 
 macro(configure_files srcDir destDir)

@@ -89,7 +89,7 @@ HT_API(void) ht_make_config(ht_config_t* ret) {
             *(int*) ptr = field.default_value.i;
             break;
         default:
-            fprintf(stderr, "bad config type for field %s\n", field.name);
+            //fprintf(stderr, "bad config type for field %s\n", field.name);
             continue;
         }
     }
