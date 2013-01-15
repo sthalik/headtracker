@@ -15,14 +15,14 @@ void ht_track_features(headtracker_t& ctx) {
     if (ctx.restarted) {
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
-                                cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+                                Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                 ctx.config.pyrlk_pyramids);
         return;
     }
 
     buildOpticalFlowPyramid(ctx.grayscale,
                             *ctx.pyr_b,
-                            cvSize(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+                            Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                             ctx.config.pyrlk_pyramids);
     int cnt = ctx.keypoint_count;
     if (cnt > 0) {
