@@ -64,15 +64,16 @@ int main(int argc, char** argv)
             pose.pitch = result.roty * 180.0f / HT_PI;
             pose.roll = result.rotz * 180.0f / HT_PI;
             sock.writeDatagram((const char*) &pose, sizeof(THeadPoseData), addr, 5550);
+#if 0
             printf("POSE %.2f %.2f %.2f | %.2f %.2f %.2f\n",
                    pose.yaw, pose.pitch, pose.roll,
                    pose.x, pose.y, pose.z);
+#endif
         } else if (start && argc > 1) {
             abort();
             break;
         }
         frameno++;
-#if 1
         ht_frame_t frame;
         ht_get_bgr_frame(ctx, &frame);
         if (frame.data) {
@@ -81,7 +82,6 @@ int main(int argc, char** argv)
             delete[] frame.data;
         }
         waitKey(1);
-#endif
     }
 
     ht_free_context(ctx);

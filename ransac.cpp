@@ -86,7 +86,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
             j++;
         }
 
-        mean_error = sqrt(mean_error / k);
+        mean_error = sqrt(mean_error / std::max(1, k));
 
         object_points.clear();
         image_points.clear();

@@ -56,7 +56,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(ransac_abs_max_mean_error, float, 8, 2.0, 50.0,
     ""),
-    F(debug, bool, true, 0, 1,
+    F(debug, bool, 0, 0, 1,
     ""),
     F(ransac_min_features, float, 0.8, 0.1, 1.0,
     "Min features for RANSAC"),
