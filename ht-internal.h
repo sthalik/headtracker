@@ -92,7 +92,6 @@ void ht_project_model(headtracker_t& ctx,
                       const Mat& tvec,
                       model_t& model);
 bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f &uv);
-bool ht_triangle_exists(Point2f pos, const model_t& model);
 void ht_draw_model(headtracker_t& ctx, model_t& model);
 void ht_get_features(headtracker_t& ctx, model_t& model);
 void ht_track_features(headtracker_t& ctx);
@@ -105,7 +104,6 @@ static __inline float ht_distance2d_squared(const Point2f p1, const Point2f p2) 
 }
 
 bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Mat& tvec);
-void ht_update_zoom_scale(headtracker_t& ctx, const float translation_2);
 Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t);
 Rect ht_get_roi(const headtracker_t& ctx, model_t& model);
 bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);

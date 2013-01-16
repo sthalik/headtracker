@@ -70,23 +70,6 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
     return foundp;
 }
 
-bool ht_triangle_exists(Point2f pos, const model_t& model) {
-	if (!model.projection)
-		return false;
-
-	int sz = model.count;
-    Point2f uv;
-
-	for (int i = 0; i < sz; i++) {
-		triangle2d_t& t = model.projection[i];
-		if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv))
-			return true;
-	}
-
-	return false;
-}
-
-
 void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	int sz = model.count;
 
