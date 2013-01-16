@@ -119,13 +119,12 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
             float error = 0;
-            if (ctx->keypoint_count >= 4) {
-                if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
-                {
-                    ctx->rvec = rvec;
-                    ctx->tvec = tvec;
-                    ctx->state = HT_STATE_TRACKING;
-                }
+            if (ctx->keypoint_count >= 4 &&
+                ht_ransac_best_indices(*ctx, error, rvec, tvec))
+            {
+                ctx->rvec = rvec;
+                ctx->tvec = tvec;
+                ctx->state = HT_STATE_TRACKING;
             }
 		}
 		break;
@@ -177,18 +176,14 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                        ctx->config.max_keypoints,
                        error);
             }
-        } else {
-            if (ctx->abortp)
-                abort();
+        } else
 			ctx->state = HT_STATE_LOST;
-        }
 		break;
 	} case HT_STATE_LOST: {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->restarted = true;
 		ctx->zoom_ratio = 1.0f;
         ctx->keypoint_count = 0;
-        ctx->abortp = false;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;

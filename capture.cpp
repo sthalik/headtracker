@@ -58,7 +58,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
         ctx->camera.set(CV_CAP_PROP_FRAME_HEIGHT, ctx->config.force_height);
     if (ctx->config.force_fps)
         ctx->camera.set(CV_CAP_PROP_FPS, ctx->config.force_fps);
-    ctx->abortp = filename != NULL;
     ctx->pyr_a = new vector<Mat>();
     ctx->pyr_b = new vector<Mat>();
     ctx->hz = 0;

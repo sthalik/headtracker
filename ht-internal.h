@@ -69,7 +69,6 @@ typedef struct ht_context {
     int ticks_last_second;
     int hz;
     int hz_last_second;
-    bool abortp;
     Mat face_histogram;
     Mat tmp;
     Mat rvec, tvec;
