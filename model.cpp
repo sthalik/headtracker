@@ -142,10 +142,6 @@ model_t ht_load_model(const char* filename) {
 	return ret;
 }
 
-void ht_free_model(model_t& model) {
-	delete model.triangles;
-}
-
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv) {
     Point2f v0 = Point2f(
 		c.x - a.x,
