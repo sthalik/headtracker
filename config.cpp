@@ -58,7 +58,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(debug, bool, 0, 0, 1,
     ""),
-    F(ransac_min_features, float, 0.8, 0.1, 1.0,
+    F(ransac_min_features, float, 0.9, 0.1, 1.0,
     "Min features for RANSAC"),
     FIELD_END
 };
