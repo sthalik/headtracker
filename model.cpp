@@ -154,10 +154,6 @@ bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f
 	return false;
 }
 
-bool ht_point_inside_rectangle(Point2f p, Point2f topLeft, Point2f bottomRight) {
-	return p.x >= topLeft.x && p.x <= bottomRight.x && p.y >= topLeft.y && p.y <= bottomRight.y;
-}
-
 Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t) {
 	float u = uv.x;
 	float v = uv.y;

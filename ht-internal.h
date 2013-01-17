@@ -86,7 +86,6 @@ bool ht_classify(CascadeClassifier& classifier, Mat& frame, Rect& ret);
 bool ht_get_image(headtracker_t& ctx);
 
 bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat &rvec, Mat &tvec);
-bool ht_point_inside_rectangle(Point2f p, Point2f topLeft, Point2f bottomRight);
 void ht_project_model(headtracker_t& ctx,
                       const Mat& rvec,
                       const Mat& tvec,
