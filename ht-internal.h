@@ -8,7 +8,7 @@ using namespace cv;
 #include <opencv2/opencv.hpp>
 #include "flandmark_detector.h"
 #define HT_PI 3.1415926535
-#define HT_STD_DEPTH 500.0f
+#define HT_STD_DEPTH 500
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
