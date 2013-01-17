@@ -28,10 +28,9 @@ typedef struct ht_config {
 } ht_config_t;
 
 typedef struct {
-	float rotx, roty, rotz;
-	float tx, ty, tz;
+    double rotx, roty, rotz;
+    double tx, ty, tz;
 	bool filled;
-	float confidence;
 } ht_result_t;
 
 typedef enum {

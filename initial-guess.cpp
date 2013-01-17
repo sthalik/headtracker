@@ -47,10 +47,10 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2d> image_points(4);
     vector<Point3d> object_points(4);
 
-    object_points[0] = Point3d(0, 8.66250, 22.02244);
-    object_points[1] = Point3d(-17.69417, -21.51773, 1.11170);
-    object_points[2] = Point3d(17.69417, -21.51773, 1.11170);
-    object_points[3] = Point3d(0, 33.71708, 1.623666);
+    object_points[0] = Point3d(0, -0.76647, 26.52043);
+    object_points[1] = Point3d(-19.27703, -20.64882, -6.19045);
+    object_points[2] = Point3d(19.27703, -20.64882, -6.19045);
+    object_points[3] = Point3d(0, 28.53869, 14.18009);
 
     image_points[0] = nose;
     image_points[1] = left_eye;

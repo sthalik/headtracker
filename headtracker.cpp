@@ -103,7 +103,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180.0);
+            ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
             ctx->focal_length_h = ctx->focal_length_w;
             //ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * (ctx->grayscale.rows / (float) ctx->grayscale.cols) * HT_PI / 180.0);
             //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
@@ -150,7 +150,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->zoom_ratio = HT_STD_DEPTH / tvec.at<double>(2);
             ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
-            ht_draw_features(*ctx);
+            //ht_draw_features(*ctx);
             ctx->hz++;
             int ticks = ht_tickcount() / 1000;
             if (ctx->ticks_last_second != ticks) {

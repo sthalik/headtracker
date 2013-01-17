@@ -60,9 +60,9 @@ int main(int argc, char** argv)
             pose.x = result.tx;
             pose.y = result.ty;
             pose.z = result.tz;
-            pose.yaw = result.rotx * 180.0f / HT_PI;
-            pose.pitch = result.roty * 180.0f / HT_PI;
-            pose.roll = result.rotz * 180.0f / HT_PI;
+            pose.yaw = result.rotx * 180 / HT_PI;
+            pose.pitch = result.roty * 180 / HT_PI;
+            pose.roll = result.rotz * 180 / HT_PI;
             sock.writeDatagram((const char*) &pose, sizeof(THeadPoseData), addr, 5550);
 #if 0
             printf("POSE %.2f %.2f %.2f | %.2f %.2f %.2f\n",
