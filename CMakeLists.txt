@@ -4,24 +4,9 @@ cmake_minimum_required(VERSION 2.8)
 FIND_PACKAGE(Qt COMPONENTS QtCore QtNetwork REQUIRED)
 FIND_PACKAGE( OpenCV REQUIRED )
 
-macro(configure_files srcDir destDir)
-    message(STATUS "Configuring directory ${destDir}")
-    make_directory(${destDir})
-
-    file(GLOB templateFiles RELATIVE ${srcDir} ${srcDir}/*)
-    foreach(templateFile ${templateFiles})
-        set(srcTemplatePath ${srcDir}/${templateFile})
-        if(NOT IS_DIRECTORY ${srcTemplatePath})
-            message(STATUS "Copying file ${templateFile}")
-            configure_file(
-                    ${srcTemplatePath}
-                    ${destDir}/${templateFile}
-                    COPYONLY)
-        endif(NOT IS_DIRECTORY ${srcTemplatePath})
-    endforeach(templateFile)
-endmacro(configure_files)
-
-configure_files(${CMAKE_SOURCE_DIR}/data/ ${CMAKE_BINARY_DIR})
+configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/data/haarcascade_frontalface_alt2.xml ${CMAKE_BINARY_DIR} COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/data/flandmark_model.dat ${CMAKE_BINARY_DIR} COPYONLY)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
