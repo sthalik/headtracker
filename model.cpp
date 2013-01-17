@@ -1,4 +1,5 @@
-#include "stdafx.h"
+#include "ht-api.h"
+#include "ht-internal.h"
 #include <iostream>
 #include <fstream>
 #include <vector>

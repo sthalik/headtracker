@@ -1,5 +1,5 @@
 #define HT_PI 3.14159265f
-#include "headtracker.h"
+#include "ht-api.h"
 #include <opencv2/opencv.hpp>
 #include <QtNetwork/QUdpSocket>
 

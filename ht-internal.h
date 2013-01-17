@@ -2,11 +2,17 @@
 // todo do away with leaks if initialization fails
 #pragma once
 #include <vector>
-using namespace std;
-using namespace cv;
-#include "ht-common.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stddef.h>
+#include <math.h>
+#include <opencv2/opencv.hpp>
+#include "ht-api.h"
+#include "ht-internal.h"
 #include <opencv2/opencv.hpp>
 #include "flandmark_detector.h"
+using namespace std;
+using namespace cv;
 #define HT_PI 3.1415926535
 #define HT_STD_DEPTH 500
 

@@ -1,6 +1,5 @@
 #include "ht-api.h"
-#include "stdafx.h"
-
+#include "ht-internal.h"
 using namespace std;
 using namespace cv;
 
