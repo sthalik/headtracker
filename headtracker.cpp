@@ -5,6 +5,9 @@ using namespace cv;
 
 #include <string>
 
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() << std::dec << x ) ).str()
+
 HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
 }
@@ -159,11 +162,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ctx->hz = 0;
             }
             if (ctx->hz_last_second != -1) {
-                char buf2[42];
                 string buf;
                 buf.append("Hz: ");
-                sprintf(buf2, "%d", ctx->hz_last_second);
-                buf.append(buf2);
+                buf.append(SSTR(ctx->hz_last_second));
                 putText(ctx->color, buf, Point(30, 30), FONT_HERSHEY_PLAIN, 1.0, Scalar(0, 255, 0));
             }
             ht_get_next_features(*ctx, roi);
