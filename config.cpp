@@ -34,9 +34,9 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Maximum keypoints to track"),
     F(keypoint_quality, int, 31, 10, 60,
     "Starting keypoint quality"),
-    F(keypoint_distance, float, 4.5, 1.5, 50,
+    F(keypoint_distance, float, 4.1, 1.5, 50,
     "Minimum Euclidean distance between keypoints"),
-    F(keypoint_3distance, float, 13, 1.5, 50,
+    F(keypoint_3distance, float, 15, 1.5, 50,
     "Minimum Euclidean distance between keypoints"),
     F(force_width, int, 640, 0, 10000,
     "Force capture width of a webcam."),
@@ -58,7 +58,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(debug, bool, 0, 0, 1,
     ""),
-    F(ransac_min_features, float, 0.92, 0.1, 1,
+    F(ransac_min_features, float, 0.90, 0.1, 1,
     "Min features for RANSAC"),
     FIELD_END
 };
