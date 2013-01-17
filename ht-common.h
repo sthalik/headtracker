@@ -68,6 +68,3 @@ HT_API(void) ht_free_context(headtracker_t* ctx);
 HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret);
 HT_API(void) ht_make_config(ht_config_t* cfg);
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
-
-HT_API(void) ht_store_config(const headtracker_t* ctx, FILE* stream);
-HT_API(void) ht_store_config_in_file(const headtracker_t* ctx, const char* filename);
