@@ -31,7 +31,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     vector<Point3f> object_points;
     vector<Point2f> image_points;
     vector<int> inliers;
-    for (int i = 0, j = 0; i < ctx.config.max_keypoints; i++) {
+    for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
             continue;
         object_points.push_back(ctx.keypoint_uv[i]);
@@ -91,7 +91,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         object_points.clear();
         image_points.clear();
 
-        for (int i = 0, j = 0; i < ctx.config.max_keypoints; i++) {
+        for (int i = 0; i < ctx.config.max_keypoints; i++) {
             if (ctx.keypoints[i].idx == -1)
                 continue;
             object_points.push_back(ctx.keypoint_uv[i]);

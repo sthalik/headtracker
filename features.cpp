@@ -69,6 +69,8 @@ void ht_track_features(headtracker_t& ctx) {
 void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (!model.projection)
         return;
+    if (!model.rotation)
+        return;
 
     int cnt = ctx.keypoint_count;
     if (cnt < ctx.config.max_keypoints) {

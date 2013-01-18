@@ -76,6 +76,8 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->model.triangles;
 	if (ctx->model.projection)
 		delete[] ctx->model.projection;
+    if (ctx->model.rotation)
+        delete[] ctx->model.rotation;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;

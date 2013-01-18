@@ -36,6 +36,7 @@ typedef struct {
 
 typedef struct {
 	triangle_t* triangles;
+    triangle_t* rotation;
 	triangle2d_t* projection;
 	int count;
 } model_t;

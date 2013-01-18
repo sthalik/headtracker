@@ -91,10 +91,12 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     tmp_model.triangles = ctx.model.triangles;
     tmp_model.count = ctx.model.count;
     tmp_model.projection = new triangle2d_t[ctx.model.count];
+    tmp_model.rotation = new triangle_t[ctx.model.count];
 
     ht_project_model(ctx, rvec, tvec, tmp_model);
     ht_get_features(ctx, tmp_model);
     delete[] tmp_model.projection;
+    delete[] tmp_model.rotation;
 }
 
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {

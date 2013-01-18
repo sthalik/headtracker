@@ -7,6 +7,15 @@
 using namespace std;
 using namespace cv;
 
+static Point3f ht_rotate_point(const Mat& rmat, const Point3f p)
+{
+    Point3f ret;
+    ret.x = p.x * rmat.at<double>(0, 0) + p.y * rmat.at<double>(1, 0) + p.z * rmat.at<double>(2, 0);
+    ret.y = p.x * rmat.at<double>(0, 1) + p.y * rmat.at<double>(1, 1) + p.z * rmat.at<double>(2, 1);
+    ret.z = p.x * rmat.at<double>(0, 2) + p.y * rmat.at<double>(1, 2) + p.z * rmat.at<double>(2, 2);
+    return ret;
+}
+
 void ht_project_model(headtracker_t& ctx,
                       const Mat& rvec,
                       const Mat& tvec,
@@ -16,6 +25,9 @@ void ht_project_model(headtracker_t& ctx,
 
     if (!model.projection)
         model.projection = new triangle2d_t[sz];
+
+    if (!model.rotation)
+        model.rotation = new triangle_t[sz];
 
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
 
@@ -39,6 +51,10 @@ void ht_project_model(headtracker_t& ctx,
 
     projectPoints(triangles, rvec, tvec, intrinsics, dist_coeffs, image_points);
 
+    Mat rmat = Mat::zeros(3, 3, CV_64FC1);
+
+    Rodrigues(rvec, rmat);
+
     for (int i = 0; i < sz; i++) {
         triangle2d_t t2d;
         t2d.p1 = image_points[i * 3 + 0];
@@ -46,12 +62,23 @@ void ht_project_model(headtracker_t& ctx,
         t2d.p3 = image_points[i * 3 + 2];
 
         model.projection[i] = t2d;
+
+        triangle_t t3d = model.triangles[i];
+        triangle_t r;
+
+        r.p1 = ht_rotate_point(rmat, t3d.p1);
+        r.p2 = ht_rotate_point(rmat, t3d.p2);
+        r.p3 = ht_rotate_point(rmat, t3d.p3);
+
+        model.rotation[i] = r;
     }
 }
 
 bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f& uv) {
 	if (!model.projection)
 		return false;
+    if (!model.rotation)
+        return false;
 
 	int sz = model.count;
 
@@ -62,17 +89,17 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
-        float new_z;
-        if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv) &&
-                // TODO HACK
-                (new_z = (model.triangles[i].p3.z + model.triangles[i].p2.z + model.triangles[i].p1.z) / 3,
-                 (!foundp || new_z > best_z)))
+        if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv))
         {
-            best_uv = uv;
-			*ret = model.triangles[i];
-			*idx = i;
-            best_z = new_z;
-            foundp = true;
+            float new_z = ht_get_triangle_pos(uv, model.rotation[i]).z;
+            if (new_z > best_z)
+            {
+                best_uv = uv;
+                *ret = model.triangles[i];
+                *idx = i;
+                best_z = new_z;
+                foundp = true;
+            }
 		}
 	}
 
@@ -131,7 +158,8 @@ model_t ht_load_model(const char* filename) {
 		ret.triangles[i] = triangles[i];
 	}
 
-	ret.projection = NULL;
+    ret.projection = NULL;
+    ret.rotation = NULL;
 
 	return ret;
 }
