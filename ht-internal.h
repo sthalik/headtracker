@@ -82,8 +82,6 @@ typedef struct ht_context {
     FLANDMARK_Model* flandmark_model;
 } headtracker_t;
 
-HT_API(void) ht_reset(headtracker_t* ctx);
-
 model_t ht_load_model(const char* filename);
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
 

@@ -77,9 +77,9 @@ void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
 
-        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0));
-        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p3.x, t.p3.y), Scalar(255, 0, 0));
-        line(ctx.color, Point(t.p3.x, t.p3.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0));
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p3.x, t.p3.y), Scalar(255, 0, 0), 2);
+        line(ctx.color, Point(t.p3.x, t.p3.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
 	}
 }
 
