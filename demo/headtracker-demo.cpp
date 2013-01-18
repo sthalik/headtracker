@@ -1,7 +1,7 @@
 #define HT_PI 3.14159265f
 #include "ht-api.h"
 #include <opencv2/opencv.hpp>
-#include <QtNetwork/QUdpSocket>
+//#include <QtNetwork/QUdpSocket>
 
 using namespace std;
 using namespace cv;
@@ -45,9 +45,11 @@ int main(int argc, char** argv)
     headtracker_t* ctx = ht_make_context(&conf, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
 
+#if 0
     QUdpSocket sock;
     QHostAddress addr("127.0.0.1");
     sock.bind(addr, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+#endif
     THeadPoseData pose;
     int frameno = 0;
 
@@ -63,8 +65,8 @@ int main(int argc, char** argv)
             pose.yaw = result.rotx * 180 / HT_PI;
             pose.pitch = result.roty * 180 / HT_PI;
             pose.roll = result.rotz * 180 / HT_PI;
-            sock.writeDatagram((const char*) &pose, sizeof(THeadPoseData), addr, 5550);
-#if 0
+            //sock.writeDatagram((const char*) &pose, sizeof(THeadPoseData), addr, 5550);
+#if 1
             printf("POSE %.2f %.2f %.2f | %.2f %.2f %.2f\n",
                    pose.yaw, pose.pitch, pose.roll,
                    pose.x, pose.y, pose.z);
