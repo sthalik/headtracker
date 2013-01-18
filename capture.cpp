@@ -36,7 +36,11 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
-
+	if (!filename)
+	{
+		for (int i = 0; i < 10; i++)
+            ctx->camera.read(ctx->color);
+	}
     ctx->head_classifier = CascadeClassifier("haarcascade_frontalface_alt2.xml");
 
 	ctx->ticks_last_classification = ht_tickcount();
@@ -44,7 +48,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	
     ctx->model = ht_load_model("head.raw");
     ctx->keypoint_uv = new Point3f[ctx->config.max_keypoints];
-	ctx->state = HT_STATE_INITIALIZING;
+    ctx->state = HT_STATE_LOST;
     ctx->restarted = true;
 	ctx->zoom_ratio = 1.0;
     ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];

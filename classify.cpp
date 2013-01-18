@@ -7,8 +7,8 @@ bool ht_classify(CascadeClassifier &classifier, Mat& frame, Rect& ret) {
     vector<Rect> seq;
     classifier.detectMultiScale(frame,
                                 seq,
-                                1.2,
-                                2,
+                                1.1,
+                                3,
                                 CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_DO_ROUGH_SEARCH);
 
     if (seq.size() > 0)
