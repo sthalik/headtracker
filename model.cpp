@@ -57,17 +57,27 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
 
     bool foundp = false;
 
+    float best_z = -1e10;
+    Point2f best_uv;
+
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
-        if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv)) {
+        float new_z;
+        if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv) &&
+                // TODO HACK
+                (new_z = (model.triangles[i].p3.z + model.triangles[i].p2.z + model.triangles[i].p1.z) / 3,
+                 (!foundp || new_z > best_z)))
+        {
+            best_uv = uv;
 			*ret = model.triangles[i];
 			*idx = i;
-            if (foundp)
-                return false;
+            best_z = new_z;
             foundp = true;
 		}
 	}
 
+    if (foundp)
+        uv = best_uv;
     return foundp;
 }
 
