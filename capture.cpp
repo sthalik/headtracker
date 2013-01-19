@@ -9,15 +9,18 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.isOpened())
         return false;
 
+    Mat tmp;
+
     if (!ctx.camera.read(ctx.color))
         return false;
 
-    //Mat tmp;
+    Size newSize(320, 320 * ctx.color.rows / ctx.color.cols);
 
-    //ctx.color.copyTo(tmp);
-    //resize(ctx.color, tmp, Size(320, 320 * ctx.color.rows / ctx.color.cols), 0, 0, CV_INTER_AREA);
+    resize(ctx.color, tmp, newSize, 0, 0, CV_INTER_AREA);
 
-    //ctx.color = tmp;
+    tmp.copyTo(ctx.color);
+    // XXX hack
+    tmp.deallocate();
 
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     ctx.grayscale.copyTo(ctx.tmp);
@@ -36,11 +39,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
-	if (!filename)
-	{
-		for (int i = 0; i < 10; i++)
-            ctx->camera.read(ctx->color);
-	}
     ctx->head_classifier = CascadeClassifier("haarcascade_frontalface_alt2.xml");
 
 	ctx->ticks_last_classification = ht_tickcount();
