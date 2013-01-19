@@ -62,7 +62,7 @@ int main(void)
             ht_get_bgr_frame(ctx, &frame);
             if (frame.cols <= HT_MAX_VIDEO_WIDTH && frame.rows <= HT_MAX_VIDEO_HEIGHT && frame.channels <= HT_MAX_VIDEO_CHANNELS)
             {
-                memcpy(shm->frame.frame, frame.data, shm->frame.width * shm->frame.height * shm->frame.channels);
+                memcpy(shm->frame.frame, frame.data, frame.cols * frame.rows * frame.channels);
                 shm->frame.channels = frame.channels;
                 shm->frame.width = frame.cols;
                 shm->frame.height = frame.rows;
