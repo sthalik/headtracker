@@ -113,7 +113,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view * (ctx->grayscale.rows / (float) ctx->grayscale.cols) * HT_PI / 180.0);
             //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
-        ht_draw_features(*ctx);
+        //ht_draw_features(*ctx);
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
@@ -197,6 +197,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	default:
 		return false;
 	}
+
+    // XXX hack
+    if (euler->filled && euler->tz < 15)
+    {
+        ctx->state = HT_STATE_LOST;
+        euler->filled = false;
+    }
 
 	return true;
 }
