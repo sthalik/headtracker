@@ -71,7 +71,6 @@ typedef struct ht_context {
 	float zoom_ratio;
 	ht_config_t config;
 	ht_keypoint* keypoints;
-    int keypoint_count;
     Point3f* keypoint_uv;
     int ticks_last_second;
     int hz;

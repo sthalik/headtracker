@@ -65,7 +65,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->keypoints = new ht_keypoint[ctx->config.max_keypoints];
     for (int i = 0; i < ctx->config.max_keypoints; i++)
 		ctx->keypoints[i].idx = -1;
-    ctx->keypoint_count = 0;
     ctx->focal_length_w = -1;
     ctx->focal_length_h = -1;
 	if (ctx->config.force_width)

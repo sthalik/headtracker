@@ -124,8 +124,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_get_features(*ctx, ctx->model);
             ctx->restarted = false;
             float error = 0;
-            if (ctx->keypoint_count >= 4 &&
-                ht_ransac_best_indices(*ctx, error, rvec, tvec))
+            if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
             {
                 ctx->rvec = rvec;
                 ctx->tvec = tvec;
@@ -172,14 +171,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_get_next_features(*ctx, roi);
             *euler = ht_matrix_to_euler(rvec, tvec);
 			euler->filled = true;
-            if (ctx->config.debug)
-            {
-                printf("keypoints %d/%d; error=%f; zoom=%f\n",
-                       ctx->keypoint_count,
-                       ctx->config.max_keypoints,
-                       error,
-                       ctx->zoom_ratio);
-            }
         } else
 			ctx->state = HT_STATE_LOST;
 		break;
@@ -187,7 +178,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->restarted = true;
 		ctx->zoom_ratio = 1.0f;
-        ctx->keypoint_count = 0;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;

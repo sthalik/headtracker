@@ -4,9 +4,6 @@ using namespace std;
 using namespace cv;
 
 bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, Mat& tvec_) {
-    if (ctx.keypoint_count < 4)
-        return false;
-
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;
     intrinsics.at<float> (1, 1) = ctx.focal_length_h;
@@ -38,74 +35,76 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         image_points.push_back(ctx.keypoints[i].position);
     }
 
-    if (ctx.has_pose) {
-        rvec = ctx.rvec;
-        tvec = ctx.tvec;
-        rvec2 = ctx.rvec;
-        tvec2 = ctx.tvec;
-    }
-
-    solvePnPRansac(object_points,
-                   image_points,
-                   intrinsics,
-                   dist_coeffs,
-                   rvec2,
-                   tvec2,
-                   ctx.has_pose,
-                   ctx.config.ransac_num_iters,
-                   ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
-                   ctx.keypoint_count * ctx.config.ransac_min_features,
-                   inliers,
-                   CV_ITERATIVE);
-
-    if (inliers.size() >= 4)
+    if (object_points.size() >= 4)
     {
-        vector<Point2f> image_points2;
+        if (ctx.has_pose) {
+            rvec = ctx.rvec;
+            tvec = ctx.tvec;
+            rvec2 = ctx.rvec;
+            tvec2 = ctx.tvec;
+        }
 
-        projectPoints(object_points, rvec2, tvec2, intrinsics, dist_coeffs, image_points2);
+        solvePnPRansac(object_points,
+                       image_points,
+                       intrinsics,
+                       dist_coeffs,
+                       rvec2,
+                       tvec2,
+                       ctx.has_pose,
+                       ctx.config.ransac_num_iters,
+                       ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
+                       object_points.size() * ctx.config.ransac_min_features,
+                       inliers,
+                       CV_ITERATIVE);
 
-        float max_dist = ctx.config.ransac_max_inlier_error * ctx.zoom_ratio;
-        max_dist *= max_dist;
-        int j = 0, k = 0;
-        mean_error = 0;
-
-        for (int i = 0; i < ctx.config.max_keypoints; i++)
+        if (inliers.size() >= 4)
         {
-            if (ctx.keypoints[i].idx == -1)
-                continue;
-            float dist = ht_distance2d_squared(image_points[j], image_points2[j]);
+            vector<Point2f> image_points2;
 
-            if (dist > max_dist)
+            projectPoints(object_points, rvec2, tvec2, intrinsics, dist_coeffs, image_points2);
+
+            float max_dist = ctx.config.ransac_max_inlier_error * ctx.zoom_ratio;
+            max_dist *= max_dist;
+            int j = 0, k = 0;
+            mean_error = 0;
+
+            for (int i = 0; i < ctx.config.max_keypoints; i++)
             {
-                ctx.keypoint_count--;
-                ctx.keypoints[i].idx = -1;
-            } else {
-                k++;
-                mean_error += dist;
+                if (ctx.keypoints[i].idx == -1)
+                    continue;
+                float dist = ht_distance2d_squared(image_points[j], image_points2[j]);
+
+                if (dist > max_dist)
+                {
+                    ctx.keypoints[i].idx = -1;
+                } else {
+                    k++;
+                    mean_error += dist;
+                }
+                j++;
             }
-            j++;
+
+            mean_error = sqrt(mean_error / std::max(1, k));
+
+            object_points.clear();
+            image_points.clear();
+
+            for (int i = 0; i < ctx.config.max_keypoints; i++) {
+                if (ctx.keypoints[i].idx == -1)
+                    continue;
+                object_points.push_back(ctx.keypoint_uv[i]);
+                image_points.push_back(ctx.keypoints[i].position);
+            }
+
+            solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, CV_ITERATIVE);
+
+            ctx.has_pose = true;
+
+            rvec_ = rvec;
+            tvec_ = tvec;
+
+            return true;
         }
-
-        mean_error = sqrt(mean_error / std::max(1, k));
-
-        object_points.clear();
-        image_points.clear();
-
-        for (int i = 0; i < ctx.config.max_keypoints; i++) {
-            if (ctx.keypoints[i].idx == -1)
-                continue;
-            object_points.push_back(ctx.keypoint_uv[i]);
-            image_points.push_back(ctx.keypoints[i].position);
-        }
-
-        solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, CV_ITERATIVE);
-
-        ctx.has_pose = true;
-
-        rvec_ = rvec;
-        tvec_ = tvec;
-
-        return true;
     }
 
     return false;
