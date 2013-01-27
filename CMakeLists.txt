@@ -17,11 +17,21 @@ file(GLOB headtracker-SRC
 add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
 #INCLUDE(${QT_USE_FILE})
 #ADD_DEFINITIONS(${QT_DEFINITIONS})
-target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/libflandmark_shared.dll)
+
+if(WIN32)
+    set(HT_SONAME dll)
+else(DARWIN)
+    set(HT_SONAME dylib)
+else()
+    set(HT_SONAME so)
+endif()
+
+target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/libflandmark_shared.${HT_SONAME})
 file(GLOB headtracker-demo-SRC
     "demo/*.h"
     "demo/*.cpp"
 )
+
 add_executable(headtracker-demo ${headtracker-demo-SRC})
 target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
 
