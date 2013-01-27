@@ -20,11 +20,15 @@ add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
 
 if(WIN32)
     set(HT_SONAME dll)
-else(DARWIN)
+endif(WIN32)
+
+if(APPLE)
     set(HT_SONAME dylib)
-else()
+endif(APPLE)
+
+if(UNIX)
     set(HT_SONAME so)
-endif()
+endif(UNIX)
 
 target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/libflandmark_shared.${HT_SONAME})
 file(GLOB headtracker-demo-SRC
