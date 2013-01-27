@@ -14,9 +14,15 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ------------------------------------------------------------------------
 
-The original head mesh was originally made by Len Van Der Westhuizen and
-graciously put into the public domain. Mesh used in this project is a
-modified version.
+Credit for the head mesh:
+
+Unless otherwise marked datasets may be used for any non-commercial purpose.
+Credit to Cyberware is appreciated where appropriate. Please direct comments,
+advice and requests to info@cyberware.com. Additional tools and information
+may be obtained via our web site
+
+Jed Frechette submitted the mesh as a pull request.
+I cannot thank him enough!
 
 ------------------------------------------------------------------------
 

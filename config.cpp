@@ -33,7 +33,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     "Maximum keypoints to track"),
     F(keypoint_quality, int, 10, 10, 60,
     "Starting keypoint quality"),
-    F(keypoint_distance, float, 2.3, 1.5, 50,
+    F(keypoint_distance, float, 2.4, 1.5, 50,
     "Minimum Euclidean distance between keypoints"),
     F(keypoint_3distance, float, 6, 1.5, 50,
     "Minimum Euclidean distance between keypoints"),
@@ -57,7 +57,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(debug, bool, 0, 0, 1,
     ""),
-    F(ransac_min_features, float, 0.9, 0.1, 1,
+    F(ransac_min_features, float, 0.75, 0.1, 1,
     "Min features for RANSAC"),
     FIELD_END
 };

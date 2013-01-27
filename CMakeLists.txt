@@ -34,3 +34,4 @@ add_executable(headtracker-ftnoir ${headtracker-ftnoir-SRC})
 target_link_libraries(headtracker-ftnoir headtracker)
 
 ADD_CUSTOM_TARGET(silly ALL)
+
