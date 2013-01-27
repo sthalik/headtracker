@@ -25,13 +25,15 @@ file(GLOB headtracker-demo-SRC
 add_executable(headtracker-demo ${headtracker-demo-SRC})
 target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
 
-file(GLOB headtracker-ftnoir-SRC
-    "ftnoir/*.h"
-    "ftnoir/*.cpp"
-)
+if(WIN32)
+    file(GLOB headtracker-ftnoir-SRC
+        "ftnoir/*.h"
+        "ftnoir/*.cpp"
+    )
 
-add_executable(headtracker-ftnoir ${headtracker-ftnoir-SRC})
-target_link_libraries(headtracker-ftnoir headtracker)
+    add_executable(headtracker-ftnoir ${headtracker-ftnoir-SRC})
+    target_link_libraries(headtracker-ftnoir headtracker)
+endif()
 
 ADD_CUSTOM_TARGET(silly ALL)
 
