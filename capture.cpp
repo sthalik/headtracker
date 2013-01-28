@@ -39,7 +39,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
-    int nsecs = 3;
+    int nsecs = 2;
     Mat tmp;
     for (int i = 0; i < nsecs; i++)
     {

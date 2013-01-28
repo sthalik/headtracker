@@ -8,8 +8,6 @@
 #include <math.h>
 #include <opencv2/opencv.hpp>
 #include "ht-api.h"
-#include "ht-internal.h"
-#include <opencv2/opencv.hpp>
 #include "flandmark_detector.h"
 using namespace std;
 using namespace cv;
