@@ -6,9 +6,6 @@ using namespace std;
 using namespace cv;
 
 bool ht_get_image(headtracker_t& ctx) {
-    if (!ctx.camera.isOpened())
-        return false;
-
     Mat tmp;
 
     if (!ctx.camera.read(ctx.color))
@@ -45,8 +42,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     {
         int ticks = ht_tickcount() / 1000;
         do {
-            if (!ctx->camera.isOpened())
-                break;
             if (!ctx->camera.read(tmp))
                 break;
         }
