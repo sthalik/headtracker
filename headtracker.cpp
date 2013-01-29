@@ -119,58 +119,64 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
             ht_project_model(*ctx, rvec, tvec, ctx->model);
             Rect roi = ht_get_roi(*ctx, ctx->model);
-            ht_get_face_histogram(*ctx, roi);
-            ht_track_features(*ctx);
-            ht_get_features(*ctx, ctx->model);
-            ctx->restarted = false;
-            float error = 0;
-            if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
+            if (roi.width > 5 && roi.height > 5)
             {
-                ctx->rvec = rvec;
-                ctx->tvec = tvec;
-                ctx->state = HT_STATE_TRACKING;
+                ht_get_face_histogram(*ctx, roi);
+                ht_track_features(*ctx);
+                ht_get_features(*ctx, ctx->model);
+                ctx->restarted = false;
+                float error = 0;
+                if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
+                {
+                    ctx->rvec = rvec;
+                    ctx->tvec = tvec;
+                    ctx->state = HT_STATE_TRACKING;
+                }
             }
 		}
 		break;
     } case HT_STATE_TRACKING: {
         Rect roi = ht_get_roi(*ctx, ctx->model);
-        ht_get_face_histogram(*ctx, roi);
-        //imshow("bw", ctx->grayscale);
-        ht_track_features(*ctx);
-        float error = 0;
-        Mat rvec, tvec;
-
-        if (ctx->has_pose) {
-            rvec = ctx->rvec;
-            tvec = ctx->tvec;
-        }
-
-        if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
-            error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
-            error < ctx->config.ransac_abs_max_mean_error)
+        if (roi.width > 5 && roi.height > 5)
         {
-            ctx->rvec = rvec;
-            ctx->tvec = tvec;
-            ctx->zoom_ratio = HT_STD_DEPTH * 69.0 / ctx->config.field_of_view / tvec.at<double>(2);
-            ht_project_model(*ctx, rvec, tvec, ctx->model);
-            ht_draw_model(*ctx, ctx->model);
-            //ht_draw_features(*ctx);
-            ctx->hz++;
-            int ticks = ht_tickcount() / 1000;
-            if (ctx->ticks_last_second != ticks) {
-                ctx->ticks_last_second = ticks;
-                ctx->hz_last_second = ctx->hz;
-                ctx->hz = 0;
+            ht_get_face_histogram(*ctx, roi);
+            //imshow("bw", ctx->grayscale);
+            ht_track_features(*ctx);
+            float error = 0;
+            Mat rvec, tvec;
+
+            if (ctx->has_pose) {
+                rvec = ctx->rvec;
+                tvec = ctx->tvec;
             }
-            if (ctx->hz_last_second != -1) {
-                string buf;
-                buf.append("Hz: ");
-                buf.append(SSTR(ctx->hz_last_second));
-                putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 1.25, Scalar(0, 255, 0), 2);
+
+            if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
+                error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
+                error < ctx->config.ransac_abs_max_mean_error)
+            {
+                ctx->rvec = rvec;
+                ctx->tvec = tvec;
+                ctx->zoom_ratio = HT_STD_DEPTH * 69.0 / ctx->config.field_of_view / tvec.at<double>(2);
+                ht_project_model(*ctx, rvec, tvec, ctx->model);
+                ht_draw_model(*ctx, ctx->model);
+                //ht_draw_features(*ctx);
+                ctx->hz++;
+                int ticks = ht_tickcount() / 1000;
+                if (ctx->ticks_last_second != ticks) {
+                    ctx->ticks_last_second = ticks;
+                    ctx->hz_last_second = ctx->hz;
+                    ctx->hz = 0;
+                }
+                if (ctx->hz_last_second != -1) {
+                    string buf;
+                    buf.append("Hz: ");
+                    buf.append(SSTR(ctx->hz_last_second));
+                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 1.25, Scalar(0, 255, 0), 2);
+                }
+                ht_get_next_features(*ctx, roi);
+                *euler = ht_matrix_to_euler(rvec, tvec);
+                euler->filled = true;
             }
-            ht_get_next_features(*ctx, roi);
-            *euler = ht_matrix_to_euler(rvec, tvec);
-			euler->filled = true;
         } else
 			ctx->state = HT_STATE_LOST;
 		break;
