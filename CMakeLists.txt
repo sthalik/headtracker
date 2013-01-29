@@ -1,7 +1,6 @@
 project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
-#FIND_PACKAGE(Qt COMPONENTS QtCore QtNetwork REQUIRED)
 FIND_PACKAGE( OpenCV REQUIRED )
 
 configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
@@ -15,20 +14,18 @@ file(GLOB headtracker-SRC
     "*.cpp"
 )
 add_library(${PROJECT_NAME} SHARED ${headtracker-SRC})
-#INCLUDE(${QT_USE_FILE})
-#ADD_DEFINITIONS(${QT_DEFINITIONS})
 
 if(WIN32)
     set(HT_SONAME dll)
 endif(WIN32)
 
-if(APPLE)
-    set(HT_SONAME dylib)
-endif(APPLE)
-
 if(UNIX)
     set(HT_SONAME so)
 endif(UNIX)
+
+if(APPLE)
+    set(HT_SONAME dylib)
+endif(APPLE)
 
 target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/libflandmark_shared.${HT_SONAME})
 file(GLOB headtracker-demo-SRC

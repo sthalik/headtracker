@@ -12,7 +12,6 @@
 using namespace std;
 using namespace cv;
 #define HT_PI 3.1415926535
-#define HT_STD_DEPTH 500
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus

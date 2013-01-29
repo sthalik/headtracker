@@ -71,8 +71,8 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         return;
 
     Rect roi = ht_get_roi(ctx, ctx.model);
-    float max_dist = max(1.5f, ctx.config.keypoint_distance * ctx.zoom_ratio);
-    float max_3dist = max(2.0f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
+    float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
+    float max_3dist = max(1.5f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
