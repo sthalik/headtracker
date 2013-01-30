@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 
 bool ht_get_image(headtracker_t& ctx) {
-	Mat large;
+    Mat large;
 
     if (!ctx.camera.read(large))
         return false;
@@ -17,16 +17,16 @@ bool ht_get_image(headtracker_t& ctx) {
 
         resize(large, tmp, newSize, 0, 0, CV_INTER_AREA);
 
-		tmp.copyTo(ctx.color);
-		tmp.deallocate();
+        tmp.copyTo(ctx.color);
+        tmp.deallocate();
     }
-	else {
-		large.copyTo(ctx.color);
-	}
+    else {
+        large.copyTo(ctx.color);
+    }
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     ctx.grayscale.copyTo(ctx.tmp);
     equalizeHist(ctx.grayscale, ctx.grayscale);
-	return true;
+    return true;
 }
 
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename)
