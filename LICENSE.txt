@@ -14,13 +14,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ------------------------------------------------------------------------
 
-Credit for the head mesh:
-
-Jed Frechette submitted the mesh as a pull request.
-I cannot thank him enough!
-
-------------------------------------------------------------------------
-
 The project links against the flandmark library, written by
 Michal Uřičář and Vojtěch Franc. The library is GPL3-licensed.
 
