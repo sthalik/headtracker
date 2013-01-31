@@ -33,29 +33,39 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     if (flandmark_detect(&c_image, bbox, ctx.flandmark_model, landmarks))
         return false;
 
-    Point2d left_eye = Point2d(
-            0.5 * (landmarks[2 * fl_left_eye_int] + landmarks[2 * fl_left_eye_ext]),
-            0.5 * (landmarks[2 * fl_left_eye_int + 1] + landmarks[2 * fl_left_eye_ext + 1]));
-    Point2d right_eye = Point2d(
-            0.5 * (landmarks[2 * fl_right_eye_int] + landmarks[2 * fl_right_eye_ext]),
-            0.5 * (landmarks[2 * fl_right_eye_int + 1] + landmarks[2 * fl_right_eye_ext + 1]));
+    Point2d left_eye_right = Point2d(
+            landmarks[2 * fl_left_eye_int],
+            landmarks[2 * fl_left_eye_int + 1]);
+    Point2d left_eye_left = Point2d(
+            landmarks[2 * fl_left_eye_ext],
+            landmarks[2 * fl_left_eye_ext + 1]);
+    Point2d right_eye_left = Point2d(
+            landmarks[2 * fl_right_eye_int],
+            landmarks[2 * fl_right_eye_int + 1]);
+    Point2d right_eye_right = Point2d(
+            landmarks[2 * fl_right_eye_ext],
+            landmarks[2 * fl_right_eye_ext + 1]);
     Point2d nose = Point2d(landmarks[2 * fl_nose], landmarks[2 * fl_nose + 1]);
     Point2d mouth = Point2d(
             0.5 * (landmarks[2 * fl_mouth_left] + landmarks[2 * fl_mouth_right]),
             0.5 * (landmarks[2 * fl_mouth_left + 1] + landmarks[2 * fl_mouth_right + 1]));
 
-    vector<Point2d> image_points(4);
-    vector<Point3d> object_points(4);
+    vector<Point2d> image_points(6);
+    vector<Point3d> object_points(6);
 
-    object_points[0] = Point3d(0, -0.76647, 20.82764);
-    object_points[1] = Point3d(-19.27703, -20.64882, -6.19045);
-    object_points[2] = Point3d(19.27703, -20.64882, -6.19045);
-    object_points[3] = Point3d(0, 28.53869, 14.18009);
+    object_points[0] = Point3d(0, 1.32022, 29.60955);
+    object_points[1] = Point3d(-15.29259, -21.24741, -7.07512);
+    object_points[2] = Point3d(15.29259, -21.24741, -7.07512);
+    object_points[3] = Point3d(0, 35.63974, -2.07301);
+    object_points[4] = Point3d(-38.97961, -23.75232, -12.03695);
+    object_points[5] = Point3d(38.97961, -23.75232, -12.03695);
 
     image_points[0] = nose;
-    image_points[1] = left_eye;
-    image_points[2] = right_eye;
+    image_points[1] = left_eye_right;
+    image_points[2] = right_eye_left;
     image_points[3] = mouth;
+    image_points[4] = left_eye_left;
+    image_points[5] = right_eye_right;
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;

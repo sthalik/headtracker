@@ -6,26 +6,27 @@ using namespace std;
 using namespace cv;
 
 bool ht_get_image(headtracker_t& ctx) {
-    if (!ctx.camera.isOpened())
+    Mat large;
+
+    if (!ctx.camera.read(large))
         return false;
 
-    Mat tmp;
+    if (large.cols > 320) {
+        Mat tmp;
+        Size newSize(320, 320 * large.rows / large.cols);
 
-    if (!ctx.camera.read(ctx.color))
-        return false;
+        resize(large, tmp, newSize, 0, 0, CV_INTER_AREA);
 
-    Size newSize(320, 320 * ctx.color.rows / ctx.color.cols);
-
-    resize(ctx.color, tmp, newSize, 0, 0, CV_INTER_AREA);
-
-    tmp.copyTo(ctx.color);
-    // XXX hack
-    tmp.deallocate();
-
+        tmp.copyTo(ctx.color);
+        tmp.deallocate();
+    }
+    else {
+        large.copyTo(ctx.color);
+    }
     cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
     ctx.grayscale.copyTo(ctx.tmp);
     equalizeHist(ctx.grayscale, ctx.grayscale);
-	return true;
+    return true;
 }
 
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename)
@@ -39,14 +40,12 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
-    int nsecs = 3;
+    int nsecs = 2;
     Mat tmp;
     for (int i = 0; i < nsecs; i++)
     {
         int ticks = ht_tickcount() / 1000;
         do {
-            if (!ctx->camera.isOpened())
-                break;
             if (!ctx->camera.read(tmp))
                 break;
         }
