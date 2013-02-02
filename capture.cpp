@@ -83,6 +83,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 }
 
 HT_API(void) ht_free_context(headtracker_t* ctx) {
+	ctx->camera.release();
 	if (ctx->keypoint_uv)
 		delete[] ctx->keypoint_uv;
 	if (ctx->model.triangles)
