@@ -46,26 +46,31 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
             landmarks[2 * fl_right_eye_ext],
             landmarks[2 * fl_right_eye_ext + 1]);
     Point2d nose = Point2d(landmarks[2 * fl_nose], landmarks[2 * fl_nose + 1]);
-    Point2d mouth = Point2d(
-            0.5 * (landmarks[2 * fl_mouth_left] + landmarks[2 * fl_mouth_right]),
-            0.5 * (landmarks[2 * fl_mouth_left + 1] + landmarks[2 * fl_mouth_right + 1]));
+    Point2d mouth_left = Point2d(
+            landmarks[2 * fl_mouth_left],
+            landmarks[2 * fl_mouth_left + 1]);
+    Point2d mouth_right = Point2d(
+			landmarks[2 * fl_mouth_right],
+			landmarks[2 * fl_mouth_right + 1]);
 
     vector<Point2d> image_points(6);
     vector<Point3d> object_points(6);
 
-    object_points[0] = Point3d(0, 1.32022, 29.60955);
-    object_points[1] = Point3d(-15.29259, -21.24741, -7.07512);
-    object_points[2] = Point3d(15.29259, -21.24741, -7.07512);
-    object_points[3] = Point3d(0, 35.63974, -2.07301);
-    object_points[4] = Point3d(-38.97961, -23.75232, -12.03695);
-    object_points[5] = Point3d(38.97961, -23.75232, -12.03695);
+	object_points[0] = Point3d(0, 0.002312, 0.13154);
+	object_points[1] = Point3d(-0.01796, -0.03475, 0.08638);
+	object_points[2] = Point3d(0.01796, -0.03475, 0.08638);
+	object_points[3] = Point3d(-0.04810, -0.03560, 0.08034);
+	object_points[4] = Point3d(0.04810, -0.03935, 0.09342);
+	//object_points[5] = Point3d(-0.02963, 0.03935, 0.09342);
+	//object_points[6] = Point3d(0.02963, 0.03935, 0.09342);
+	object_points[5] = Point3d(0, 0.03935, 0.09342);
 
     image_points[0] = nose;
     image_points[1] = left_eye_right;
     image_points[2] = right_eye_left;
-    image_points[3] = mouth;
-    image_points[4] = left_eye_left;
-    image_points[5] = right_eye_right;
+    image_points[3] = left_eye_left;
+    image_points[4] = right_eye_right;
+	image_points[5] = Point2d((mouth_right.x + mouth_left.x) * 0.5, (mouth_right.y + mouth_left.y) * 0.5);
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;

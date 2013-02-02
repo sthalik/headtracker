@@ -73,9 +73,9 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
         ret.rotz = atan2(-rotation_matrix.at<double>(0, 1), rotation_matrix.at<double>(0 ,0));
     }
 
-    ret.tx = tvec.at<double>(0, 0) / 10;
-    ret.ty = tvec.at<double>(0, 1) / 10;
-    ret.tz = tvec.at<double>(0, 2) / 10;
+    ret.tx = tvec.at<double>(0, 0) * 100;
+    ret.ty = tvec.at<double>(0, 1) * 100;
+    ret.tz = tvec.at<double>(0, 2) * 100;
 
     return ret;
 }
@@ -156,7 +156,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             {
                 ctx->rvec = rvec;
                 ctx->tvec = tvec;
-                ctx->zoom_ratio = ctx->focal_length_w * 1.21 / tvec.at<double>(2);
+                ctx->zoom_ratio = ctx->focal_length_w * 1.5 / (tvec.at<double>(2) * 10);
+				//printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 ht_project_model(*ctx, rvec, tvec, ctx->model);
                 ht_draw_model(*ctx, ctx->model);
                 //ht_draw_features(*ctx);
