@@ -156,7 +156,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             {
                 ctx->rvec = rvec;
                 ctx->tvec = tvec;
-                ctx->zoom_ratio = ctx->focal_length_w * 1.5 / (tvec.at<double>(2) * 10);
+                ctx->zoom_ratio = ctx->focal_length_w * 0.0015 / tvec.at<double>(2);
 				//printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 ht_project_model(*ctx, rvec, tvec, ctx->model);
                 ht_draw_model(*ctx, ctx->model);
