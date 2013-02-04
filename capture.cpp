@@ -18,7 +18,9 @@ bool ht_get_image(headtracker_t& ctx) {
         resize(large, tmp, newSize, 0, 0, CV_INTER_AREA);
 
         tmp.copyTo(ctx.color);
-        tmp.deallocate();
+	// XXX if you notice heavy memory leaks, uncomment this!
+	// only happens on OpenCV builds after 2.4.3
+        //tmp.deallocate();
     }
     else {
         large.copyTo(ctx.color);
