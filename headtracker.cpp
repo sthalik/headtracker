@@ -111,7 +111,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
             //ctx->focal_length_h = ctx->focal_length_w;
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
-                * ctx->grayscale.cols / sqrt(pow(ctx->grayscale.rows, 2.0) + pow(ctx->grayscale.cols, 2.0))
+                * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
             //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
