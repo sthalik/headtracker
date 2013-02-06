@@ -43,7 +43,3 @@ target_link_libraries(headtracker-ftnoir headtracker)
 if(NOT WIN32)
 	target_link_libraries(headtracker-ftnoir rt)
 endif()
-
-
-ADD_CUSTOM_TARGET(silly ALL)
-

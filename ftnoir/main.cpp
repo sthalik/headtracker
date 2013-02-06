@@ -3,6 +3,7 @@
 #include <ht-api.h>
 #include "headtracker-ftnoir.h"
 #include "compat.h"
+#include <cstdio>
 
 int main(void)
 {

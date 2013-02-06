@@ -6,6 +6,12 @@
  */
 
 #include "compat.h"
+#include <limits.h>
+
+#ifndef NAME_MAX
+#	include <stdio.h>
+#	define NAME_MAX FILENAME_MAX
+#endif
 
 #if defined(_WIN32) || defined(__WIN32)
 

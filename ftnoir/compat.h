@@ -13,7 +13,6 @@
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <unistd.h>
 #include <sys/types.h>
 #endif
