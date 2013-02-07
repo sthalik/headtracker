@@ -56,23 +56,16 @@ static void ht_get_face_histogram(headtracker_t& ctx, const Rect roi) {
 static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
     ht_result_t ret;
     Mat rotation_matrix = Mat::zeros(3, 3, CV_64FC1);
+    
+    Mat junk1(3, 3, CV_64FC1), junk2(3, 3, CV_64FC1);
 
     Rodrigues(rvec, rotation_matrix);
-
-    if (rotation_matrix.at<double>(0, 2) > 0.9998) {
-        ret.rotx = HT_PI/2.0;
-        ret.roty = atan2(rotation_matrix.at<double>(1, 0), rotation_matrix.at<double>(1, 1));
-        ret.rotz = 0.0f;
-    } else if (rotation_matrix.at<double>(0, 2) < -0.9998) {
-        ret.rotx = HT_PI/-2.0;
-        ret.roty = -atan2(rotation_matrix.at<double>(1, 0), rotation_matrix.at<double>(1, 1));
-        ret.rotz = 0.0f;
-    } else {
-        ret.rotx = asin(rotation_matrix.at<double>(0, 2));
-        ret.roty = -atan2(rotation_matrix.at<double>(1, 2), rotation_matrix.at<double>(2, 2));
-        ret.rotz = atan2(-rotation_matrix.at<double>(0, 1), rotation_matrix.at<double>(0 ,0));
-    }
-
+        
+    Vec3d foo = cv::RQDecomp3x3(rotation_matrix, junk1, junk2);
+    
+    ret.rotx = foo[1];
+    ret.roty = foo[0];
+    ret.rotz = foo[2];
     ret.tx = tvec.at<double>(0, 0) * 100;
     ret.ty = tvec.at<double>(0, 1) * 100;
     ret.tz = tvec.at<double>(0, 2) * 100;
