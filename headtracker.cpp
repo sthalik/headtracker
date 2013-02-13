@@ -193,7 +193,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	}
 
     // XXX hack
-    if (euler->filled && (euler->tz < 15 || euler->tz < 300))
+    if (euler->filled && (euler->tz < 15 || euler->tz > 300))
     {
         ctx->state = HT_STATE_LOST;
         euler->filled = false;
