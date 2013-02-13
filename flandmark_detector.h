@@ -11,7 +11,14 @@
 #ifndef __FLANDMARK_DETECTOR_H_
 #define __FLANDMARK_DETECTOR_H_
 
-#include <stdint.h>
+#ifdef _MSC_VER
+
+typedef unsigned char uint8_t;
+typedef unsigned __int32 uint32_t;
+
+#else
+#	include <stdint.h>
+#endif
 #include <cv.h>
 #include <cvaux.h>
 
