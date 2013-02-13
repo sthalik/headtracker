@@ -60,7 +60,7 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
     Mat junk1(3, 3, CV_64FC1), junk2(3, 3, CV_64FC1);
 
     Rodrigues(rvec, rotation_matrix);
-        
+
     Vec3d foo = cv::RQDecomp3x3(rotation_matrix, junk1, junk2);
     
     ret.rotx = foo[1];
@@ -193,7 +193,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	}
 
     // XXX hack
-    if (euler->filled && euler->tz < 15)
+    if (euler->filled && (euler->tz < 15 || euler->tz < 300))
     {
         ctx->state = HT_STATE_LOST;
         euler->filled = false;
