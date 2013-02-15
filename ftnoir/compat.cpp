@@ -6,6 +6,7 @@
  */
 
 #include "compat.h"
+#include <stdio.h>
 #include <limits.h>
 
 #ifndef NAME_MAX
@@ -56,6 +57,7 @@ PortableLockedShm::PortableLockedShm(const char *shmName, const char *mutexName,
     shm_filename[0] = '/';
     strncpy(shm_filename+1, shmName, NAME_MAX-2);
     shm_filename[NAME_MAX-1] = '\0';
+    sprintf(shm_filename + strlen(shm_filename), "%ld\n", (long) getuid());
 
     //(void) shm_unlink(shm_filename);
 
