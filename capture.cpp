@@ -42,16 +42,18 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
-    int nsecs = 2;
-    Mat tmp;
-    for (int i = 0; i < nsecs; i++)
-    {
-        int ticks = ht_tickcount() / 1000;
-        do {
-            if (!ctx->camera.read(tmp))
-                break;
+    if (filename == NULL) {
+        int nsecs = 2;
+        Mat tmp;
+        for (int i = 0; i < nsecs; i++)
+        {
+            int ticks = ht_tickcount() / 500;
+            do {
+                if (!ctx->camera.read(tmp))
+                    break;
+            }
+            while (ticks == ht_tickcount() / 500);
         }
-        while (ticks == ht_tickcount() / 1000);
     }
     ctx->head_classifier = CascadeClassifier("haarcascade_frontalface_alt2.xml");
 
@@ -68,12 +70,14 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 		ctx->keypoints[i].idx = -1;
     ctx->focal_length_w = -1;
     ctx->focal_length_h = -1;
-	if (ctx->config.force_width)
-        ctx->camera.set(CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
-	if (ctx->config.force_height)
-        ctx->camera.set(CV_CAP_PROP_FRAME_HEIGHT, ctx->config.force_height);
-    if (ctx->config.force_fps)
-        ctx->camera.set(CV_CAP_PROP_FPS, ctx->config.force_fps);
+    if (!filename) {
+        if (ctx->config.force_width)
+            ctx->camera.set(CV_CAP_PROP_FRAME_WIDTH, ctx->config.force_width);
+        if (ctx->config.force_height)
+            ctx->camera.set(CV_CAP_PROP_FRAME_HEIGHT, ctx->config.force_height);
+        if (ctx->config.force_fps)
+            ctx->camera.set(CV_CAP_PROP_FPS, ctx->config.force_fps);
+    }
     ctx->pyr_a = new vector<Mat>();
     ctx->pyr_b = new vector<Mat>();
     ctx->hz = 0;
