@@ -12,15 +12,8 @@ bool ht_get_image(headtracker_t& ctx) {
         return false;
 
     if (large.cols > 320) {
-        Mat tmp;
         Size newSize(320, 320 * large.rows / large.cols);
-
-        resize(large, tmp, newSize, 0, 0, CV_INTER_AREA);
-
-        tmp.copyTo(ctx.color);
-	// XXX if you notice heavy memory leaks, uncomment this!
-	// only happens on OpenCV builds after 2.4.3
-        //tmp.deallocate();
+        resize(large, ctx.color, newSize, 0, 0, CV_INTER_AREA);
     }
     else {
         large.copyTo(ctx.color);
