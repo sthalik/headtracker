@@ -51,7 +51,7 @@ static const ht_reflection_t ht_reflection_info[] = {
     ""),
     F(ransac_max_inlier_error, float, 8, 2, 50,
     ""),
-    F(ransac_max_mean_error, float, 5, 2, 50,
+    F(ransac_max_mean_error, float, 6.5, 2, 50,
     ""),
     F(ransac_abs_max_mean_error, float, 6, 2, 50,
     ""),
