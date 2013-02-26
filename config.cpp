@@ -19,7 +19,7 @@ DEFINE_UNION_INITIALIZER(bool, i)
 #define FIELD_END { NULL, -1, cfg_type_int, ht_cfg_int_to_union(0), ht_cfg_int_to_union(0), ht_cfg_int_to_union(0), NULL }
 
 static const ht_reflection_t ht_reflection_info[] = {
-    F(classification_delay, float, 2000, 200, 10000,
+    F(classification_delay, float, 1000, 200, 10000,
     "Delay between two Haar classifications at the very start of tracking, until enough features are tracked."),
     F(field_of_view, float, 52, 40, 180,
     "Camera field of view in degrees."),
