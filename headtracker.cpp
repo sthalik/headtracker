@@ -108,7 +108,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 * HT_PI / 180.0);
             //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
-        //ht_draw_features(*ctx);
+        ht_draw_features(*ctx);
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
@@ -151,11 +151,14 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             {
                 ctx->rvec = rvec;
                 ctx->tvec = tvec;
-                ctx->zoom_ratio = ctx->focal_length_w * 0.0015 / tvec.at<double>(2);
-				//printf("zoom_ratio = %f\n", ctx->zoom_ratio);
+                ctx->zoom_ratio = 320.0 / ctx->grayscale.cols * ctx->focal_length_w * 0.0015 / tvec.at<double>(2);
+                if (ctx->config.debug) {
+    				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
+                }
                 ht_project_model(*ctx, rvec, tvec, ctx->model);
                 ht_draw_model(*ctx, ctx->model);
-                //ht_draw_features(*ctx);
+                if (ctx->config.debug)
+                    ht_draw_features(*ctx);
                 ctx->hz++;
                 int ticks = ht_tickcount() / 1000;
                 if (ctx->ticks_last_second != ticks) {
