@@ -77,6 +77,7 @@ typedef struct ht_context {
     Mat rvec, tvec;
     bool has_pose;
     FLANDMARK_Model* flandmark_model;
+    int dropped;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);

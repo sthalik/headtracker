@@ -75,6 +75,10 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
+    int val = ctx.dropped++;
+    ctx.dropped %= 4;
+    if (val != 0)
+        return;
     Mat rvec, tvec;
     //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
     if (!ht_fl_estimate(ctx, ctx.tmp, roi, rvec, tvec))
@@ -189,6 +193,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;
         ctx->hz = 0;
+        ctx->dropped = 0;
 		break;
 	}
 	default:
