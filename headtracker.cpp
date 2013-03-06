@@ -112,7 +112,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 * HT_PI / 180.0);
             //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
-        ht_draw_features(*ctx);
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
