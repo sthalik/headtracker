@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 2.8)
 
 FIND_PACKAGE( OpenCV REQUIRED )
 
+if(OpenCV_FOUND)
+	include_directories("${OpenCV_DIR}/include")
+	include_directories("${OpenCV_CONFIG_PATH}/include")
+endif()
+
 configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/haarcascade_frontalface_alt2.xml ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/flandmark_model.dat ${CMAKE_BINARY_DIR} COPYONLY)
