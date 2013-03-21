@@ -76,7 +76,7 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     int val = ctx.dropped++;
-    ctx.dropped %= 10;
+    ctx.dropped %= 7;
     if (val != 0)
         return;
     Mat rvec, tvec;
