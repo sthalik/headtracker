@@ -13,7 +13,7 @@ bool ht_get_image(headtracker_t& ctx) {
 
 #if 1
     if (large.cols > 320) {
-        Size newSize(320, 320 * large.rows / large.cols);
+        Size newSize(large.cols * 3/4, large.rows * 3/4);
         resize(large, ctx.color, newSize, 0, 0, CV_INTER_AREA);
     }
     else {
