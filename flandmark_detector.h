@@ -19,8 +19,8 @@ typedef unsigned __int32 uint32_t;
 #else
 #	include <stdint.h>
 #endif
-#include <cv.h>
-#include <cvaux.h>
+#include <opencv/cv.h>
+#include <opencv/cvaux.h>
 
 // index row-order matrices
 #define INDEX(ROW, COL, NUM_ROWS) ((COL)*(NUM_ROWS)+(ROW))
