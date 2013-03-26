@@ -4,11 +4,15 @@ using namespace std;
 using namespace cv;
 
 void ht_draw_features(headtracker_t& ctx) {
+    int j = 0;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
             circle(ctx.color, Point(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
+            j++;
         }
     }
+    if (ctx.config.debug)
+        fprintf(stderr, "%d features\n", j);
 }
 
 void ht_track_features(headtracker_t& ctx) {
