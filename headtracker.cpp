@@ -34,7 +34,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect = Rect(min_x-width*1/2, min_y-height*1/4, width*2, height*7/4);
+    Rect rect = Rect(min_x-width*3/10, min_y-height*3/10, width*16/10, height*16/10);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -44,15 +44,13 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
         rect.width = ctx.grayscale.cols - rect.x;
     if (rect.height + rect.y > ctx.grayscale.rows)
         rect.height = ctx.grayscale.rows - rect.y;
-    Scalar color(255);
-    rectangle(ctx.color, rect, color, 3);
+    if (ctx.config.debug)
+    {
+        Scalar color(255);
+        rectangle(ctx.color, rect, color, 3);
+    }
 
     return rect;
-}
-
-static void ht_get_face_histogram(headtracker_t& ctx, const Rect roi) {
-    equalizeHist(ctx.tmp(roi), ctx.face_histogram);
-    ctx.face_histogram.copyTo(ctx.grayscale(roi));
 }
 
 static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
@@ -68,9 +66,9 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
     ret.rotx = foo[1];
     ret.roty = foo[0];
     ret.rotz = foo[2];
-    ret.tx = tvec.at<double>(0, 0) * 100;
-    ret.ty = tvec.at<double>(0, 1) * 100;
-    ret.tz = tvec.at<double>(0, 2) * 100;
+    ret.tx = tvec.at<double>(0, 0);
+    ret.ty = tvec.at<double>(0, 1);
+    ret.tz = tvec.at<double>(0, 2);
 
     return ret;
 }
@@ -100,13 +98,18 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     delete[] tmp_model.rotation;
 }
 
+static void ht_get_face_histogram(headtracker_t& ctx, const Rect roi) {
+    equalizeHist(ctx.tmp(roi), ctx.face_histogram);
+    ctx.face_histogram.copyTo(ctx.grayscale(roi));
+}
+
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     euler->filled = false;
 
 	if (!ht_get_image(*ctx))
 		return false;
 
-	switch (ctx->state) {
+    switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
             ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
@@ -114,7 +117,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
                 * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
-            //fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
+            if (ctx->config.debug)
+                fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
@@ -143,8 +147,12 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         Rect roi = ht_get_roi(*ctx, ctx->model);
         if (roi.width > 5 && roi.height > 5)
         {
+            if (ctx->config.debug)
+            {
+                imshow("bw", ctx->grayscale);
+                waitKey(1);
+            }
             ht_get_face_histogram(*ctx, roi);
-            //imshow("bw", ctx->grayscale);
             ht_track_features(*ctx);
             float error = 0;
             Mat rvec, tvec;
@@ -160,7 +168,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             {
                 ctx->rvec = rvec;
                 ctx->tvec = tvec;
-                ctx->zoom_ratio = 320.0 / ctx->grayscale.cols * ctx->focal_length_w * 0.0015 / tvec.at<double>(2);
+                ctx->zoom_ratio = 320.0 / ctx->grayscale.cols * ctx->focal_length_w * 0.15 / tvec.at<double>(2);
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
@@ -201,16 +209,10 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         ctx->dropped = 0;
 		break;
 	}
+
 	default:
 		return false;
 	}
-
-    // XXX hack
-    if (euler->filled && (euler->tz < 15 || euler->tz > 300))
-    {
-        ctx->state = HT_STATE_LOST;
-        euler->filled = false;
-    }
 
 	return true;
 }
