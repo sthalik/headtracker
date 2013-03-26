@@ -142,6 +142,16 @@ model_t ht_load_model(const char* filename) {
 		if (ret != 9)
 			throw new exception();
 
+        triangle.p1.x *= 100;
+        triangle.p1.y *= 100;
+        triangle.p1.z *= 100;
+        triangle.p2.x *= 100;
+        triangle.p2.y *= 100;
+        triangle.p2.z *= 100;
+        triangle.p3.x *= 100;
+        triangle.p3.y *= 100;
+        triangle.p3.z *= 100;
+
         triangle.p1.y *= -1;
         triangle.p2.y *= -1;
         triangle.p3.y *= -1;

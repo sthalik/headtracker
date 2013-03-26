@@ -56,13 +56,20 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2d> image_points(7);
     vector<Point3d> object_points(7);
 
-	object_points[0] = Point3d(0, 0.002312, 0.13154);
-	object_points[1] = Point3d(-0.01796, -0.03475, 0.08638);
-	object_points[2] = Point3d(0.01796, -0.03475, 0.08638);
+    object_points[0] = Point3d(0, 0.002312, 0.13154);
+    object_points[1] = Point3d(-0.01796, -0.03475, 0.08638);
+    object_points[2] = Point3d(0.01796, -0.03475, 0.08638);
     object_points[3] = Point3d(-0.04810, -0.03560, 0.08034);
     object_points[4] = Point3d(0.04810, -0.03560, 0.08034);
-	object_points[5] = Point3d(-0.02963, 0.03935, 0.09342);
-	object_points[6] = Point3d(0.02963, 0.03935, 0.09342);
+    object_points[5] = Point3d(-0.02963, 0.03935, 0.09342);
+    object_points[6] = Point3d(0.02963, 0.03935, 0.09342);
+
+    for (int i = 0; i < object_points.size(); i++)
+    {
+        object_points[i].x *= 100;
+        object_points[i].y *= 100;
+        object_points[i].z *= 100;
+    }
 
     image_points[0] = nose;
     image_points[1] = left_eye_right;
@@ -86,7 +93,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
 
-    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, CV_ITERATIVE))
+    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, HT_PNP_TYPE))
         return false;
 
     rvec_ = rvec;
