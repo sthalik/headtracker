@@ -12,7 +12,7 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
 }
 
-Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
+Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
     float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
@@ -34,7 +34,7 @@ Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect = Rect(min_x-width*1/3, min_y-height*1/3, width*5/3, height*5/3);
+    Rect rect = Rect(min_x-width*1/2, min_y-height*1/4, width*2, height*7/4);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -44,6 +44,8 @@ Rect ht_get_roi(const headtracker_t &ctx, model_t &model) {
         rect.width = ctx.grayscale.cols - rect.x;
     if (rect.height + rect.y > ctx.grayscale.rows)
         rect.height = ctx.grayscale.rows - rect.y;
+    Scalar color(255);
+    rectangle(ctx.color, rect, color, 3);
 
     return rect;
 }
@@ -75,10 +77,12 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
-    int val = ctx.dropped++;
-    ctx.dropped %= 5;
-    if (val != 0)
-        return;
+    if (ctx.state = HT_STATE_TRACKING) {
+        int val = ctx.dropped++;
+        ctx.dropped %= 4;
+        if (val != 0)
+            return;
+    }
     Mat rvec, tvec;
     //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
     if (!ht_fl_estimate(ctx, ctx.tmp, roi, rvec, tvec))
@@ -122,6 +126,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_face_histogram(*ctx, roi);
                 ht_track_features(*ctx);
                 ht_get_features(*ctx, ctx->model);
+                if (ctx->config.debug)
+                    ht_draw_features(*ctx);
                 ctx->restarted = false;
                 float error = 0;
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
