@@ -61,8 +61,8 @@ file(GLOB headtracker-demo-SRC
     "demo/*.cpp"
 )
 
-add_executable(headtracker-demo ${headtracker-demo-SRC})
-target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
+#add_executable(headtracker-demo ${headtracker-demo-SRC})
+#target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
 file(GLOB headtracker-ftnoir-SRC
 	"ftnoir/*.cpp"
 )
