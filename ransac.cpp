@@ -52,10 +52,10 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        tvec2,
                        ctx.has_pose,
                        ctx.config.ransac_num_iters,
-                       ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
-                       object_points.size() * ctx.config.ransac_min_features,
+                       std::max(2.0f, ctx.config.ransac_max_inlier_error * ctx.zoom_ratio),
+                       std::max(4.0f, object_points.size() * ctx.config.ransac_min_features),
                        inliers,
-                       CV_ITERATIVE);
+                       HT_PNP_TYPE);
 
         if (inliers.size() >= 4)
         {
@@ -96,7 +96,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                 image_points.push_back(ctx.keypoints[i].position);
             }
 
-            solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, CV_ITERATIVE);
+            solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
 
             ctx.has_pose = true;
 

@@ -13,6 +13,8 @@ using namespace std;
 using namespace cv;
 #define HT_PI 3.1415926535
 
+#define HT_PNP_TYPE CV_EPNP
+
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
 	HT_STATE_TRACKING = 1, // ransac consensus established
@@ -72,8 +74,7 @@ typedef struct ht_context {
     int ticks_last_second;
     int hz;
     int hz_last_second;
-    Mat face_histogram;
-    Mat tmp;
+    Mat tmp, face_histogram;
     Mat rvec, tvec;
     bool has_pose;
     FLANDMARK_Model* flandmark_model;
