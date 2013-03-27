@@ -34,7 +34,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect(min_x-width*4/10, min_y-height*15/100, width*18/10, height*13/10);
+    Rect rect(min_x-width*2/10, min_y-height*2/10, width*14/10, height*14/10);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -46,9 +46,28 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
         rect.height = ctx.grayscale.rows - rect.y;
     if (ctx.config.debug)
     {
-        Scalar color(255);
-        rectangle(ctx.color, rect, color, 3);
+        Scalar color(255, 0, 0);
+        rectangle(ctx.color, rect, color, 2);
     }
+
+    Rect rect2(min_x-width*3/10, min_y-height*3/10, width*16/10, height*16/10);
+
+    if (rect2.x < 0)
+        rect2.x = 0;
+    if (rect2.y < 0)
+        rect2.y = 0;
+    if (rect2.width + rect2.x > ctx.grayscale.cols)
+        rect2.width = ctx.grayscale.cols - rect2.x;
+    if (rect2.height + rect2.y > ctx.grayscale.rows)
+        rect2.height = ctx.grayscale.rows - rect2.y;
+    if (ctx.config.debug)
+    {
+        Scalar color(0, 255, 0);
+        rectangle(ctx.color, rect2, color, 2);
+    }
+
+    Mat foo = ctx.tmp(rect2);
+    equalizeHist(foo, ctx.grayscale(rect2));
 
     return rect;
 }
@@ -98,11 +117,6 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     delete[] tmp_model.rotation;
 }
 
-static void ht_get_face_histogram(headtracker_t& ctx, const Rect roi) {
-    equalizeHist(ctx.tmp(roi), ctx.face_histogram);
-    ctx.face_histogram.copyTo(ctx.grayscale(roi));
-}
-
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     euler->filled = false;
 
@@ -127,7 +141,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             Rect roi = ht_get_roi(*ctx, ctx->model);
             if (roi.width > 5 && roi.height > 5)
             {
-                ht_get_face_histogram(*ctx, roi);
                 ht_track_features(*ctx);
                 ht_get_features(*ctx, ctx->model);
                 if (ctx->config.debug)
@@ -147,12 +160,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         Rect roi = ht_get_roi(*ctx, ctx->model);
         if (roi.width > 5 && roi.height > 5)
         {
+#if 0
             if (ctx->config.debug)
             {
                 imshow("bw", ctx->grayscale);
                 waitKey(1);
             }
-            ht_get_face_histogram(*ctx, roi);
+#endif
             ht_track_features(*ctx);
             float error = 0;
             Mat rvec, tvec;

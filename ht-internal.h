@@ -13,7 +13,7 @@ using namespace std;
 using namespace cv;
 #define HT_PI 3.1415926535
 
-#define HT_PNP_TYPE CV_EPNP
+#define HT_PNP_TYPE CV_ITERATIVE
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
@@ -59,6 +59,7 @@ typedef struct ht_context {
     VideoCapture camera;
     Mat grayscale;
     Mat color;
+    Mat tmp;
     CascadeClassifier head_classifier;
 	int ticks_last_classification;
 	int ticks_last_features;
@@ -74,7 +75,6 @@ typedef struct ht_context {
     int ticks_last_second;
     int hz;
     int hz_last_second;
-    Mat tmp, face_histogram;
     Mat rvec, tvec;
     bool has_pose;
     FLANDMARK_Model* flandmark_model;

@@ -11,9 +11,9 @@ bool ht_get_image(headtracker_t& ctx) {
     if (!ctx.camera.read(large))
         return false;
 
-#if 1
+#if 0
     if (large.cols > 320) {
-        Size newSize(large.cols * 3/4, large.rows * 3/4);
+        Size newSize(large.cols /2, large.rows /2);
         resize(large, ctx.color, newSize, 0, 0, CV_INTER_AREA);
     }
     else {
