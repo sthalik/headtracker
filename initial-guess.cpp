@@ -60,7 +60,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     object_points[1] = Point3d(-0.01796, -0.03475, 0.08638);
     object_points[2] = Point3d(0.01796, -0.03475, 0.08638);
     object_points[3] = Point3d(-0.04810, -0.03560, 0.08034);
-    object_points[4] = Point3d(0.04810, -0.03935, 0.09342);
+    object_points[4] = Point3d(0.04810, -0.03560, 0.08034);
     object_points[5] = Point3d(-0.02963, 0.03935, 0.09342);
     object_points[6] = Point3d(0.02963, 0.03935, 0.09342);
     for (int i = 0; i < object_points.size(); i++)

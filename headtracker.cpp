@@ -34,7 +34,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect(min_x-width*2/10, min_y-height*2/10, width*14/10, height*14/10);
+    Rect rect(min_x-width*36/100, min_y-height*30/100, width*172/100, height*136/100);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -50,7 +50,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
         rectangle(ctx.color, rect, color, 2);
     }
 
-    Rect rect2(min_x-width*3/10, min_y-height*3/10, width*16/10, height*16/10);
+    Rect rect2(min_x-width*50/100, min_y-height*5/10, width*200/100, height*20/10);
 
     if (rect2.x < 0)
         rect2.x = 0;
@@ -138,15 +138,18 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
 		{
             ht_project_model(*ctx, rvec, tvec, ctx->model);
+            ht_draw_model(*ctx, ctx->model);
             Rect roi = ht_get_roi(*ctx, ctx->model);
             if (roi.width > 5 && roi.height > 5)
             {
                 ht_track_features(*ctx);
+                ctx->zoom_ratio = 1.2;
                 ht_get_features(*ctx, ctx->model);
                 if (ctx->config.debug)
                     ht_draw_features(*ctx);
                 ctx->restarted = false;
                 float error = 0;
+                ctx->zoom_ratio = 100.0;
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
                 {
                     ctx->rvec = rvec;
@@ -176,8 +179,10 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 tvec = ctx->tvec;
             }
 
+            float zoom = ctx->zoom_ratio;
+
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
-                error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
+                error < ctx->config.ransac_max_mean_error * zoom &&
                 error < ctx->config.ransac_abs_max_mean_error)
             {
                 ctx->rvec = rvec;
@@ -215,7 +220,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	} case HT_STATE_LOST: {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->restarted = true;
-		ctx->zoom_ratio = 1.0f;
+        ctx->zoom_ratio = 0.7;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;

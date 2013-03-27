@@ -35,7 +35,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         image_points.push_back(ctx.keypoints[i].position);
     }
 
-    if (object_points.size() >= 4)
+    if (object_points.size() >= 10)
     {
         if (ctx.has_pose) {
             rvec = ctx.rvec;
