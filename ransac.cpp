@@ -27,7 +27,6 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
     vector<Point3f> object_points;
     vector<Point2f> image_points;
-    vector<int> inliers;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -37,6 +36,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
     if (object_points.size() >= 10)
     {
+        vector<int> inliers(image_points.size());
         if (ctx.has_pose) {
             rvec = ctx.rvec;
             tvec = ctx.tvec;
@@ -50,10 +50,10 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        dist_coeffs,
                        rvec2,
                        tvec2,
-                       ctx.has_pose,
+                       false,
                        ctx.config.ransac_num_iters,
                        std::max(2.0f, ctx.config.ransac_max_inlier_error * ctx.zoom_ratio),
-                       std::max(4.0f, object_points.size() * ctx.config.ransac_min_features),
+                       object_points.size() * ctx.config.ransac_min_features,
                        inliers,
                        HT_PNP_TYPE);
 
@@ -96,14 +96,15 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                 image_points.push_back(ctx.keypoints[i].position);
             }
 
-            solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
+            if (object_points.size() >= 10)
+            {
+                solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
 
-            ctx.has_pose = true;
+                rvec_ = rvec;
+                tvec_ = tvec;
 
-            rvec_ = rvec;
-            tvec_ = tvec;
-
-            return true;
+                return true;
+            }
         }
     }
 

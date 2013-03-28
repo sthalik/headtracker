@@ -5,8 +5,8 @@ using namespace cv;
 
 #include <string>
 
-#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
+#define SSTR( x ) ((std::ostringstream &) ( \
+        ( std::ostringstream() << std::dec << x ) )).str()
 
 HT_API(void) ht_reset(headtracker_t* ctx) {
     ctx->state = HT_STATE_LOST;
@@ -34,7 +34,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     int width = max_x - min_x;
     int height = max_y - min_y;
 
-    Rect rect(min_x-width*36/100, min_y-height*30/100, width*172/100, height*136/100);
+    Rect rect(min_x-width*31/100, min_y-height*30/100, width*162/100, height*136/100);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -96,7 +96,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state = HT_STATE_TRACKING) {
         int val = ctx.dropped++;
-        ctx.dropped %= 4;
+        ctx.dropped %= 3;
         if (val != 0)
             return;
     }
@@ -140,21 +140,19 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
             Rect roi = ht_get_roi(*ctx, ctx->model);
+            float error = 1e4;
             if (roi.width > 5 && roi.height > 5)
             {
                 ht_track_features(*ctx);
-                ctx->zoom_ratio = 1.2;
                 ht_get_features(*ctx, ctx->model);
                 if (ctx->config.debug)
                     ht_draw_features(*ctx);
-                ctx->restarted = false;
-                float error = 0;
-                ctx->zoom_ratio = 100.0;
-                if (ht_ransac_best_indices(*ctx, error, rvec, tvec))
-                {
+                if (ht_ransac_best_indices(*ctx, error, rvec, tvec)) {
+                    ctx->restarted = false;
                     ctx->rvec = rvec;
                     ctx->tvec = tvec;
                     ctx->state = HT_STATE_TRACKING;
+                    ctx->has_pose = true;
                 }
             }
 		}
@@ -179,10 +177,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 tvec = ctx->tvec;
             }
 
-            float zoom = ctx->zoom_ratio;
-
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
-                error < ctx->config.ransac_max_mean_error * zoom &&
+                error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error)
             {
                 ctx->rvec = rvec;
@@ -220,7 +216,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 	} case HT_STATE_LOST: {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->restarted = true;
-        ctx->zoom_ratio = 0.7;
+        ctx->zoom_ratio = 1.25;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;
