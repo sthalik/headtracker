@@ -25,6 +25,12 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     tvec2.at<double> (0, 0) = 1.0;
     tvec2.at<double> (1, 0) = 1.0;
 
+	if (ctx.has_pose)
+	{
+		rvec = ctx.rvec;
+		tvec = ctx.tvec;
+	}
+
     vector<Point3f> object_points;
     vector<Point2f> image_points;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
@@ -34,16 +40,9 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         image_points.push_back(ctx.keypoints[i].position);
     }
 
-    if (object_points.size() >= 10)
+    if (object_points.size() >= 8)
     {
-        vector<int> inliers(image_points.size());
-        if (ctx.has_pose) {
-            rvec = ctx.rvec;
-            tvec = ctx.tvec;
-            rvec2 = ctx.rvec;
-            tvec2 = ctx.tvec;
-        }
-
+        vector<int> inliers;
         solvePnPRansac(object_points,
                        image_points,
                        intrinsics,
@@ -52,7 +51,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        tvec2,
                        false,
                        ctx.config.ransac_num_iters,
-                       std::max(2.0f, ctx.config.ransac_max_inlier_error * ctx.zoom_ratio),
+                       ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
                        object_points.size() * ctx.config.ransac_min_features,
                        inliers,
                        HT_PNP_TYPE);
@@ -86,8 +85,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             mean_error = sqrt(mean_error / std::max(1, k));
 
-            object_points.clear();
-            image_points.clear();
+            object_points = vector<Point3f>();
+            image_points = vector<Point2f>();
 
             for (int i = 0; i < ctx.config.max_keypoints; i++) {
                 if (ctx.keypoints[i].idx == -1)
@@ -98,7 +97,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             if (object_points.size() >= 10)
             {
-                solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
+				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
 
                 rvec_ = rvec;
                 tvec_ = tvec;
