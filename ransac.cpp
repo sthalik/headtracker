@@ -31,8 +31,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 		tvec = ctx.tvec;
 	}
 
-    vector<Point3f> object_points;
-    vector<Point2f> image_points;
+    vector<Point3d> object_points;
+    vector<Point2d> image_points;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx == -1)
             continue;
@@ -85,8 +85,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             mean_error = sqrt(mean_error / std::max(1, k));
 
-            object_points = vector<Point3f>();
-            image_points = vector<Point2f>();
+            object_points = vector<Point3d>();
+            image_points = vector<Point2d>();
 
             for (int i = 0; i < ctx.config.max_keypoints; i++) {
                 if (ctx.keypoints[i].idx == -1)
@@ -95,7 +95,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                 image_points.push_back(ctx.keypoints[i].position);
             }
 
-            if (object_points.size() >= 10)
+            if (object_points.size() >= 4)
             {
 				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
 

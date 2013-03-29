@@ -26,10 +26,10 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 		points1[2] = Point3f(-4, 7, 10);
 		points1[3] = Point3f(4, 7, 10);
 
-		points3[0] = Point3f(-16, -14, 12);
-		points3[1] = Point3f(16, -14, 12);
-		points3[2] = Point3f(-8, 11, 10);
-		points3[3] = Point3f(8, 11, 10);
+		points3[0] = Point3f(-18, -16, 12);
+		points3[1] = Point3f(18, -16, 12);
+		points3[2] = Point3f(-10, 14, 10);
+		points3[3] = Point3f(10, 14, 10);
 
 	    Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
 		intrinsics.at<float> (0, 0) = ctx.focal_length_w;
@@ -58,7 +58,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 			rect2.height = max<int>(points4[i].y - rect2.y, rect2.height);
 		}
 
-		if (ctx.config.debug)
+		if (ctx.config.debug && 0)
 		{
 			printf("rect = (%d, %d, %d, %d)\n", rect.x, rect.y, rect.width, rect.height);
 			printf("rect2 = (%d, %d, %d, %d)\n", rect2.x, rect2.y, rect2.width, rect2.height);
@@ -155,7 +155,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state = HT_STATE_TRACKING) {
         ctx.dropped++;
-        ctx.dropped %= 5;
+        ctx.dropped %= 3;
 		if (ctx.dropped != 0)
             return;
     }
@@ -186,9 +186,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = -ctx->grayscale.cols / tan(ctx->config.field_of_view * HT_PI / 180);
+            ctx->focal_length_w = ctx->grayscale.cols / tan(ctx->config.field_of_view * HT_PI / 180);
             //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = -ctx->grayscale.rows / tan(ctx->config.field_of_view
+            ctx->focal_length_h = ctx->grayscale.rows / tan(ctx->config.field_of_view
                 * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
             if (ctx->config.debug)
@@ -210,6 +210,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec)) {
                     ctx->restarted = false;
                     ctx->state = HT_STATE_TRACKING;
+					ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.3 / tvec.at<double>(2));
                 }
             }
 		}
@@ -233,7 +234,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error)
             {
-                ctx->zoom_ratio = ctx->focal_length_w * 0.15 / tvec.at<double>(2);
+                ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.3 / tvec.at<double>(2));
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
