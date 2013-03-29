@@ -33,36 +33,43 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     if (flandmark_detect(&c_image, bbox, ctx.flandmark_model, landmarks))
         return false;
 
-    Point2d left_eye_right = Point2d(
+    Point2f left_eye_right = Point2f(
             landmarks[2 * fl_left_eye_int],
             landmarks[2 * fl_left_eye_int + 1]);
-    Point2d left_eye_left = Point2d(
+    Point2f left_eye_left = Point2f(
             landmarks[2 * fl_left_eye_ext],
             landmarks[2 * fl_left_eye_ext + 1]);
-    Point2d right_eye_left = Point2d(
+    Point2f right_eye_left = Point2f(
             landmarks[2 * fl_right_eye_int],
             landmarks[2 * fl_right_eye_int + 1]);
-    Point2d right_eye_right = Point2d(
+    Point2f right_eye_right = Point2f(
             landmarks[2 * fl_right_eye_ext],
             landmarks[2 * fl_right_eye_ext + 1]);
-    Point2d nose = Point2d(landmarks[2 * fl_nose], landmarks[2 * fl_nose + 1]);
-    Point2d mouth_left = Point2d(
+    Point2f nose = Point2f(landmarks[2 * fl_nose], landmarks[2 * fl_nose + 1]);
+    Point2f mouth_left = Point2f(
             landmarks[2 * fl_mouth_left],
             landmarks[2 * fl_mouth_left + 1]);
-    Point2d mouth_right = Point2d(
+    Point2f mouth_right = Point2f(
 			landmarks[2 * fl_mouth_right],
 			landmarks[2 * fl_mouth_right + 1]);
 
-    vector<Point2d> image_points(7);
-    vector<Point3d> object_points(7);
+    vector<Point2f> image_points(7);
+    vector<Point3f> object_points(7);
 
-    object_points[0] = Point3f(0, 0.2312, 10.3154);
-    object_points[1] = Point3f(-2.100, -3.6, 8.700);
-    object_points[2] = Point3f(2.100, -3.6, 8.700);
-    object_points[3] = Point3f(6.200, -4, 9.1);
-    object_points[4] = Point3f(6.200, -4, 9.1);
-    object_points[5] = Point3f(-3.750, 4.500, 9.5);
-    object_points[6] = Point3f(3.750, 4.500, 9.5);
+    object_points[0] = Point3f(0, 0.002312, 0.13154);
+    object_points[1] = Point3f(-0.02400, -0.036, 0.08700);
+    object_points[2] = Point3f(0.02400, -0.036, 0.08700);
+    object_points[3] = Point3f(-0.06800, -0.045, 0.091);
+    object_points[4] = Point3f(0.06800, -0.045, 0.091);
+    object_points[5] = Point3f(-0.03750, 0.04500, 0.095);
+    object_points[6] = Point3f(0.03750, 0.04500, 0.095);
+
+    for (int i = 0; i < object_points.size(); i++)
+    {
+        object_points[i].x *= 100;
+        object_points[i].y *= 100;
+        object_points[i].z *= 100;
+    }
 
     image_points[0] = nose;
     image_points[1] = left_eye_right;
@@ -89,58 +96,51 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, HT_PNP_TYPE))
         return false;
 
-	if (ctx.has_pose)
-	{
-		vector<Point2f> image_points3(object_points.size());
-		vector<Point3f> op(object_points.size());;
-		
-		projectPoints(op, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points3);
+    rvec_ = rvec;
+    tvec_ = tvec;
 
-		float total_err = 0;
+	if (ctx.bad_roi_count < 15 && ctx.has_pose) {
+		vector<Point2f> image_points2;
+		vector<Point3f> object_points2(object_points.size());
 
-		float max = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error;
-		max *= max;
+		for (int i = 0; i < object_points.size(); i++)
+			object_points2[i] = object_points[i];
 
-		if (ctx.bad_roi_count < 10)
+		projectPoints(object_points2, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points2);
+
+		float maxerr = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error * 1.5;
+		maxerr *= maxerr;
+		float total = 0;
+		for (int i = 0; i < image_points.size(); i++)
 		{
-			for (int i = 0; i < image_points.size(); i++)
-			{
-				float x2 = image_points3[i].x - image_points[i].x;
-				float y2 = image_points3[i].y - image_points[i].y;
-				x2 *= x2;
-				y2 *= y2;
-				if (x2 + y2 > max) {
-					ctx.bad_roi_count++;
-					if (ctx.config.debug)
-						fprintf(stderr, "bad roi #1 %f > %f\n", x2 + y2, max);
-					return false;
-				}
-				total_err += x2 + y2;
-			}
-			float max = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error * 0.75;
-			max *= max;
-			if (total_err / image_points.size() > max)
-			{
+			float x2 = image_points[i].x - image_points2[i].x;
+			float y2 = image_points[i].y - image_points2[i].y;
+			x2 *= x2;
+			y2 *= y2;
+			if (x2 + y2 > maxerr) {
 				ctx.bad_roi_count++;
-				if (ctx.config.debug)
-					fprintf(stderr, "bad roi #2 %f > %f\n", total_err / image_points.size(), max);
+				fprintf(stderr, "bad roi %f > %f\n", sqrt(x2 + y2), sqrt(maxerr));
 				return false;
 			}
+			total += x2 + y2;
 		}
 
-		rvec_ = rvec;
-		tvec_ = tvec;
-
-		ctx.bad_roi_count = 0;
+		if (total / image_points.size() > maxerr * 0.665) {
+			ctx.bad_roi_count++;
+			fprintf(stderr, "bad roi %f > %f\n", sqrt(total / image_points.size()), sqrt(maxerr));
+			return false;
+		}
 
 		Scalar color(0, 0, 255);
 		Scalar color2(0, 255, 0);
 		for (int i = 0; i < image_points.size(); i++)
 		{
-			line(ctx.color, image_points[i], image_points3[i], color, 4);
+			line(ctx.color, image_points[i], image_points2[i], color, 4);
 			circle(ctx.color, image_points[i], 3, color2, -1);
 		}
 	}
+
+	ctx.bad_roi_count = 0;
 
     return true;
 }

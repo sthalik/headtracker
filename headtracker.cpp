@@ -21,15 +21,15 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 		vector<Point3f> points1(4), points3(4);
 		vector<Point2f> points2, points4;
 
-		points1[0] = Point3f(-10, -9, 12);
-		points1[1] = Point3f(10, -9, 12);
-		points1[2] = Point3f(-4, 7, 10);
-		points1[3] = Point3f(4, 7, 10);
+		points1[0] = Point3f(-9.5, -12, 8);
+		points1[1] = Point3f(9.5, -12, 8);
+		points1[2] = Point3f(-6, 9, 6);
+		points1[3] = Point3f(6, 9, 6);
 
-		points3[0] = Point3f(-18, -16, 12);
-		points3[1] = Point3f(18, -16, 12);
-		points3[2] = Point3f(-10, 14, 10);
-		points3[3] = Point3f(10, 14, 10);
+		points3[0] = Point3f(-20, -17, 9);
+		points3[1] = Point3f(20, -17, 9);
+		points3[2] = Point3f(-8, 14, 6);
+		points3[3] = Point3f(8, 14, 6);
 
 	    Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
 		intrinsics.at<float> (0, 0) = ctx.focal_length_w;
@@ -58,10 +58,11 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 			rect2.height = max<int>(points4[i].y - rect2.y, rect2.height);
 		}
 
-		if (ctx.config.debug && 0)
+		if (ctx.config.debug)
 		{
-			printf("rect = (%d, %d, %d, %d)\n", rect.x, rect.y, rect.width, rect.height);
-			printf("rect2 = (%d, %d, %d, %d)\n", rect2.x, rect2.y, rect2.width, rect2.height);
+			Scalar color(0, 255, 255);
+			for (int i = 0; i < points2.size(); i++)
+				circle(ctx.color, points2[i], 5, color, -1);
 		}
 	}
 	else {
@@ -89,7 +90,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 		rect = Rect(min_x-width*50/100, min_y-height*30/100, width*200/100, height*136/100);
 		rect2 = Rect(min_x-width*90/100, min_y-height*8/10, width*280/100, height*24/10);
 
-		if (ctx.config.debug)
+		if (ctx.config.debug && 0)
 		{
 			printf("rect = (%d, %d, %d, %d)\n", rect.x, rect.y, rect.width, rect.height);
 			printf("rect2 = (%d, %d, %d, %d)\n", rect2.x, rect2.y, rect2.width, rect2.height);
@@ -155,14 +156,14 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state = HT_STATE_TRACKING) {
         ctx.dropped++;
-        ctx.dropped %= 3;
+        ctx.dropped %= 4;
 		if (ctx.dropped != 0)
             return;
     }
 
     Mat rvec, tvec;
     //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
-    if (!ht_fl_estimate(ctx, ctx.tmp, roi, rvec, tvec))
+    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
         return;
     model_t tmp_model;
 
