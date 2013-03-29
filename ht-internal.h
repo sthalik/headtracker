@@ -79,6 +79,7 @@ typedef struct ht_context {
     bool has_pose;
     FLANDMARK_Model* flandmark_model;
     int dropped;
+	int bad_roi_count;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);

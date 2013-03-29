@@ -57,10 +57,10 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point3d> object_points(7);
 
     object_points[0] = Point3d(0, 0.002312, 0.13154);
-    object_points[1] = Point3d(-0.02800, -0.03775, 0.08700);
-    object_points[2] = Point3d(0.02800, -0.03775, 0.08700);
-    object_points[3] = Point3d(-0.06200, -0.03166, 0.091);
-    object_points[4] = Point3d(0.06200, -0.03166, 0.091);
+    object_points[1] = Point3d(-0.02100, -0.036, 0.08700);
+    object_points[2] = Point3d(0.02100, -0.036, 0.08700);
+    object_points[3] = Point3d(-0.06200, -0.04, 0.091);
+    object_points[4] = Point3d(0.06200, -0.04, 0.091);
     object_points[5] = Point3d(-0.03750, 0.04500, 0.095);
     object_points[6] = Point3d(0.03750, 0.04500, 0.095);
 
@@ -106,12 +106,28 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 		object_points2[i] = object_points[i];
 
 	projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
+
+	if (ctx.bad_roi_count < 4)
+		for (int i = 0; i < image_points.size(); i++)
+		{
+			float x2 = image_points[i].x - image_points2[i].x;
+			float y2 = image_points[i].y - image_points2[i].y;
+			x2 *= x2;
+			y2 *= y2;
+			float max = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error;
+			if (x2 + y2 > max * max) {
+				ctx.bad_roi_count++;
+				return false;
+			}
+		}
+	ctx.bad_roi_count = 0;
+
 	Scalar color(0, 0, 255);
 	Scalar color2(0, 255, 0);
 	for (int i = 0; i < image_points.size(); i++)
 	{
-		line(ctx.color, image_points[i], image_points2[i], color, 2);
-		circle(ctx.color, image_points[i], 2, color2, -1);
+		line(ctx.color, image_points[i], image_points2[i], color, 4);
+		circle(ctx.color, image_points[i], 3, color2, -1);
 	}
 
     return true;

@@ -23,13 +23,13 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 
 		points1[0] = Point3f(-10, -9, 12);
 		points1[1] = Point3f(10, -9, 12);
-		points1[2] = Point3f(-4, 9, 10);
-		points1[3] = Point3f(4, 9, 10);
+		points1[2] = Point3f(-4, 7, 10);
+		points1[3] = Point3f(4, 7, 10);
 
-		points3[0] = Point3f(-17, -15, 12);
-		points3[1] = Point3f(17, -15, 12);
-		points3[2] = Point3f(-9, 13, 10);
-		points3[3] = Point3f(9, 13, 10);
+		points3[0] = Point3f(-16, -14, 12);
+		points3[1] = Point3f(16, -14, 12);
+		points3[2] = Point3f(-8, 11, 10);
+		points3[3] = Point3f(8, 11, 10);
 
 	    Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
 		intrinsics.at<float> (0, 0) = ctx.focal_length_w;
@@ -154,11 +154,12 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state = HT_STATE_TRACKING) {
-        int val = ctx.dropped++;
-        ctx.dropped %= 3;
-        if (val != 0)
+        ctx.dropped++;
+        ctx.dropped %= 5;
+		if (ctx.dropped != 0)
             return;
     }
+
     Mat rvec, tvec;
     //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
     if (!ht_fl_estimate(ctx, ctx.tmp, roi, rvec, tvec))
@@ -279,6 +280,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         ctx->has_pose = false;
         ctx->hz = 0;
         ctx->dropped = 0;
+		ctx->bad_roi_count = 0;
 		break;
 	}
 
