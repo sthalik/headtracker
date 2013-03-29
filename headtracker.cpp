@@ -13,28 +13,88 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 }
 
 Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
-    float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
-    float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
+	Rect rect(65535, 65535, 0, 0);
+	Rect rect2(65535, 65535, 0, 0);
 
-    for (int i = 0; i < ctx.model.count; i++) {
-        float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
-        float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
-        float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
-        float maxy = max(model.projection[i].p1.y, max(model.projection[i].p2.y, model.projection[i].p3.y));
-        if (maxx > max_x)
-            max_x = maxx;
-        if (minx < min_x)
-            min_x = minx;
-        if (maxy > max_y)
-            max_y = maxy;
-        if (miny < min_y)
-            min_y = miny;
-    }
+	if (ctx.has_pose)
+	{
+		vector<Point3f> points1(4), points3(4);
+		vector<Point2f> points2, points4;
 
-    int width = max_x - min_x;
-    int height = max_y - min_y;
+		points1[0] = Point3f(-10, -9, 12);
+		points1[1] = Point3f(10, -9, 12);
+		points1[2] = Point3f(-4, 9, 10);
+		points1[3] = Point3f(4, 9, 10);
 
-    Rect rect(min_x-width*31/100, min_y-height*30/100, width*162/100, height*136/100);
+		points3[0] = Point3f(-17, -15, 12);
+		points3[1] = Point3f(17, -15, 12);
+		points3[2] = Point3f(-9, 13, 10);
+		points3[3] = Point3f(9, 13, 10);
+
+	    Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
+		intrinsics.at<float> (0, 0) = ctx.focal_length_w;
+		intrinsics.at<float> (1, 1) = ctx.focal_length_h;
+		intrinsics.at<float> (0, 2) = ctx.grayscale.cols/2;
+		intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
+
+		Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
+
+		projectPoints(points1, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, points2);
+		projectPoints(points3, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, points4);
+
+		for (int i = 0; i < points2.size(); i++)
+		{
+			rect.x = min<int>(points2[i].x, rect.x);
+			rect.y = min<int>(points2[i].y, rect.y);
+			rect2.x = min<int>(points4[i].x, rect2.x);
+			rect2.y = min<int>(points4[i].y, rect2.y);
+		}
+
+		for (int i = 0; i < points2.size(); i++)
+		{
+			rect.width = max<int>(points2[i].x - rect.x, rect.width);
+			rect.height = max<int>(points2[i].y - rect.y, rect.height);
+			rect2.width = max<int>(points4[i].x - rect2.x, rect2.width);
+			rect2.height = max<int>(points4[i].y - rect2.y, rect2.height);
+		}
+
+		if (ctx.config.debug)
+		{
+			printf("rect = (%d, %d, %d, %d)\n", rect.x, rect.y, rect.width, rect.height);
+			printf("rect2 = (%d, %d, %d, %d)\n", rect2.x, rect2.y, rect2.width, rect2.height);
+		}
+	}
+	else {
+	    float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
+		float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
+
+		for (int i = 0; i < ctx.model.count; i++) {
+			float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
+			float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
+			float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
+			float maxy = max(model.projection[i].p1.y, max(model.projection[i].p2.y, model.projection[i].p3.y));
+			if (maxx > max_x)
+				max_x = maxx;
+			if (minx < min_x)
+				min_x = minx;
+			if (maxy > max_y)
+				max_y = maxy;
+			if (miny < min_y)
+				min_y = miny;
+		}
+
+		int width = max_x - min_x;
+		int height = max_y - min_y;
+
+		rect = Rect(min_x-width*50/100, min_y-height*30/100, width*200/100, height*136/100);
+		rect2 = Rect(min_x-width*90/100, min_y-height*8/10, width*280/100, height*24/10);
+
+		if (ctx.config.debug)
+		{
+			printf("rect = (%d, %d, %d, %d)\n", rect.x, rect.y, rect.width, rect.height);
+			printf("rect2 = (%d, %d, %d, %d)\n", rect2.x, rect2.y, rect2.width, rect2.height);
+		}
+	}
 
     if (rect.x < 0)
         rect.x = 0;
@@ -48,9 +108,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     {
         Scalar color(255, 0, 0);
         rectangle(ctx.color, rect, color, 2);
-    }
-
-    Rect rect2(min_x-width*50/100, min_y-height*5/10, width*200/100, height*20/10);
+	}
 
     if (rect2.x < 0)
         rect2.x = 0;
@@ -60,6 +118,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
         rect2.width = ctx.grayscale.cols - rect2.x;
     if (rect2.height + rect2.y > ctx.grayscale.rows)
         rect2.height = ctx.grayscale.rows - rect2.y;
+
     if (ctx.config.debug)
     {
         Scalar color(0, 255, 0);
@@ -126,9 +185,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
+            ctx->focal_length_w = -ctx->grayscale.cols / tan(ctx->config.field_of_view * HT_PI / 180);
             //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
+            ctx->focal_length_h = -ctx->grayscale.rows / tan(ctx->config.field_of_view
                 * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
             if (ctx->config.debug)
@@ -149,10 +208,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     ht_draw_features(*ctx);
                 if (ht_ransac_best_indices(*ctx, error, rvec, tvec)) {
                     ctx->restarted = false;
-                    ctx->rvec = rvec;
-                    ctx->tvec = tvec;
                     ctx->state = HT_STATE_TRACKING;
-                    ctx->has_pose = true;
                 }
             }
 		}
@@ -172,18 +228,11 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             float error = 0;
             Mat rvec, tvec;
 
-            if (ctx->has_pose) {
-                rvec = ctx->rvec;
-                tvec = ctx->tvec;
-            }
-
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error)
             {
-                ctx->rvec = rvec;
-                ctx->tvec = tvec;
-                ctx->zoom_ratio = 320.0 / ctx->grayscale.cols * ctx->focal_length_w * 0.15 / tvec.at<double>(2);
+                ctx->zoom_ratio = ctx->focal_length_w * 0.15 / tvec.at<double>(2);
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
@@ -207,16 +256,24 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
+                ctx->has_pose = true;
+				ctx->rvec = rvec.clone();
+                ctx->tvec = tvec.clone();
             } else {
+				if (ctx->config.debug)
+					fprintf(stderr, "error %f\n", error);
                 ctx->state = HT_STATE_LOST;
             }
-        } else
+        } else {
+			if (ctx->config.debug)
+				fprintf(stderr, "bad roi\n");
 			ctx->state = HT_STATE_LOST;
+		}
 		break;
 	} case HT_STATE_LOST: {
 		ctx->state = HT_STATE_INITIALIZING;
 		ctx->restarted = true;
-        ctx->zoom_ratio = 1.25;
+        ctx->zoom_ratio = 1;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->has_pose = false;

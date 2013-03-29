@@ -57,12 +57,13 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point3d> object_points(7);
 
     object_points[0] = Point3d(0, 0.002312, 0.13154);
-    object_points[1] = Point3d(-0.01796, -0.03475, 0.08638);
-    object_points[2] = Point3d(0.01796, -0.03475, 0.08638);
-    object_points[3] = Point3d(-0.04810, -0.03560, 0.08034);
-    object_points[4] = Point3d(0.04810, -0.03560, 0.08034);
-    object_points[5] = Point3d(-0.02963, 0.03935, 0.09342);
-    object_points[6] = Point3d(0.02963, 0.03935, 0.09342);
+    object_points[1] = Point3d(-0.02800, -0.03775, 0.08700);
+    object_points[2] = Point3d(0.02800, -0.03775, 0.08700);
+    object_points[3] = Point3d(-0.06200, -0.03166, 0.091);
+    object_points[4] = Point3d(0.06200, -0.03166, 0.091);
+    object_points[5] = Point3d(-0.03750, 0.04500, 0.095);
+    object_points[6] = Point3d(0.03750, 0.04500, 0.095);
+
     for (int i = 0; i < object_points.size(); i++)
     {
         object_points[i].x *= 100;
@@ -97,6 +98,21 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
     rvec_ = rvec;
     tvec_ = tvec;
+
+	vector<Point2f> image_points2;
+	vector<Point3f> object_points2(object_points.size());
+
+	for (int i = 0; i < object_points.size(); i++)
+		object_points2[i] = object_points[i];
+
+	projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
+	Scalar color(0, 0, 255);
+	Scalar color2(0, 255, 0);
+	for (int i = 0; i < image_points.size(); i++)
+	{
+		line(ctx.color, image_points[i], image_points2[i], color, 2);
+		circle(ctx.color, image_points[i], 2, color2, -1);
+	}
 
     return true;
 }
