@@ -58,7 +58,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
 	if (!ctx.config.user_landmarks)
 	{
-		object_points[0] = Point3d(0, -0.002312, 0.10154);
+		object_points[0] = Point3d(0, -0.002312, 0.13194);
 		object_points[1] = Point3d(-0.01796, 0.03475, 0.08638);
 		object_points[2] = Point3d(0.01796, 0.03475, 0.08638);
 		object_points[3] = Point3d(-0.04810, 0.03560, 0.08034);
@@ -112,14 +112,14 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
         return false;
 
 #if 1
-	if (ctx.bad_roi_count < 15 && ctx.has_pose && ctx.state == HT_STATE_TRACKING) {
+	if (ctx.bad_roi_count < 15 && ctx.state == HT_STATE_TRACKING) {
 		vector<Point2f> image_points2;
 		vector<Point3f> object_points2(object_points.size());
 
 		for (int i = 0; i < object_points.size(); i++)
 			object_points2[i] = object_points[i];
 
-		projectPoints(object_points2, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points2);
+		projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
 #if 0
 		float maxerr = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error * 2.5;
 		maxerr *= maxerr;

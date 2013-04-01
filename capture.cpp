@@ -71,7 +71,6 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->hz = 0;
     ctx->hz_last_second = -1;
     ctx->ticks_last_second = ht_tickcount() / 1000;
-    ctx->has_pose = false;
     ctx->flandmark_model = flandmark_init("flandmark_model.dat");
 	return ctx;
 }

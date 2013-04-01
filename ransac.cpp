@@ -14,24 +14,9 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     Mat rvec = Mat::zeros(3, 1, CV_64FC1);
     Mat tvec = Mat::zeros(3, 1, CV_64FC1);
 
-    Mat rvec2 = Mat::zeros(3, 1, CV_64FC1);
-    Mat tvec2 = Mat::zeros(3, 1, CV_64FC1);
-
     rvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
-
-    rvec2.at<double> (0, 0) = 1.0;
-    tvec2.at<double> (0, 0) = 1.0;
-    tvec2.at<double> (1, 0) = 1.0;
-
-	if (ctx.has_pose)
-	{
-		rvec = ctx.rvec;
-		tvec = ctx.tvec;
-		rvec2 = ctx.rvec;
-		tvec2 = ctx.tvec;
-	}
 
     vector<Point3f> object_points;
     vector<Point2f> image_points;
@@ -49,9 +34,9 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        image_points,
                        intrinsics,
                        dist_coeffs,
-                       rvec2,
-                       tvec2,
-					   ctx.has_pose,
+                       rvec,
+                       tvec,
+					   false,
                        ctx.config.ransac_num_iters,
                        ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
                        object_points.size() * ctx.config.ransac_min_features,
@@ -60,7 +45,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
 		vector<Point2f> projected;
 
-		projectPoints(object_points, rvec2, tvec2, intrinsics, dist_coeffs, projected);
+		projectPoints(object_points, rvec, tvec, intrinsics, dist_coeffs, projected);
 
         if (inliers.size() >= 4)
         {
@@ -98,7 +83,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             if (object_points.size() >= 4)
             {
-				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
+				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE);
 
 				mean_error = sqrt(mean_error / std::max(1, k));
 

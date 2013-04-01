@@ -76,8 +76,6 @@ typedef struct ht_context {
     int ticks_last_second;
     int hz;
     int hz_last_second;
-    Mat rvec, tvec;
-    bool has_pose;
     FLANDMARK_Model* flandmark_model;
     int dropped;
 	int bad_roi_count;

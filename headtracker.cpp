@@ -103,7 +103,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state == HT_STATE_TRACKING) {
         ctx.dropped++;
-        ctx.dropped %= 5;
+        ctx.dropped %= 4;
 		if (ctx.dropped != 0)
             return;
     }
@@ -147,8 +147,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
             ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
-			ctx->rvec = rvec.clone();
-			ctx->tvec = tvec.clone();
 			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.14 / tvec.at<double>(2));
 			ht_project_model(*ctx, rvec, tvec, ctx->bbox);
 			ht_project_model(*ctx, rvec, tvec, ctx->model);
@@ -207,11 +205,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
-				euler->rotx -= atan(euler->tx * ctx->focal_length_w / euler->tz / ctx->grayscale.cols * HT_PI / 2) * ctx->config.field_of_view;
+				euler->rotx -= atan(euler->tx * ctx->focal_length_w * HT_PI / euler->tz / ctx->grayscale.cols / 2) * ctx->config.field_of_view;
 				//euler->roty -= atan(euler->ty * ctx->focal_length_h / euler->tz / ctx->grayscale.rows * HT_PI / 2) * ctx->config.field_of_view * ctx->grayscale.rows / ctx->grayscale.cols;
-                ctx->has_pose = true;
-				ctx->rvec = rvec.clone();
-                ctx->tvec = tvec.clone();
             } else {
                 ctx->state = HT_STATE_LOST;
             }
@@ -227,7 +222,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         ctx->zoom_ratio = 1;
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
-        ctx->has_pose = false;
         ctx->hz = 0;
         ctx->dropped = 0;
 		ctx->bad_roi_count = 0;
