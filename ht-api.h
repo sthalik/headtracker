@@ -39,6 +39,8 @@ typedef struct ht_config {
     float ransac_min_features;
     float ransac_max_mean_error;
     float ransac_abs_max_mean_error;
+	bool  user_landmarks;
+	float user_landmark_locations[3][4];
 } ht_config_t;
 
 typedef struct {

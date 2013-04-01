@@ -64,6 +64,7 @@ typedef struct ht_context {
 	int ticks_last_classification;
 	int ticks_last_features;
 	model_t model;
+	model_t bbox;
 	state_t state;
     vector<Mat>* pyr_a;
     vector<Mat>* pyr_b;

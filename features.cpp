@@ -21,7 +21,6 @@ void ht_track_features(headtracker_t& ctx) {
                                 *ctx.pyr_a,
                                 Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                 ctx.config.pyrlk_pyramids);
-        return;
     }
 
     buildOpticalFlowPyramid(ctx.grayscale,
@@ -74,13 +73,13 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (!model.rotation)
         return;
 
-    Rect roi = ht_get_roi(ctx, ctx.model);
+    Rect roi = ht_get_roi(ctx, ctx.bbox);
     float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
     float max_3dist = max(1.5f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
-    ORB detector = ORB(2000,
+    ORB detector = ORB(1250,
                        1.2f,
                        8,
                        ctx.config.keypoint_quality,

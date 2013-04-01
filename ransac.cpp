@@ -29,6 +29,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 	{
 		rvec = ctx.rvec;
 		tvec = ctx.tvec;
+		rvec2 = ctx.rvec;
+		tvec2 = ctx.tvec;
 	}
 
     vector<Point3f> object_points;
@@ -49,15 +51,41 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        dist_coeffs,
                        rvec2,
                        tvec2,
-                       false,
+					   ctx.has_pose,
                        ctx.config.ransac_num_iters,
                        ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
                        object_points.size() * ctx.config.ransac_min_features,
                        inliers,
                        HT_PNP_TYPE);
 
+		vector<Point2f> projected;
+
+		projectPoints(object_points, rvec2, tvec2, intrinsics, dist_coeffs, projected);
+
         if (inliers.size() >= 4)
         {
+			int j = 0, k = 0;
+			mean_error = 0;
+			float max_dist = ctx.config.ransac_max_reprojection_error * ctx.zoom_ratio;
+			max_dist *= max_dist;
+
+			for (int i = 0; i < ctx.config.max_keypoints; i++)
+			{
+				if (ctx.keypoints[i].idx == -1)
+					continue;
+
+				float dist = ht_distance2d_squared(image_points[j], projected[j]);
+
+				if (dist > max_dist)
+				{
+					ctx.keypoints[i].idx = -1;
+				} else {
+					k++;
+					mean_error += dist;
+				}
+				j++;
+			}
+
 			object_points.clear();
             image_points.clear();
 
@@ -71,46 +99,6 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
             if (object_points.size() >= 4)
             {
 				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
-
-				projectPoints(object_points, rvec, tvec, intrinsics, dist_coeffs, image_points);
-
-				float max_dist = ctx.config.ransac_max_reprojection_error * ctx.zoom_ratio;
-				max_dist *= max_dist;
-
-				vector<Point2f> image_points2;
-
-				object_points.clear();
-				image_points.clear();
-
-				for (int i = 0; i < ctx.config.max_keypoints; i++) {
-					if (ctx.keypoints[i].idx == -1)
-						continue;
-					object_points.push_back(ctx.keypoint_uv[i]);
-					image_points.push_back(ctx.keypoints[i].position);
-				}
-
-				projectPoints(object_points, rvec2, tvec2, intrinsics, dist_coeffs, image_points2);
-
-				float max_dist2 = ctx.config.ransac_max_reprojection_error * ctx.zoom_ratio;
-				max_dist2 *= max_dist2;
-				int j = 0, k = 0;
-				mean_error = 0;
-
-				for (int i = 0; i < ctx.config.max_keypoints; i++)
-				{
-					if (ctx.keypoints[i].idx == -1)
-						continue;
-					float dist = ht_distance2d_squared(image_points[j], image_points2[j]);
-
-					if (dist > max_dist2)
-					{
-						ctx.keypoints[i].idx = -1;
-					} else {
-						k++;
-						mean_error += dist;
-					}
-					j++;
-				}
 
 				mean_error = sqrt(mean_error / std::max(1, k));
 

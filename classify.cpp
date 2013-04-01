@@ -8,7 +8,7 @@ bool ht_classify(CascadeClassifier &classifier, Mat& frame, Rect& ret) {
     classifier.detectMultiScale(frame,
                                 seq,
                                 1.15,
-                                2,
+                                1,
                                 CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT,
                                 Size(75, 75));
 

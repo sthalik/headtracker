@@ -152,9 +152,11 @@ model_t ht_load_model(const char* filename) {
         triangle.p3.y *= 100;
         triangle.p3.z *= 100;
 
+#if 0
         triangle.p1.y *= -1;
         triangle.p2.y *= -1;
         triangle.p3.y *= -1;
+#endif
 
 		triangles.push_back(triangle);
 	}

@@ -48,6 +48,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
 	ctx->ticks_last_features = ctx->ticks_last_classification;
 	
     ctx->model = ht_load_model("head.raw");
+	ctx->bbox = ht_load_model("bounding-box.raw");
     ctx->keypoint_uv = new Point3f[ctx->config.max_keypoints];
     ctx->state = HT_STATE_LOST;
     ctx->restarted = true;
