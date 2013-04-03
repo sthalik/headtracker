@@ -205,8 +205,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
-				euler->rotx -= atan(euler->tx * ctx->focal_length_w * HT_PI / euler->tz / ctx->grayscale.cols / 2) * ctx->config.field_of_view;
-				//euler->roty -= atan(euler->ty * ctx->focal_length_h / euler->tz / ctx->grayscale.rows * HT_PI / 2) * ctx->config.field_of_view * ctx->grayscale.rows / ctx->grayscale.cols;
+				euler->rotx += tan(euler->tx * ctx->focal_length_w / euler->tz / ctx->grayscale.cols * 0.5) * ctx->config.field_of_view / HT_PI;
             } else {
                 ctx->state = HT_STATE_LOST;
             }
