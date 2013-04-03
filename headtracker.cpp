@@ -103,7 +103,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state == HT_STATE_TRACKING) {
         ctx.dropped++;
-        ctx.dropped %= 4;
+        ctx.dropped %= 7;
 		if (ctx.dropped != 0)
             return;
     }
