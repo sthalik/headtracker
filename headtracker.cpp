@@ -103,7 +103,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     if (ctx.state == HT_STATE_TRACKING) {
         ctx.dropped++;
-        ctx.dropped %= 7;
+        ctx.dropped %= 10;
 		if (ctx.dropped != 0)
             return;
     }
@@ -200,7 +200,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     string buf;
                     buf.append("Hz: ");
                     buf.append(SSTR(ctx->hz_last_second));
-                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 1.25, Scalar(0, 255, 0), 2);
+                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 3, Scalar(0, 255, 0), 2);
                 }
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
