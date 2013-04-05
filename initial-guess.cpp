@@ -111,8 +111,8 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, HT_PNP_TYPE))
         return false;
 
-#if 1
-	if (ctx.bad_roi_count < 15 && ctx.state == HT_STATE_TRACKING) {
+	if (ctx.config.debug)
+	{
 		vector<Point2f> image_points2;
 		vector<Point3f> object_points2(object_points.size());
 
@@ -120,34 +120,6 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 			object_points2[i] = object_points[i];
 
 		projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
-#if 0
-		float maxerr = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error * 2.5;
-		maxerr *= maxerr;
-		float total = 0;
-		for (int i = 0; i < image_points.size(); i++)
-		{
-			float x2 = image_points[i].x - image_points2[i].x;
-			float y2 = image_points[i].y - image_points2[i].y;
-			x2 *= x2;
-			y2 *= y2;
-			if (x2 + y2 > maxerr) {
-				ctx.bad_roi_count++;
-				fprintf(stderr, "bad roi %f > %f\n", sqrt(x2 + y2), sqrt(maxerr));
-				return false;
-			}
-			total += x2 + y2;
-		}
-
-		float maxerr2 = ctx.zoom_ratio * ctx.config.ransac_max_reprojection_error * 1.75;
-		maxerr2 *= maxerr2;
-
-		if (total / image_points.size() > maxerr2) {
-			ctx.bad_roi_count++;
-			fprintf(stderr, "bad roi %f > %f\n", sqrt(total / image_points.size()), sqrt(maxerr2));
-			return false;
-		}
-#endif
-
 		Scalar color(0, 0, 255);
 		Scalar color2(0, 255, 0);
 		for (int i = 0; i < image_points.size(); i++)
@@ -156,11 +128,8 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 			circle(ctx.color, image_points[i], 3, color2, -1);
 		}
 	}
-#endif
 	rvec_ = rvec;
     tvec_ = tvec;
-
-	ctx.bad_roi_count = 0;
 
     return true;
 }
