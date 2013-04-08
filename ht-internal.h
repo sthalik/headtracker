@@ -40,10 +40,6 @@ typedef struct {
 	int count;
 } model_t;
 
-static __inline float ht_dot_product2d(const Point2f point1, const Point2f point2) {
-	return point1.x * point2.x + point1.y * point2.y;
-}
-
 static __inline int ht_tickcount(void) {
 	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
 }

@@ -177,24 +177,19 @@ model_t ht_load_model(const char* filename) {
 }
 
 bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv) {
-    Point2f v0 = Point2f(
-		c.x - a.x,
-		c.y - a.y);
-    Point2f v1 = Point2f(
-		b.x - a.x,
-		b.y - a.y);
-    Point2f v2 = Point2f(
-		point.x - a.x,
-		point.y - a.y);
-	float dot00 = ht_dot_product2d(v0, v0);
-	float dot01 = ht_dot_product2d(v0, v1);
-	float dot02 = ht_dot_product2d(v0, v2);
-	float dot11 = ht_dot_product2d(v1, v1);
-	float dot12 = ht_dot_product2d(v1, v2);
-	float denom = dot00 * dot11 - dot01 * dot01;
-	float invDenom = 1.0f / denom;
-	float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-	float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+    double x0 = a.x;
+    double y0 = a.y;
+    double x1 = b.x;
+    double y1 = b.y;
+    double x2 = c.x;
+    double y2 = c.y;
+    double xp = point.x;
+    double yp = point.y;
+
+    double det = x0*(y1 - y2) + x1*(y2 - y0) + x2*(y0 - y1);
+
+    double v = ((x2*y0-x0*y2)+xp*(y2-y0)+yp*(x0-x2)) / det;
+    double u = ((x0*y1-x1*y0)+xp*(y0-y1)+yp*(x1-x0)) / det;
 
     if (u >= 0 && v >= 0 && u + v <= 1) {
 		uv.x = u;
