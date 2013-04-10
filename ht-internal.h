@@ -1,4 +1,3 @@
-// todo die on impossible poses
 // todo do away with leaks if initialization fails
 #pragma once
 #include <vector>
@@ -7,6 +6,7 @@
 #include <stddef.h>
 #include <math.h>
 #include <opencv2/opencv.hpp>
+#include <opencv/highgui.h>
 #include "ht-api.h"
 #include "flandmark_detector.h"
 using namespace std;
