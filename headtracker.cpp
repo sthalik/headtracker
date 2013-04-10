@@ -101,15 +101,14 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
-    if (ctx.state == HT_STATE_TRACKING) {
-        ctx.dropped++;
-        ctx.dropped %= 10;
-		if (ctx.dropped != 0)
-            return;
-    }
+    int ticks = ht_tickcount() / ctx.config.flandmark_delay;
+
+    if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
+        return;
+
+    ctx.ticks_last_flandmark = ticks;
 
     Mat rvec, tvec;
-    //if (!ht_initial_guess(ctx, ctx.tmp, rvec, tvec))
     if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
         return;
     model_t tmp_model;
@@ -206,7 +205,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
-				euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
+				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
             } else {
                 ctx->state = HT_STATE_LOST;
             }
@@ -223,7 +222,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->hz = 0;
-        ctx->dropped = 0;
 		break;
 	}
 

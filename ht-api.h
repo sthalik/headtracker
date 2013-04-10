@@ -14,7 +14,6 @@
 #if !defined(_WIN32) && !defined(_isnan)
 #  define _isnan isnan
 #endif
-#include <stdio.h>
 struct ht_context;
 typedef struct ht_context headtracker_t;
 
@@ -41,6 +40,7 @@ typedef struct ht_config {
     float ransac_abs_max_mean_error;
 	bool  user_landmarks;
 	float user_landmark_locations[3][4];
+    float flandmark_delay;
 } ht_config_t;
 
 typedef struct {
@@ -49,39 +49,13 @@ typedef struct {
 	bool filled;
 } ht_result_t;
 
-typedef enum {
-	cfg_type_float = 0,
-	cfg_type_int   = 1,
-	cfg_type_bool  = 2,
-    cfg_type_double = 3
-} ht_cfg_type_t;
-
-typedef union
-{
-	double d;
-	float f;
-	int i;
-} ht_cfg_value_t;
-
-typedef struct {
-	const char* name;
-	int offset;
-	ht_cfg_type_t type;
-	ht_cfg_value_t default_value;
-	ht_cfg_value_t min;
-	ht_cfg_value_t max;
-	const char* docstring;
-} ht_reflection_t;
-
 typedef struct {
     int rows, cols, channels;
     unsigned char* data;
 } ht_frame_t;
 
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename);
-HT_API(void) ht_load_config(FILE* stream, ht_config_t* cfg);
 HT_API(void) ht_free_context(headtracker_t* ctx);
 HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret);
-HT_API(void) ht_make_config(ht_config_t* cfg);
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
 HT_API(void) ht_reset(headtracker_t* ctx);

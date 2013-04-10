@@ -18,6 +18,13 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
 
+	Mat rvec2 = Mat::zeros(3, 1, CV_64FC1);
+    Mat tvec2 = Mat::zeros(3, 1, CV_64FC1);
+
+    rvec2.at<double> (0, 0) = 1.0;
+    tvec2.at<double> (0, 0) = 1.0;
+    tvec2.at<double> (1, 0) = 1.0;
+
     vector<Point3f> object_points;
     vector<Point2f> image_points;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
@@ -83,15 +90,15 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             if (object_points.size() >= 4)
             {
-				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE);
+				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec2, tvec2, false, HT_PNP_TYPE);
 
 				mean_error = sqrt(mean_error / std::max(1, k));
 
 				if (j >= 4)
 				{
 
-					rvec_ = rvec;
-					tvec_ = tvec;
+					rvec_ = rvec2;
+					tvec_ = tvec2;
 
 					return true;
 				}

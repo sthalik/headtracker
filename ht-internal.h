@@ -73,7 +73,7 @@ typedef struct ht_context {
     int hz;
     int hz_last_second;
     FLANDMARK_Model* flandmark_model;
-    int dropped;
+    int ticks_last_flandmark;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);

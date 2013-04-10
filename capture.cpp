@@ -34,11 +34,7 @@ bool ht_get_image(headtracker_t& ctx) {
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename)
 {
     headtracker_t* ctx = new headtracker_t;
-    if (config == NULL) {
-        ht_make_config(&ctx->config);
-    } else {
-        ctx->config = *config;
-    }
+    ctx->config = *config;
     ctx->camera = filename
             ? VideoCapture(filename)
             : VideoCapture(ctx->config.camera_index);
@@ -72,6 +68,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->hz_last_second = -1;
     ctx->ticks_last_second = ht_tickcount() / 1000;
     ctx->flandmark_model = flandmark_init("flandmark_model.dat");
+    ctx->ticks_last_flandmark = -1;
 	return ctx;
 }
 
