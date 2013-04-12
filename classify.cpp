@@ -10,7 +10,7 @@ bool ht_classify(CascadeClassifier &classifier, Mat& frame, Rect& ret) {
                                 1.15,
                                 2,
                                 CV_HAAR_DO_CANNY_PRUNING | CV_HAAR_FIND_BIGGEST_OBJECT,
-                                Size(160, 160));
+                                Size(75, 75));
 
     if (seq.size() > 0)
         ret = seq[0];

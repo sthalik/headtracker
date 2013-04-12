@@ -199,7 +199,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     string buf;
                     buf.append("Hz: ");
                     buf.append(SSTR(ctx->hz_last_second));
-                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 1.6, Scalar(0, 255, 0), 2);
                 }
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);

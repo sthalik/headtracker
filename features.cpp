@@ -7,7 +7,7 @@ void ht_draw_features(headtracker_t& ctx) {
     int j = 0;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, Point(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 1, Scalar(255, 255, 0), -1);
+            circle(ctx.color, Point(ctx.keypoints[i].position.x, ctx.keypoints[i].position.y), 0, Scalar(255, 255, 0), -1);
             j++;
         }
     }
@@ -81,7 +81,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
-    ORB detector = ORB(1000,
+    ORB detector = ORB(500,
                        1.2f,
                        8,
                        ctx.config.keypoint_quality,

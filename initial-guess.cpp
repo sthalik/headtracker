@@ -124,8 +124,8 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 		Scalar color2(0, 255, 0);
 		for (int i = 0; i < image_points.size(); i++)
 		{
-			line(ctx.color, image_points[i], image_points2[i], color, 4);
-			circle(ctx.color, image_points[i], 3, color2, -1);
+			line(ctx.color, image_points[i], image_points2[i], color, 2);
+			circle(ctx.color, image_points[i], 2, color2, -1);
 		}
 	}
 	rvec_ = rvec;
