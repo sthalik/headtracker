@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     ht_config_t config;
 
     config.classification_delay = 500;
-    config.field_of_view = iniFile.value("fov", 52).toFloat();
+    config.field_of_view = 52
 	config.pyrlk_pyramids = 3;
     config.pyrlk_win_size_w = config.pyrlk_win_size_h = 21;
     config.max_keypoints = 200;
