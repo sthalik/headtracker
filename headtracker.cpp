@@ -53,7 +53,8 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     if (ctx.config.debug)
     {
         Scalar color(255, 0, 0);
-        rectangle(ctx.color, rect, color, 2);
+		float mult = ctx.color.cols > 320 ? 2 : 1;
+		rectangle(ctx.color, Rect(rect.x * mult, rect.y * mult, rect.width * mult, rect.height * mult), color, 2);
 	}
 
     if (rect2.x < 0)
@@ -67,8 +68,9 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 
     if (ctx.config.debug)
     {
+		float mult = ctx.color.cols > 320 ? 2 : 1;
         Scalar color(0, 255, 0);
-        rectangle(ctx.color, rect2, color, 2);
+        rectangle(ctx.color, Rect(rect2.x * mult, rect2.y * mult, rect2.width * mult, rect2.height * mult), color, 2);
     }
 
     Mat foo = ctx.tmp(rect2);
@@ -199,7 +201,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     string buf;
                     buf.append("Hz: ");
                     buf.append(SSTR(ctx->hz_last_second));
-                    putText(ctx->color, buf, Point(10, 40), FONT_HERSHEY_PLAIN, 1.6, Scalar(0, 255, 0), 2);
+                    putText(ctx->color, buf, Point(10, 30), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
                 }
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);

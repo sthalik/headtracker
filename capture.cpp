@@ -6,28 +6,23 @@ using namespace std;
 using namespace cv;
 
 bool ht_get_image(headtracker_t& ctx) {
-    Mat large;
+    Mat large, large2;
 
     if (!ctx.camera.read(large))
         return false;
 
-#if 1
-    if (large.cols > 320) {
-        Size newSize(large.cols /2, large.rows /2);
-        resize(large, ctx.color, newSize, 0, 0, CV_INTER_AREA);
-    }
-    else {
-        ctx.color = large;
-    }
-#else
-    ctx.color = large;
-#endif
-    if (ctx.color.channels() == 3)
-        cvtColor(ctx.color, ctx.grayscale, CV_BGR2GRAY);
+	ctx.color = large;
+
+    if (large.channels() == 3)
+        cvtColor(large, large2, CV_BGR2GRAY);
     else
-        ctx.grayscale = ctx.color;
-    ctx.grayscale.copyTo(ctx.tmp);
-    equalizeHist(ctx.grayscale, ctx.grayscale);
+		large2 = large;
+
+    if (large.cols > 320) {
+        Size newSize(large2.cols /2, large2.rows /2);
+		resize(large2, ctx.tmp, newSize, 0, 0, CV_INTER_AREA);
+    }
+    equalizeHist(ctx.tmp, ctx.grayscale);
     return true;
 }
 
