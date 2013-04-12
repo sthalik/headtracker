@@ -76,6 +76,8 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     Rect roi = ht_get_roi(ctx, ctx.bbox);
     float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
     float max_3dist = max(1.5f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
+	float max_9dist = max(3.0f, ctx.config.keypoint_9distance * ctx.zoom_ratio);
+	max_9dist *= max_9dist;
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
@@ -98,13 +100,16 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         kp.y += roi.y;
         bool overlap = false;
         int threes = 0;
+		int nines = 0;
 
         for (int j = 0; j < ctx.config.max_keypoints; j++) {
             float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
             if (ctx.keypoints[j].idx != -1) {
                 if (dist < max_3dist)
                     ++threes;
-                if (dist < max_dist || threes >= 3) {
+				if (dist < max_9dist)
+					++nines;
+                if (dist < max_dist || threes >= 3 || nines >= 9) {
                     overlap = true;
                     break;
                 }

@@ -34,27 +34,29 @@ int main(int argc, char** argv)
 #endif
     ht_config_t config;
 
-    config->classification_delay = 500;
-    config->field_of_view = iniFile.value("fov", 52).toFloat();
-    config->pyrlk_pyramids = 3;
-    config->pyrlk_win_size_w = config->pyrlk_win_size_h = 21;
-    config->max_keypoints = 200;
-    config->keypoint_quality = 2;
-    config->keypoint_distance = 1.5;
-    config->keypoint_3distance = 5;
-    config->force_width = 640;
-    config->force_height = 480;
-    config->force_fps = iniFile.value("fps", 0).toInt();
-    config->camera_index = iniFile.value("camera-index", -1).toInt();
-    config->ransac_num_iters = 100;
-    config->ransac_max_reprojection_error = 3.05;
-    config->ransac_max_inlier_error = 3.14;
-    config->ransac_max_mean_error = 3;
-    config->ransac_abs_max_mean_error = 12;
-    config->debug = 1;
-    config->ransac_min_features = 0.86;
-    config->user_landmarks = false; //iniFile.value("use-bashed-coords").toBool();
-    config->flandmark_delay = 150;
+    config.classification_delay = 500;
+    config.field_of_view = iniFile.value("fov", 52).toFloat();
+	config.pyrlk_pyramids = 3;
+    config.pyrlk_win_size_w = config->pyrlk_win_size_h = 21;
+    config.max_keypoints = 200;
+    config.keypoint_quality = 2;
+    config.keypoint_distance = 1.2;
+    config.keypoint_3distance = 3;
+    config.keypoint_9distance = 9;
+    config.force_width = 640;
+    config.force_height = 480;
+    config.force_fps = iniFile.value("fps", 0).toInt();
+    config.camera_index = iniFile.value("camera-index", -1).toInt();
+    config.ransac_num_iters = 100;
+    config.ransac_max_reprojection_error = 2.8;
+    config.ransac_max_inlier_error = 2.9;
+    config.ransac_max_mean_error = 2.7;
+    config.ransac_abs_max_mean_error = 12;
+    config.debug = 1;
+    config.ransac_min_features = 0.75;
+    config.user_landmarks = false; //iniFile.value("use-bashed-coords").toBool();
+    config.flandmark_delay = 100;
+
 
     headtracker_t* ctx = ht_make_context(&config, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
