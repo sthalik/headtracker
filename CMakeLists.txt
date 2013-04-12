@@ -62,8 +62,13 @@ file(GLOB headtracker-demo-SRC
     "demo/*.cpp"
 )
 
-#add_executable(headtracker-demo ${headtracker-demo-SRC})
-#target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
+set(ENABLE_DEMO FALSE CACHE BOOL "Whether to build the demo program")
+
+if(ENABLE_DEMO)
+    add_executable(headtracker-demo ${headtracker-demo-SRC})
+    target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
+endif()
+
 file(GLOB headtracker-ftnoir-SRC
 	"ftnoir/*.cpp"
 )
