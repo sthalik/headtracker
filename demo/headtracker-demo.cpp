@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     config.classification_delay = 500;
     config.field_of_view = iniFile.value("fov", 52).toFloat();
 	config.pyrlk_pyramids = 3;
-    config.pyrlk_win_size_w = config->pyrlk_win_size_h = 21;
+    config.pyrlk_win_size_w = config.pyrlk_win_size_h = 21;
     config.max_keypoints = 200;
     config.keypoint_quality = 2;
     config.keypoint_distance = 1;
@@ -45,8 +45,8 @@ int main(int argc, char** argv)
     config.keypoint_9distance = 8;
     config.force_width = 640;
     config.force_height = 480;
-    config.force_fps = iniFile.value("fps", 0).toInt();
-    config.camera_index = iniFile.value("camera-index", -1).toInt();
+    config.force_fps = 0;
+    config.camera_index = 0;
     config.ransac_num_iters = 50;
     config.ransac_max_reprojection_error = 3.2;
     config.ransac_max_inlier_error = 3.2;
