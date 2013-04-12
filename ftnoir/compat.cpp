@@ -27,7 +27,7 @@ PortableLockedShm::PortableLockedShm(const char* shmName, const char* mutexName,
                  mapSize,
                  shmName);
     mem = MapViewOfFile(hMapFile,
-                        FILE_MAP_READ | FILE_MAP_WRITE,
+                        FILE_MAP_WRITE,
                         0,
                         0,
                         mapSize);
