@@ -8,7 +8,7 @@ void ht_draw_features(headtracker_t& ctx) {
 	float mult = ctx.color.cols > 320 ? 2 : 1;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 0, Scalar(255, 255, 0), -1);
+            circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 1, Scalar(255, 255, 0), -1);
             j++;
         }
     }
