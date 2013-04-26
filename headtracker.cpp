@@ -150,7 +150,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_draw_model(*ctx, ctx->model);
 			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.14 / tvec.at<double>(2));
 			ht_project_model(*ctx, rvec, tvec, ctx->bbox);
-			ht_project_model(*ctx, rvec, tvec, ctx->model);
 			Rect roi = ht_get_roi(*ctx, ctx->bbox);
 			if (roi.width > 5 && roi.height > 5)
 			{

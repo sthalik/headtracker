@@ -147,6 +147,18 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
 
     if (!ht_classify(ctx.head_classifier, frame, face_rect))
         return false;
+    
+    if (face_rect.x < 0)
+        face_rect.x = 0;
+    if (face_rect.y < 0)
+        face_rect.y = 0;
+    if (face_rect.width + face_rect.x > ctx.grayscale.cols)
+        face_rect.width = ctx.grayscale.cols - face_rect.x;
+    if (face_rect.height + face_rect.y > ctx.grayscale.rows)
+        face_rect.height = ctx.grayscale.rows - face_rect.y;
+    
+    if (face_rect.width < 10 && face_rect.height < 10)
+        return false;
 
     return ht_fl_estimate(ctx, frame, face_rect, rvec_, tvec_);
 }
