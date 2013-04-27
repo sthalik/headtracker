@@ -135,9 +135,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = 0.5 * ctx->grayscale.cols / atan(0.5 * ctx->config.field_of_view * HT_PI / 180);
+            ctx->focal_length_w = 0.5 * ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
             //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = 0.5 * ctx->grayscale.rows / atan(0.5 * ctx->config.field_of_view
+            ctx->focal_length_h = 0.5 * ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
                 * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
             if (ctx->config.debug)
@@ -176,16 +176,15 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
-                error < ctx->config.ransac_abs_max_mean_error)
+                error < ctx->config.ransac_abs_max_mean_error &&
+                (ctx->zoom_ratio = ctx->focal_length_w * 0.2 / tvec.at<double>(2)), ctx->zoom_ratio > 0)
             {
-                ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.2 / tvec.at<double>(2));
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
                 ht_project_model(*ctx, rvec, tvec, ctx->model);
 				ht_project_model(*ctx, rvec, tvec, ctx->bbox);
 				ht_track_features(*ctx);
-				ht_get_next_features(*ctx, roi);
                 ht_draw_model(*ctx, ctx->model);
                 if (ctx->config.debug)
                     ht_draw_features(*ctx);
@@ -204,10 +203,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 }
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
-				if (euler->tz > 0)
-					euler->filled = true;
-				else
-					ctx->state = HT_STATE_LOST;
+                euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
             } else {
