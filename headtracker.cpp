@@ -205,7 +205,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
-				euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
+				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
             } else {
                 ctx->state = HT_STATE_LOST;
             }
