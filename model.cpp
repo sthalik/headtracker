@@ -16,11 +16,14 @@ static Point3f ht_rotate_point(const Mat& rmat, const Point3f p)
     return ret;
 }
 
-void ht_project_model(headtracker_t& ctx,
+bool ht_project_model(headtracker_t& ctx,
                       const Mat& rvec,
                       const Mat& tvec,
                       model_t& model)
 {
+    if (tvec.rows * tvec.cols != 3 || rvec.rows * rvec.cols != 3)
+        return false;
+    
     int sz = model.count;
 
     if (!model.projection)
@@ -38,13 +41,12 @@ void ht_project_model(headtracker_t& ctx,
     intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
 
     vector<Point3f> triangles;
-    triangles.resize(sz * 3);
 
     for (int i = 0; i < sz; i++) {
         const triangle_t& t = model.triangles[i];
-        triangles[i * 3 + 0] = t.p1;
-        triangles[i * 3 + 1] = t.p2;
-        triangles[i * 3 + 2] = t.p3;
+        triangles.push_back(t.p1);
+        triangles.push_back(t.p2);
+        triangles.push_back(t.p3);
     }
 
     vector<Point2f> image_points;
@@ -72,6 +74,8 @@ void ht_project_model(headtracker_t& ctx,
 
         model.rotation[i] = r;
     }
+    
+    return true;
 }
 
 bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f& uv) {

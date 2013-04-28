@@ -90,13 +90,14 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             if (object_points.size() >= 4)
             {
-				solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec2, tvec2, false, HT_PNP_TYPE);
+                bool ret = solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec2, tvec2, false, HT_PNP_TYPE);
 
 				mean_error = sqrt(mean_error / std::max(1, k));
+                
+                ret = ret && rvec2.rows * rvec2.cols == 3 && tvec2.rows * tvec2.cols == 3;
 
-				if (j >= 4)
+				if (j >= 4 && ret)
 				{
-
 					rvec_ = rvec2;
 					tvec_ = tvec2;
 

@@ -75,6 +75,10 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         return;
 
     Rect roi = ht_get_roi(ctx, ctx.bbox);
+
+	if (!(roi.width > 20 && roi.height > 20))
+		return;
+
     float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
     float max_3dist = max(1.5f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
 	float max_9dist = max(3.0f, ctx.config.keypoint_9distance * ctx.zoom_ratio);

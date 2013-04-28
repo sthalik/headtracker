@@ -120,8 +120,8 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     tmp_model.projection = new triangle2d_t[ctx.model.count];
     tmp_model.rotation = new triangle_t[ctx.model.count];
 
-    ht_project_model(ctx, rvec, tvec, tmp_model);
-    ht_get_features(ctx, tmp_model);
+    if (ht_project_model(ctx, rvec, tvec, tmp_model))
+        ht_get_features(ctx, tmp_model);
     delete[] tmp_model.projection;
     delete[] tmp_model.rotation;
 }
@@ -144,12 +144,12 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
         Mat rvec, tvec;
-        if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec))
+        if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec) &&
+            ht_project_model(*ctx, rvec, tvec, ctx->model) &&
+            ht_project_model(*ctx, rvec, tvec, ctx->bbox))
 		{
-            ht_project_model(*ctx, rvec, tvec, ctx->model);
             ht_draw_model(*ctx, ctx->model);
-			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.14 / tvec.at<double>(2));
-			ht_project_model(*ctx, rvec, tvec, ctx->bbox);
+			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.2 / tvec.at<double>(2));
 			Rect roi = ht_get_roi(*ctx, ctx->bbox);
 			if (roi.width > 5 && roi.height > 5)
 			{
@@ -177,13 +177,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error &&
-                (ctx->zoom_ratio = ctx->focal_length_w * 0.2 / tvec.at<double>(2)), ctx->zoom_ratio > 0)
+                (ctx->zoom_ratio = ctx->focal_length_w * 0.2 / tvec.at<double>(2)) > 0 &&
+                ht_project_model(*ctx, rvec, tvec, ctx->model) &&
+                ht_project_model(*ctx, rvec, tvec, ctx->bbox))
             {
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
-                ht_project_model(*ctx, rvec, tvec, ctx->model);
-				ht_project_model(*ctx, rvec, tvec, ctx->bbox);
 				ht_track_features(*ctx);
                 ht_draw_model(*ctx, ctx->model);
                 if (ctx->config.debug)
