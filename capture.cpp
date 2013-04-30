@@ -18,10 +18,14 @@ bool ht_get_image(headtracker_t& ctx) {
     else
 		large2 = large;
 
+#if 0
     if (large.cols > 320) {
-        Size newSize(large2.cols /2, large2.rows /2);
+        Size newSize(large2.cols *4/5, large2.rows *4/5);
 		resize(large2, ctx.tmp, newSize, 0, 0, CV_INTER_AREA);
     }
+#else
+	ctx.tmp = large2;
+#endif
     equalizeHist(ctx.tmp, ctx.grayscale);
     return true;
 }
