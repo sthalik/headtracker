@@ -121,7 +121,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
 		projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
 		Scalar color(0, 0, 255);
-		float mult = ctx.color.cols > 320 ? 2 : 1;
+		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 		Scalar color2(0, 255, 0);
 		for (int i = 0; i < image_points.size(); i++)
 		{

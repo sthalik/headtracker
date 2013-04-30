@@ -115,7 +115,7 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
 void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	int sz = model.count;
 
-	float mult = ctx.color.cols > 320 ? 2 : 1;
+	float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];

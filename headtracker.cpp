@@ -53,7 +53,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
     if (ctx.config.debug)
     {
         Scalar color(255, 0, 0);
-		float mult = ctx.color.cols > 320 ? 2 : 1;
+		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 		rectangle(ctx.color, Rect(rect.x * mult, rect.y * mult, rect.width * mult, rect.height * mult), color, 2);
 	}
 
@@ -68,7 +68,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 
     if (ctx.config.debug)
     {
-		float mult = ctx.color.cols > 320 ? 2 : 1;
+		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
         Scalar color(0, 255, 0);
         rectangle(ctx.color, Rect(rect2.x * mult, rect2.y * mult, rect2.width * mult, rect2.height * mult), color, 2);
     }
