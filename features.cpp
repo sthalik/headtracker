@@ -5,7 +5,7 @@ using namespace cv;
 
 void ht_draw_features(headtracker_t& ctx) {
     int j = 0;
-	float mult = ctx.color.cols > 320 ? 2 : 1;
+	float mult = ctx.color.cols / (float)ctx.grayscale.cols;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
             circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 1, Scalar(255, 255, 0), -1);
@@ -86,7 +86,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
-    ORB detector = ORB(500,
+    ORB detector = ORB(1250,
                        1.2f,
                        8,
                        ctx.config.keypoint_quality,
