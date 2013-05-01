@@ -86,7 +86,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
-    ORB detector = ORB(1250,
+    ORB detector = ORB(500,
                        1.2f,
                        8,
                        ctx.config.keypoint_quality,
