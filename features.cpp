@@ -8,7 +8,7 @@ void ht_draw_features(headtracker_t& ctx) {
 	float mult = ctx.color.cols / (float)ctx.grayscale.cols;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 1, Scalar(255, 255, 0), -1);
+            circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 2, Scalar(255, 255, 0), -1);
             j++;
         }
     }
@@ -51,8 +51,7 @@ void ht_track_features(headtracker_t& ctx) {
                              noArray(),
                              Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                              ctx.config.pyrlk_pyramids,
-                             TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 30, 0.01),
-                             OPTFLOW_LK_GET_MIN_EIGENVALS);
+                             TermCriteria(TermCriteria::COUNT | TermCriteria::EPS, 30, 0.01));
         for (int i = 0, j = 0; i < k; i++, j++) {
             for (; j < ctx.config.max_keypoints && ctx.keypoints[j].idx == -1; j++)
                 ;;
@@ -76,7 +75,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 
     Rect roi = ht_get_roi(ctx, ctx.bbox);
 
-	if (!(roi.width > 20 && roi.height > 20))
+	if (!(roi.width > 20 && roi.height > 40))
 		return;
 
     float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
@@ -86,16 +85,11 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     max_dist *= max_dist;
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
-    ORB detector = ORB(500,
-                       1.2f,
-                       8,
-                       ctx.config.keypoint_quality,
-                       0,
-                       0,
-                       ORB::HARRIS_SCORE,
-                       ctx.config.keypoint_quality);
-    Mat img = ctx.grayscale(roi);
-    detector(img, noArray(), corners);
+	Mat img = ctx.grayscale(roi);
+	{
+		GridAdaptedFeatureDetector grid(FeatureDetector::create("FAST"), 1000, 4, 8);
+		grid.detect(img, corners);
+	}
     int cnt = corners.size();
 
     int kpidx = 0;
