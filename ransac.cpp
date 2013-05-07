@@ -18,12 +18,12 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
 
-	Mat rvec2 = Mat::zeros(3, 1, CV_64FC1);
-    Mat tvec2 = Mat::zeros(3, 1, CV_64FC1);
+	//Mat rvec2 = Mat::zeros(3, 1, CV_64FC1);
+    //Mat tvec2 = Mat::zeros(3, 1, CV_64FC1);
 
-    rvec2.at<double> (0, 0) = 1.0;
-    tvec2.at<double> (0, 0) = 1.0;
-    tvec2.at<double> (1, 0) = 1.0;
+    //rvec2.at<double> (0, 0) = 1.0;
+    //tvec2.at<double> (0, 0) = 1.0;
+    //tvec2.at<double> (1, 0) = 1.0;
 
     vector<Point3f> object_points;
     vector<Point2f> image_points;
@@ -90,16 +90,16 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
             if (object_points.size() >= 4)
             {
-                bool ret = solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec2, tvec2, false, HT_PNP_TYPE);
+                bool ret = solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE);
 
 				mean_error = sqrt(mean_error / std::max(1, k));
                 
-                ret = ret && rvec2.rows * rvec2.cols == 3 && tvec2.rows * tvec2.cols == 3;
+                ret = ret && rvec.rows * rvec.cols == 3 && tvec.rows * tvec.cols == 3;
 
-				if (j >= 4 && ret)
+				if (k >= 4 && ret)
 				{
-					rvec_ = rvec2;
-					tvec_ = tvec2;
+					rvec_ = rvec;
+					tvec_ = tvec;
 
 					return true;
 				}
