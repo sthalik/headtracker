@@ -40,7 +40,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 	int height = max_y - min_y;
 
 	rect = Rect(min_x, min_y, width, height);
-	rect2 = Rect(min_x-width*0.45, min_y-height*0.4, width*1.9, height*1.6);
+	rect2 = Rect(min_x-width*0.6, min_y-height*0.6, width*2.2, height*1.1);
 
     if (rect.x < 0)
         rect.x = 0;
