@@ -120,9 +120,9 @@ void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
 
-        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 1);
-        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p3.x, t.p3.y), Scalar(255, 0, 0), 1);
-        line(ctx.color, mult * Point(t.p3.x, t.p3.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 1);
+        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
+        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p3.x, t.p3.y), Scalar(255, 0, 0), 2);
+        line(ctx.color, mult * Point(t.p3.x, t.p3.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
 	}
 }
 
@@ -182,28 +182,29 @@ model_t ht_load_model(const char* filename) {
 	return ret;
 }
 
-bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv) {
-    double x0 = a.x;
-    double y0 = a.y;
-    double x1 = b.x;
-    double y1 = b.y;
-    double x2 = c.x;
-    double y2 = c.y;
-    double xp = point.x;
-    double yp = point.y;
+static __inline float dot(const Point2f& p1, const Point2f& p2) {
+    return p1.x * p2.x + p1.y * p2.y;
+}
 
-    double det = x0*(y1 - y2) + x1*(y2 - y0) + x2*(y0 - y1);
+bool ht_point_inside_triangle_2d(const Point2f p1, const Point2f p2, const Point2f p3, const Point2f px, Point2f& uv) {
+    Point2f v0(p3.x - p1.x, p3.y - p1.y);
+    Point2f v1(p2.x - p1.x, p2.y - p1.y);
+    Point2f v2(px.x - p1.x, px.y - p1.y);
 
-    double v = ((x2*y0-x0*y2)+xp*(y2-y0)+yp*(x0-x2)) / det;
-    double u = ((x0*y1-x1*y0)+xp*(y0-y1)+yp*(x1-x0)) / det;
+    float dot00 = dot(v0, v0);
+    float dot01 = dot(v0, v1);
+    float dot02 = dot(v0, v2);
+    float dot11 = dot(v1, v1);
+    float dot12 = dot(v1, v2);
 
-    if (u >= 0 && v >= 0 && u + v <= 1) {
-		uv.x = u;
-		uv.y = v;
-		return true;
-	}
+    float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-	return false;
+    uv.x = u;
+    uv.y = v;
+
+    return (u >= 0) && (v >= 0) && (u + v <= 1);
 }
 
 Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t) {
