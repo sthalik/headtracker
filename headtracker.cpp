@@ -16,7 +16,6 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec);
 
 Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 	Rect rect(65535, 65535, 0, 0);
-	Rect rect2(65535, 65535, 0, 0);
 
 	float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
 	float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
@@ -40,7 +39,6 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 	int height = max_y - min_y;
 
 	rect = Rect(min_x, min_y, width, height);
-	rect2 = Rect(min_x-width*0.6, min_y-height*0.6, width*2.2, height*2.1);
 
     if (rect.x < 0)
         rect.x = 0;
@@ -56,25 +54,6 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 		rectangle(ctx.color, Rect(rect.x * mult, rect.y * mult, rect.width * mult, rect.height * mult), color, 2);
 	}
-
-    if (rect2.x < 0)
-        rect2.x = 0;
-    if (rect2.y < 0)
-        rect2.y = 0;
-    if (rect2.width + rect2.x > ctx.grayscale.cols)
-        rect2.width = ctx.grayscale.cols - rect2.x;
-    if (rect2.height + rect2.y > ctx.grayscale.rows)
-        rect2.height = ctx.grayscale.rows - rect2.y;
-
-    if (ctx.config.debug)
-    {
-		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
-        Scalar color(0, 255, 0);
-        rectangle(ctx.color, Rect(rect2.x * mult, rect2.y * mult, rect2.width * mult, rect2.height * mult), color, 2);
-    }
-
-    Mat foo = ctx.tmp(rect2);
-	equalizeHist(foo, ctx.grayscale(rect2));
 
     return rect;
 }
@@ -203,6 +182,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
+				ctx->has_pose = true;
+				ctx->rvec = rvec.clone();
+				ctx->tvec = tvec.clone();
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {
@@ -218,6 +200,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
         for (int i = 0; i < ctx->config.max_keypoints; i++)
 			ctx->keypoints[i].idx = -1;
         ctx->hz = 0;
+		ctx->has_pose = false;
 		break;
 	}
 
