@@ -161,9 +161,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		}
 		break;
     } case HT_STATE_TRACKING: {
-		Rect roi = ht_get_roi(*ctx, ctx->bbox);
-        if (roi.width > 5 && roi.height > 5)
-        {
 #if 0
             if (ctx->config.debug)
             {
@@ -173,13 +170,15 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 #endif
             float error = 0;
             Mat rvec, tvec;
+            Rect roi;
 
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error &&
                 (ctx->zoom_ratio = ctx->focal_length_w * 0.2 / tvec.at<double>(2)) > 0 &&
                 ht_project_model(*ctx, rvec, tvec, ctx->model) &&
-                ht_project_model(*ctx, rvec, tvec, ctx->bbox))
+                ht_project_model(*ctx, rvec, tvec, ctx->bbox) &&
+                ((roi = ht_get_roi(*ctx, ctx->bbox)), (roi.width > 5 && roi.height > 5)))
             {
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
@@ -206,9 +205,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
-            } else {
-                ctx->state = HT_STATE_LOST;
-            }
         } else {
 			if (ctx->config.debug)
 				fprintf(stderr, "bad roi %d %d\n", roi.width, roi.height);
