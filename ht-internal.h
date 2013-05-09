@@ -55,7 +55,6 @@ typedef struct ht_context {
     VideoCapture camera;
     Mat grayscale;
     Mat color;
-    Mat tmp;
     CascadeClassifier head_classifier;
 	int ticks_last_classification;
 	int ticks_last_features;
@@ -74,6 +73,8 @@ typedef struct ht_context {
     int hz_last_second;
     FLANDMARK_Model* flandmark_model;
     int ticks_last_flandmark;
+	Mat rvec, tvec;
+	bool has_pose;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);
