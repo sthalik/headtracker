@@ -86,10 +86,10 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     max_3dist *= max_3dist;
     vector<KeyPoint> corners;
 	Mat img = ctx.grayscale(roi);
-	{
-		GridAdaptedFeatureDetector grid(FeatureDetector::create("FAST"), 1000, 4, 8);
-		grid.detect(img, corners);
-	}
+	float quality = ctx.config.keypoint_quality;
+	quality *= ctx.grayscale.rows / 640.0;
+	ORB orb = ORB(ctx.config.max_keypoints, 1.3, 4, quality, 0, 2, ORB::HARRIS_SCORE, quality);
+	orb.detect(img, corners);
     int cnt = corners.size();
 
     int kpidx = 0;
