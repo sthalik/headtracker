@@ -19,10 +19,8 @@ bool ht_get_image(headtracker_t& ctx) {
 		large2 = large;
 
 #if 1
-    if (large.cols > 320) {
-        Size newSize(large2.cols *2/3, large2.rows *2/3);
-		resize(large2, ctx.grayscale, newSize, 0, 0, CV_INTER_AREA);
-    }
+    Size newSize(large2.cols *3/5, large2.rows *3/5);
+	resize(large2, ctx.grayscale, newSize, 0, 0, CV_INTER_AREA);
 #else
 	ctx.grayscale = large2;
 #endif
