@@ -36,6 +36,11 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 
     if (object_points.size() >= 8)
     {
+		if (ctx.has_pose)
+		{
+			rvec = ctx.rvec;
+			tvec = ctx.tvec;
+		}
         vector<int> inliers;
         solvePnPRansac(object_points,
                        image_points,
@@ -43,7 +48,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                        dist_coeffs,
                        rvec,
                        tvec,
-					   false,
+					   ctx.has_pose,
                        ctx.config.ransac_num_iters,
                        ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
                        object_points.size() * ctx.config.ransac_min_features,
