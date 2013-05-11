@@ -17,16 +17,19 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 void ht_track_features(headtracker_t& ctx) {
+	float ww = ctx.config.pyrlk_win_size_w * ctx.grayscale.cols / 640;
+	float wh = ctx.config.pyrlk_win_size_h * ctx.grayscale.cols / 640;
+
     if (ctx.restarted) {
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
-                                Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+                                Size(ww, wh),
                                 ctx.config.pyrlk_pyramids);
     }
 
     buildOpticalFlowPyramid(ctx.grayscale,
                             *ctx.pyr_b,
-                            Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
+                            Size(ww, wh),
                             ctx.config.pyrlk_pyramids);
     int k = 0;
 
