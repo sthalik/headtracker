@@ -4,9 +4,18 @@
 #include "headtracker-ftnoir.h"
 #include "compat.h"
 #include <cstdio>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 int main(void)
 {
+#ifdef _WIN32
+    {
+        int mask = 1 << 1;
+        (void) SetProcessAffinityMask(GetCurrentProcess(), mask);
+    }
+#endif
 	ht_shm_t* shm;
 	PortableLockedShm lck_shm(HT_SHM_NAME, HT_MUTEX_NAME, sizeof(ht_shm_t));
 	
