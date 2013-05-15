@@ -19,7 +19,7 @@ bool ht_get_image(headtracker_t& ctx) {
 		large2 = large;
 
 #if 1
-    Size newSize(large2.cols *3/5, large2.rows *3/5);
+    Size newSize(large2.cols *0.625, large2.rows *0.625);
 	resize(large2, ctx.grayscale, newSize, 0, 0, CV_INTER_AREA);
 #else
 	ctx.grayscale = large2;
@@ -66,7 +66,8 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->ticks_last_second = ht_tickcount() / 1000;
     ctx->flandmark_model = flandmark_init("flandmark_model.dat");
     ctx->ticks_last_flandmark = -1;
-	return ctx;
+    ctx->detector = new DynamicAdaptedFeatureDetector (new FastAdjuster(20,true), ctx->config.max_keypoints*4, ctx->config.max_keypoints*15, 30);
+    return ctx;
 }
 
 HT_API(void) ht_free_context(headtracker_t* ctx) {
@@ -77,8 +78,6 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 		delete[] ctx->model.triangles;
 	if (ctx->model.projection)
 		delete[] ctx->model.projection;
-    if (ctx->model.rotation)
-        delete[] ctx->model.rotation;
 	if (ctx->keypoints)
 		delete[] ctx->keypoints;
     delete ctx->pyr_a;

@@ -7,15 +7,6 @@
 using namespace std;
 using namespace cv;
 
-static Point3f ht_rotate_point(const Mat& rmat, const Point3f p)
-{
-    Point3f ret;
-    ret.x = p.x * rmat.at<double>(0, 0) + p.y * rmat.at<double>(1, 0) + p.z * rmat.at<double>(2, 0);
-    ret.y = p.x * rmat.at<double>(0, 1) + p.y * rmat.at<double>(1, 1) + p.z * rmat.at<double>(2, 1);
-    ret.z = p.x * rmat.at<double>(0, 2) + p.y * rmat.at<double>(1, 2) + p.z * rmat.at<double>(2, 2);
-    return ret;
-}
-
 bool ht_project_model(headtracker_t& ctx,
                       const Mat& rvec,
                       const Mat& tvec,
@@ -28,9 +19,6 @@ bool ht_project_model(headtracker_t& ctx,
 
     if (!model.projection)
         model.projection = new triangle2d_t[sz];
-
-    if (!model.rotation)
-        model.rotation = new triangle_t[sz];
 
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
 
@@ -64,15 +52,6 @@ bool ht_project_model(headtracker_t& ctx,
         t2d.p3 = image_points[i * 3 + 2];
 
         model.projection[i] = t2d;
-
-        triangle_t t3d = model.triangles[i];
-        triangle_t r;
-
-        r.p1 = ht_rotate_point(rmat, t3d.p1);
-        r.p2 = ht_rotate_point(rmat, t3d.p2);
-        r.p3 = ht_rotate_point(rmat, t3d.p3);
-
-        model.rotation[i] = r;
     }
     
     return true;
@@ -81,8 +60,6 @@ bool ht_project_model(headtracker_t& ctx,
 bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f& uv) {
 	if (!model.projection)
 		return false;
-    if (!model.rotation)
-        return false;
 
 	int sz = model.count;
 
@@ -95,7 +72,8 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
 		triangle2d_t& t = model.projection[i];
         if (ht_point_inside_triangle_2d(t.p1, t.p2, t.p3, pos, uv))
         {
-            float new_z = ht_get_triangle_pos(uv, model.rotation[i]).z;
+            Point3f tmp = ht_get_triangle_pos(uv, model.triangles[i]);
+            float new_z = tmp.z;
             if (new_z > best_z)
             {
                 best_uv = uv;
@@ -158,11 +136,9 @@ model_t ht_load_model(const char* filename) {
         triangle.p3.y *= 100;
         triangle.p3.z *= 100;
 
-#if 0
         triangle.p1.y *= -1;
         triangle.p2.y *= -1;
         triangle.p3.y *= -1;
-#endif
 
 		triangles.push_back(triangle);
 	}
@@ -177,29 +153,28 @@ model_t ht_load_model(const char* filename) {
 	}
 
     ret.projection = NULL;
-    ret.rotation = NULL;
 
 	return ret;
 }
 
-static __inline float dot(const Point2f& p1, const Point2f& p2) {
+static __inline double dot(const Point2d& p1, const Point2d& p2) {
     return p1.x * p2.x + p1.y * p2.y;
 }
 
-bool ht_point_inside_triangle_2d(const Point2f p1, const Point2f p2, const Point2f p3, const Point2f px, Point2f& uv) {
-    Point2f v0(p3.x - p1.x, p3.y - p1.y);
-    Point2f v1(p2.x - p1.x, p2.y - p1.y);
-    Point2f v2(px.x - p1.x, px.y - p1.y);
+bool ht_point_inside_triangle_2d(const Point2d p1, const Point2d p2, const Point2d p3, const Point2d px, Point2f& uv) {
+    Point2d v0(p3.x - p1.x, p3.y - p1.y);
+    Point2d v1(p2.x - p1.x, p2.y - p1.y);
+    Point2d v2(px.x - p1.x, px.y - p1.y);
 
-    float dot00 = dot(v0, v0);
-    float dot01 = dot(v0, v1);
-    float dot02 = dot(v0, v2);
-    float dot11 = dot(v1, v1);
-    float dot12 = dot(v1, v2);
+    double dot00 = dot(v0, v0);
+    double dot01 = dot(v0, v1);
+    double dot02 = dot(v0, v2);
+    double dot11 = dot(v1, v1);
+    double dot12 = dot(v1, v2);
 
-    float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+    double invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    double u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    double v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     uv.x = u;
     uv.y = v;

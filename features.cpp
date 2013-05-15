@@ -8,7 +8,11 @@ void ht_draw_features(headtracker_t& ctx) {
 	float mult = ctx.color.cols / (float)ctx.grayscale.cols;
     for (int i = 0; i < ctx.config.max_keypoints; i++) {
         if (ctx.keypoints[i].idx != -1) {
-            circle(ctx.color, Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult), 2, Scalar(255, 255, 0), -1);
+            circle(ctx.color,
+                   Point(ctx.keypoints[i].position.x * mult, ctx.keypoints[i].position.y * mult),
+                   2,
+                   Scalar(255, 255, 0),
+                   -1);
             j++;
         }
     }
@@ -17,19 +21,17 @@ void ht_draw_features(headtracker_t& ctx) {
 }
 
 void ht_track_features(headtracker_t& ctx) {
-	float ww = ctx.config.pyrlk_win_size_w * ctx.grayscale.cols / 640;
-	float wh = ctx.config.pyrlk_win_size_h * ctx.grayscale.cols / 640;
 
     if (ctx.restarted) {
         buildOpticalFlowPyramid(ctx.grayscale,
                                 *ctx.pyr_a,
-                                Size(ww, wh),
+								Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                                 ctx.config.pyrlk_pyramids);
     }
 
     buildOpticalFlowPyramid(ctx.grayscale,
                             *ctx.pyr_b,
-                            Size(ww, wh),
+                            Size(ctx.config.pyrlk_win_size_w, ctx.config.pyrlk_win_size_h),
                             ctx.config.pyrlk_pyramids);
     int k = 0;
 
@@ -47,7 +49,7 @@ void ht_track_features(headtracker_t& ctx) {
 
     if (k > 0) {
         calcOpticalFlowPyrLK(*ctx.pyr_a,
-                             *ctx.pyr_b,
+		                     *ctx.pyr_b,
                              old_features,
                              new_features,
                              features_found,
@@ -73,59 +75,61 @@ void ht_track_features(headtracker_t& ctx) {
 void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (!model.projection)
         return;
-    if (!model.rotation)
-        return;
 
-    Rect roi = ht_get_roi(ctx, ctx.bbox);
+    Rect roi = ht_get_roi(ctx, ctx.model);
 
 	if (!(roi.width > 20 && roi.height > 40))
 		return;
-
-    float max_dist = max(1.01f, ctx.config.keypoint_distance * ctx.zoom_ratio);
-    float max_3dist = max(1.5f, ctx.config.keypoint_3distance * ctx.zoom_ratio);
-	float max_9dist = max(3.0f, ctx.config.keypoint_9distance * ctx.zoom_ratio);
-	max_9dist *= max_9dist;
+    
+    float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
     max_dist *= max_dist;
-    max_3dist *= max_3dist;
     vector<KeyPoint> corners;
 	Mat img = ctx.grayscale(roi);
-	int quality = ctx.config.keypoint_quality * ctx.grayscale.cols / 640;
-	ORB orb = ORB(ctx.config.max_keypoints, 1.3, 4, quality, 0, 2, ORB::HARRIS_SCORE, quality);
-	orb.detect(img, corners);
+    //ORB foo(2000, 1.2, 8, 2, 0, 2, ORB::HARRIS_SCORE, 2);
+    //foo.detect(img, corners);
+	//Ptr<FeatureDetector> fast = FeatureDetector::create("FAST");
+    //fast->detect(img, corners);
+    //GridAdaptedFeatureDetector detector(fast, ctx.config.max_keypoints, 4, 2);
+	//detector.detect(img, corners);
+    ctx.detector->detect(img, corners);
+    if (ctx.config.debug)
+        fprintf(stderr, "new keypoints: %d\n", corners.size());
     int cnt = corners.size();
+    int no_triangle = 0, overlapped = 0;
 
     int kpidx = 0;
+    
     for (int i = 0; i < cnt; i++) {
         Point2f kp = corners[i].pt;
         kp.x += roi.x;
         kp.y += roi.y;
         bool overlap = false;
-        int threes = 0;
-		int nines = 0;
 
         for (int j = 0; j < ctx.config.max_keypoints; j++) {
-            float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
             if (ctx.keypoints[j].idx != -1) {
-                if (dist < max_3dist)
-                    ++threes;
-				if (dist < max_9dist)
-					++nines;
-                if (dist < max_dist || threes >= 3 || nines >= 9) {
-                    overlap = true;
-                    break;
+				float dist = ht_distance2d_squared(kp, ctx.keypoints[j].position);
+                if (dist < max_dist) {
+					overlap = true;
+					break;
                 }
             }
         }
 
         if (overlap)
+        {
+            overlapped++;
             continue;
+        }
 
         triangle_t t;
         int idx;
         Point2f uv;
 
         if (!ht_triangle_at(kp, &t, &idx, model, uv))
+        {
+            no_triangle++;
             continue;
+        }
 
         for (; kpidx < ctx.config.max_keypoints; kpidx++) {
             if (ctx.keypoints[kpidx].idx == -1) {
@@ -138,4 +142,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
         if (kpidx == ctx.config.max_keypoints)
             break;
     }
+    if (ctx.config.debug)
+        fprintf(stderr, "no-triangle=%d, overlapped=%d\n", no_triangle, overlapped);
 }

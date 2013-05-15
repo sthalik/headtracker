@@ -20,7 +20,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
 	float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
 	float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
-	for (int i = 0; i < ctx.bbox.count; i++) {
+	for (int i = 0; i < model.count; i++) {
 		float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
 		float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
 		float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
@@ -82,27 +82,44 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
-    int ticks = ht_tickcount() / ctx.config.flandmark_delay;
-
-    if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
-        return;
-
-    ctx.ticks_last_flandmark = ticks;
+    bool extreme = false;
+    
+    if (ctx.has_pose)
+    {
+        ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
+        if (fabs(res.rotx) > 22.5 || res.roty > 25 || res.roty < -20)
+        {
+            extreme = true;
+        }
+    }
 
     Mat rvec, tvec;
-    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
-        return;
     model_t tmp_model;
-
     tmp_model.triangles = ctx.model.triangles;
     tmp_model.count = ctx.model.count;
+    
+    if (!extreme)
+    {
+        int ticks = ht_tickcount() / ctx.config.flandmark_delay;
+    
+        if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
+            return;
+    
+        ctx.ticks_last_flandmark = ticks;
+        if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
+            return;
+    }
+    else {
+        return;
+        rvec = ctx.rvec.clone();
+        tvec = ctx.tvec.clone();
+    }
+    
     tmp_model.projection = new triangle2d_t[ctx.model.count];
-    tmp_model.rotation = new triangle_t[ctx.model.count];
 
     if (ht_project_model(ctx, rvec, tvec, tmp_model))
         ht_get_features(ctx, tmp_model);
     delete[] tmp_model.projection;
-    delete[] tmp_model.rotation;
 }
 
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
@@ -150,6 +167,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             float error = 0;
             Mat rvec, tvec;
             Rect roi;
+			ht_track_features(*ctx);
 
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
@@ -162,7 +180,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
-				ht_track_features(*ctx);
                 ht_draw_model(*ctx, ctx->model);
                 if (ctx->config.debug)
                     ht_draw_features(*ctx);
@@ -177,14 +194,26 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     string buf;
                     buf.append("Hz: ");
                     buf.append(SSTR(ctx->hz_last_second));
-                    putText(ctx->color, buf, Point(10, 30), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+                    putText(ctx->color, buf, Point(10, 30), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+					buf.clear();
+					buf.append("Error: ");
+					buf.append(SSTR(error));
+					putText(ctx->color, buf, Point(10, 60), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+					buf.clear();
+					buf.append("Keypoints: ");
+					int cnt = 0;
+					for (int i = 0; i < ctx->config.max_keypoints; i++)
+						if (ctx->keypoints[i].idx != -1)
+							cnt++;
+					buf.append(SSTR(cnt));
+					putText(ctx->color, buf, Point(10, 90), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
                 }
-                ht_get_next_features(*ctx, roi);
-                *euler = ht_matrix_to_euler(rvec, tvec);
-                euler->filled = true;
 				ctx->has_pose = true;
 				ctx->rvec = rvec.clone();
 				ctx->tvec = tvec.clone();
+                ht_get_next_features(*ctx, roi);
+                *euler = ht_matrix_to_euler(rvec, tvec);
+                euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {

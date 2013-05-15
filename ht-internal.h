@@ -35,7 +35,6 @@ typedef struct {
 
 typedef struct {
 	triangle_t* triangles;
-    triangle_t* rotation;
 	triangle2d_t* projection;
 	int count;
 } model_t;
@@ -53,8 +52,7 @@ typedef struct ht_context {
     float focal_length_w;
     float focal_length_h;
     VideoCapture camera;
-    Mat grayscale;
-    Mat color;
+    Mat grayscale, color;
     CascadeClassifier head_classifier;
 	int ticks_last_classification;
 	int ticks_last_features;
@@ -75,10 +73,11 @@ typedef struct ht_context {
     int ticks_last_flandmark;
 	Mat rvec, tvec;
 	bool has_pose;
+    Ptr<FeatureDetector> detector;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);
-bool ht_point_inside_triangle_2d(const Point2f a, const Point2f b, const Point2f c, const Point2f point, Point2f& uv);
+bool ht_point_inside_triangle_2d(const Point2d p1, const Point2d p2, const Point2d p3, const Point2d px, Point2f& uv);
 
 bool ht_classify(CascadeClassifier& classifier, Mat& frame, Rect& ret);
 

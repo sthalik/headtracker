@@ -25,7 +25,6 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     bbox[1] = roi.y;
     bbox[2] = roi.width + roi.x;
     bbox[3] = roi.height + roi.y;
-
     IplImage c_image = frame;
 
     double landmarks[fl_count * 2];
@@ -56,44 +55,29 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2f> image_points(7);
     vector<Point3f> object_points(7);
 
-	if (!ctx.config.user_landmarks)
+	object_points[0] = Point3d(-0.02974, -0.08442, 0.17999);
+	object_points[1] = Point3d(0.02974, -0.08442, 0.17999);
+	object_points[2] = Point3d(-0.08587, -0.09104, 0.16335);
+	object_points[3] = Point3d(0.08587, -0.09104, 0.16335);
+    object_points[4] = Point3d(0, -0.007844, 0.26203);
+	object_points[5] = Point3d(-0.04258, 0.06072, 0.20535);
+	object_points[6] = Point3d(0.04258, 0.06072, 0.20535);
+    
+	for (int i = 0; i < object_points.size(); i++)
 	{
-		object_points[0] = Point3d(0, -0.002312, 0.13194);
-		object_points[1] = Point3d(-0.01796, 0.03475, 0.08638);
-		object_points[2] = Point3d(0.01796, 0.03475, 0.08638);
-		object_points[3] = Point3d(-0.04810, 0.03560, 0.08034);
-		object_points[4] = Point3d(0.04810, 0.03560, 0.08034);
-		object_points[5] = Point3d(-0.02763, -0.03935, 0.09342);
-		object_points[6] = Point3d(0.02763, -0.03935, 0.09342);
-
-		for (int i = 0; i < object_points.size(); i++)
-		{
-			object_points[i].x *= 100;
-			object_points[i].y *= 100;
-			object_points[i].z *= 100;
-		}
-	} else {
-		object_points[0] = Point3d(ctx.config.user_landmark_locations[0][0], ctx.config.user_landmark_locations[1][0], ctx.config.user_landmark_locations[2][0]);
-		object_points[1] = Point3d(ctx.config.user_landmark_locations[0][1], ctx.config.user_landmark_locations[1][1], ctx.config.user_landmark_locations[2][1]);
-		object_points[2] = Point3d(-ctx.config.user_landmark_locations[0][1], ctx.config.user_landmark_locations[1][1], ctx.config.user_landmark_locations[2][1]);
-		object_points[3] = Point3d(ctx.config.user_landmark_locations[0][2], ctx.config.user_landmark_locations[1][2], ctx.config.user_landmark_locations[2][2]);
-		object_points[4] = Point3d(-ctx.config.user_landmark_locations[0][2], ctx.config.user_landmark_locations[1][2], ctx.config.user_landmark_locations[2][2]);
-		object_points[5] = Point3d(ctx.config.user_landmark_locations[0][3], ctx.config.user_landmark_locations[1][3], ctx.config.user_landmark_locations[2][3]);
-		object_points[6] = Point3d(-ctx.config.user_landmark_locations[0][3], ctx.config.user_landmark_locations[1][3], ctx.config.user_landmark_locations[2][3]);
-
-		if (ctx.config.debug)
-			for (int i = 0; i < 6; i++)
-				printf("%f %f %f\n", object_points[i].x, object_points[i].y, object_points[i].z);
+		object_points[i].x *= 100;
+		object_points[i].y *= 100;
+		object_points[i].z *= 100;
 	}
 
-    image_points[0] = nose;
-    image_points[1] = left_eye_right;
-    image_points[2] = right_eye_left;
-    image_points[3] = left_eye_left;
-    image_points[4] = right_eye_right;
-	image_points[5] = mouth_left;
-	image_points[6] = mouth_right;
-
+    image_points[0] = left_eye_right;
+    image_points[1] = right_eye_left;
+    image_points[2] = left_eye_left;
+    image_points[3] = right_eye_right;
+    image_points[4] = nose;
+    image_points[5] = mouth_left;
+    image_points[6] = mouth_right;
+    
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;
     intrinsics.at<float> (1, 1) = ctx.focal_length_h;
@@ -108,29 +92,25 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
 
-    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, HT_PNP_TYPE))
+    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, EPNP))
         return false;
 
-	if (ctx.config.debug)
+	if (ctx.config.debug && ctx.has_pose)
 	{
 		vector<Point2f> image_points2;
-		vector<Point3f> object_points2(object_points.size());
-
-		for (int i = 0; i < object_points.size(); i++)
-			object_points2[i] = object_points[i];
-
-		projectPoints(object_points2, rvec, tvec, intrinsics, dist_coeffs, image_points2);
+		projectPoints(object_points, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points2);
 		Scalar color(0, 0, 255);
 		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
-		Scalar color2(0, 255, 0);
+		Scalar color2(255, 255, 255);
 		for (int i = 0; i < image_points.size(); i++)
 		{
-			line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 2);
-			circle(ctx.color, image_points[i] * mult, 2, color2, -1);
+			line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 7);
+			circle(ctx.color, image_points[i] * mult, 5, color2, -1);
 		}
 	}
-	rvec_ = rvec;
-    tvec_ = tvec;
+
+	rvec_ = rvec.clone();
+    tvec_ = tvec.clone();
 
     return true;
 }
@@ -145,7 +125,7 @@ bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
 
     Rect face_rect;
 
-    if (!ht_classify(ctx.head_classifier, frame, face_rect))
+	if (!ht_classify(ctx.head_classifier, ctx.grayscale, face_rect))
         return false;
     
     if (face_rect.x < 0)
