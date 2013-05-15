@@ -87,7 +87,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 22.5 || res.roty > 25 || res.roty < -20)
+        if (fabs(res.rotx) > 22 || res.roty > 20 || res.roty < -20)
         {
             extreme = true;
         }

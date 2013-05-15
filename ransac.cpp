@@ -28,7 +28,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
         image_points.push_back(ctx.keypoints[i].position);
     }
 
-    if (object_points.size() >= 8)
+    if (object_points.size() >= 15)
     {
 		if (ctx.has_pose)
 		{
@@ -90,7 +90,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
             inliers_count++;
         }
 
-        if (inliers_count >= 4)
+        if (inliers_count >= 10)
         {
             mean_error = sqrt(mean_error / inliers_count);
             
