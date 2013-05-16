@@ -87,7 +87,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 21 || res.roty > 26 || res.roty < -26)
+        if (fabs(res.rotx) > 20 || res.roty > 25 || res.roty < -25)
         {
             extreme = true;
         }
@@ -110,6 +110,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
             return;
     }
     else {
+        return;
         rvec = ctx.rvec.clone();
         tvec = ctx.tvec.clone();
     }

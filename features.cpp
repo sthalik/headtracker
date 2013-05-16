@@ -76,7 +76,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (!model.projection)
         return;
 
-    Rect roi = ht_get_roi(ctx, ctx.model);
+    Rect roi = ht_get_roi(ctx, model);
 
 	if (!(roi.width > 20 && roi.height > 40))
 		return;
@@ -91,6 +91,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     //fast->detect(img, corners);
     //GridAdaptedFeatureDetector detector(fast, ctx.config.max_keypoints, 4, 2);
 	//detector.detect(img, corners);
+    
     ctx.detector->detect(img, corners);
     if (ctx.config.debug)
         fprintf(stderr, "new keypoints: %d\n", corners.size());
