@@ -66,7 +66,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->ticks_last_second = ht_tickcount() / 1000;
     ctx->flandmark_model = flandmark_init("flandmark_model.dat");
     ctx->ticks_last_flandmark = -1;
-    ctx->detector = new DynamicAdaptedFeatureDetector (new FastAdjuster(20,true), ctx->config.max_keypoints*2, ctx->config.max_keypoints*4, 50);
+    ctx->detector = new DynamicAdaptedFeatureDetector (new FastAdjuster(20,true), ctx->config.max_keypoints*3, ctx->config.max_keypoints*10, 50);
     return ctx;
 }
 

@@ -83,11 +83,11 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
     bool extreme = false;
-    
+ 
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 20 || res.roty > 25 || res.roty < -25)
+        if (fabs(res.rotx) > 25 || res.roty > 25)
         {
             extreme = true;
         }
@@ -110,7 +110,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
             return;
     }
     else {
-        return;
+        //return;
         rvec = ctx.rvec.clone();
         tvec = ctx.tvec.clone();
     }
@@ -145,7 +145,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_project_model(*ctx, rvec, tvec, ctx->bbox))
 		{
             ht_draw_model(*ctx, ctx->model);
-			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.2 / tvec.at<double>(2));
+			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.3 / tvec.at<double>(2));
 			Rect roi = ht_get_roi(*ctx, ctx->bbox);
 			if (roi.width > 5 && roi.height > 5)
 			{
@@ -172,7 +172,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error &&
-                (ctx->zoom_ratio = ctx->focal_length_w * 0.2 / tvec.at<double>(2)) > 0 &&
+                (ctx->zoom_ratio = ctx->focal_length_w * 0.3 / tvec.at<double>(2)) > 0 &&
                 ht_project_model(*ctx, rvec, tvec, ctx->model) &&
                 ht_project_model(*ctx, rvec, tvec, ctx->bbox) &&
                 ((roi = ht_get_roi(*ctx, ctx->bbox)), (roi.width > 5 && roi.height > 5)))
@@ -214,7 +214,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
-				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
+				//euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {
 			if (ctx->config.debug)
