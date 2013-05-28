@@ -87,7 +87,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 25 || res.roty > 25)
+        if (fabs(res.rotx) > 25 || res.roty > 20)
         {
             extreme = true;
         }
@@ -181,8 +181,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
                 ht_draw_model(*ctx, ctx->model);
-                if (ctx->config.debug)
-                    ht_draw_features(*ctx);
+                //if (ctx->config.debug)
+                    //ht_draw_features(*ctx);
                 ctx->hz++;
                 int ticks = ht_tickcount() / 1000;
                 if (ctx->ticks_last_second != ticks) {
