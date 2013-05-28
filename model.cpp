@@ -21,6 +21,9 @@ bool ht_project_model(headtracker_t& ctx,
         model.projection = new triangle2d_t[sz];
 
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
+    
+    for (int i = 0; i < 5; i++)
+        dist_coeffs.at<float>(i) = ctx.config.dist_coeffs[i];
 
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;

@@ -13,6 +13,9 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
     Mat rvec = Mat::zeros(3, 1, CV_64FC1);
     Mat tvec = Mat::zeros(3, 1, CV_64FC1);
+    
+    for (int i = 0; i < 5; i++)
+        dist_coeffs.at<float>(i) = ctx.config.dist_coeffs[i];
 
     rvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (0, 0) = 1.0;
