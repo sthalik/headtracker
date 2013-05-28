@@ -55,13 +55,13 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2f> image_points(7);
     vector<Point3f> object_points(7);
 
-	object_points[0] = Point3d(-0.03389, -0.03585, 0.09337);
-	object_points[1] = Point3d(0.03389, -0.03585, 0.09337);
-	object_points[2] = Point3d(-0.08900, -0.03199, 0.07950);
-	object_points[3] = Point3d(0.08900, -0.03199, 0.07950);
-    object_points[4] = Point3d(0, 0.03698, 0.16037);
-	object_points[5] = Point3d(-0.04248, 0.10456, 0.09286);
-	object_points[6] = Point3d(0.04248, 0.10456, 0.09286);
+	object_points[0] = Point3d(-0.03389, -0.04326, 0.09195);
+	object_points[1] = Point3d(0.03389, -0.04326, 0.09195);
+	object_points[2] = Point3d(-0.08900, -0.04614, 0.07950);
+	object_points[3] = Point3d(0.08900, -0.04614, 0.07950);
+    object_points[4] = Point3d(0, 0.02113, 0.15202);
+	object_points[5] = Point3d(-0.04729, 0.08931, 0.08804);
+	object_points[6] = Point3d(0.04729, 0.08931, 0.08804);
     
 	for (int i = 0; i < object_points.size(); i++)
 	{
@@ -87,6 +87,9 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
     Mat rvec = Mat::zeros(3, 1, CV_64FC1);
     Mat tvec = Mat::zeros(3, 1, CV_64FC1);
+    
+    for (int i = 0; i < 5; i++)
+        dist_coeffs.at<float>(i) = ctx.config.dist_coeffs[i];
 
     rvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (0, 0) = 1.0;
