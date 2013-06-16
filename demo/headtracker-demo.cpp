@@ -37,22 +37,24 @@ int main(int argc, char** argv)
 
     config.classification_delay = 500;
     config.field_of_view = 56;
-	config.pyrlk_pyramids = 0;
-    config.pyrlk_win_size_w = config.pyrlk_win_size_h = 21;
-    config.max_keypoints = 150;
-    config.keypoint_distance = 3.6;
+    config.pyrlk_pyramids = 3;
+    config.pyrlk_win_size_w = config.pyrlk_win_size_h = 29;
+    config.max_keypoints = 300;
+    config.keypoint_distance = 3.5;
     config.force_width = 640;
     config.force_height = 480;
-    config.force_fps = 0;
+    config.force_fps = 30;
     config.camera_index = 0;
     config.ransac_num_iters = 100;
-    config.ransac_max_reprojection_error = 3.35;
-    config.ransac_max_inlier_error = 3.4;
-    config.ransac_max_mean_error = 6;
-    config.ransac_abs_max_mean_error = 3.1;
+    config.ransac_max_reprojection_error = 5.8;
+    config.ransac_max_inlier_error = 6;
+    config.ransac_max_mean_error = 4.5;
+    config.ransac_abs_max_mean_error = 8;
     config.debug = 0;
     config.ransac_min_features = 0.85;
-    config.flandmark_delay = 250;
+    config.flandmark_delay = 200;
+    for (int i = 0; i < 5; i++)
+    	config.dist_coeffs[i] = 0;
 
     headtracker_t* ctx = ht_make_context(&config, argc > 1 ? argv[1] : NULL);
     ht_result_t result;
