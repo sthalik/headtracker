@@ -76,7 +76,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     if (!model.projection)
         return;
 
-    Rect roi = ht_get_roi(ctx, model);
+    Rect roi = ht_get_bounds(ctx, model);
 
 	if (!(roi.width > 20 && roi.height > 40))
 		return;

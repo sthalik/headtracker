@@ -14,9 +14,9 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 
 static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec);
 
-Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
-	Rect rect(65535, 65535, 0, 0);
-
+Rect ht_get_bounds(headtracker_t& ctx, model_t& model)
+{
+    Rect rect(65535, 65535, 0, 0);
 	float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
 	float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
@@ -48,13 +48,7 @@ Rect ht_get_roi(headtracker_t &ctx, model_t &model) {
         rect.width = ctx.grayscale.cols - rect.x;
     if (rect.height + rect.y > ctx.grayscale.rows)
         rect.height = ctx.grayscale.rows - rect.y;
-    if (ctx.config.debug)
-    {
-        Scalar color(255, 0, 0);
-		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
-		rectangle(ctx.color, Rect(rect.x * mult, rect.y * mult, rect.width * mult, rect.height * mult), color, 2);
-	}
-
+    
     return rect;
 }
 
@@ -87,7 +81,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 25 || res.roty > 20)
+        if (fabs(res.rotx) > 24 || res.roty > 35 || fabs(res.rotz) > 14)
         {
             extreme = true;
         }
@@ -146,7 +140,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		{
             ht_draw_model(*ctx, ctx->model);
 			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.3 / tvec.at<double>(2));
-			Rect roi = ht_get_roi(*ctx, ctx->bbox);
+			Rect roi = ht_get_bounds(*ctx, ctx->bbox);
 			if (roi.width > 5 && roi.height > 5)
 			{
 				ht_track_features(*ctx);
@@ -158,7 +152,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 		break;
     } case HT_STATE_TRACKING: {
 #if 0
-            if (ctx->config.debug)
+            //if (ctx->config.debug)
             {
                 imshow("bw", ctx->grayscale);
                 waitKey(1);
@@ -167,22 +161,27 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             float error = 0;
             Mat rvec, tvec;
             Rect roi;
+            
 			ht_track_features(*ctx);
 
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
+                (ctx->zoom_ratio = ctx->focal_length_w * 0.3 / tvec.at<double>(2)) > 0 &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error &&
-                (ctx->zoom_ratio = ctx->focal_length_w * 0.3 / tvec.at<double>(2)) > 0 &&
                 ht_project_model(*ctx, rvec, tvec, ctx->model) &&
                 ht_project_model(*ctx, rvec, tvec, ctx->bbox) &&
-                ((roi = ht_get_roi(*ctx, ctx->bbox)), (roi.width > 5 && roi.height > 5)))
+                ((roi = ht_get_bounds(*ctx, ctx->bbox)), (roi.width > 5 && roi.height > 5)))
             {
                 if (ctx->config.debug) {
     				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
                 }
                 ht_draw_model(*ctx, ctx->model);
-                //if (ctx->config.debug)
-                    //ht_draw_features(*ctx);
+                if (ctx->config.debug)
+                {
+                    ht_draw_features(*ctx);
+                    Scalar color(0, 0, 255);
+                    rectangle(ctx->color, roi, color, 2);
+                }
                 ctx->hz++;
                 int ticks = ht_tickcount() / 1000;
                 if (ctx->ticks_last_second != ticks) {
@@ -200,7 +199,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 					buf.append(SSTR(error));
 					putText(ctx->color, buf, Point(10, 60), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
 					buf.clear();
-					buf.append("Keypoints: ");
+                    buf.append("Keypoints: ");
 					int cnt = 0;
 					for (int i = 0; i < ctx->config.max_keypoints; i++)
 						if (ctx->keypoints[i].idx != -1)
@@ -214,11 +213,11 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
-				//euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
+				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
 				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {
 			if (ctx->config.debug)
-				fprintf(stderr, "bad roi %d %d\n", roi.width, roi.height);
+				fprintf(stderr, "bad roi %d %d; err=%f\n", roi.width, roi.height, error);
 			ctx->state = HT_STATE_LOST;
 		}
 		break;
