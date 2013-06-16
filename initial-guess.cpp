@@ -55,13 +55,13 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2f> image_points(7);
     vector<Point3f> object_points(7);
 
-	object_points[0] = Point3d(-0.03389, -0.04326, 0.09195);
-	object_points[1] = Point3d(0.03389, -0.04326, 0.09195);
-	object_points[2] = Point3d(-0.08900, -0.04614, 0.07950);
-	object_points[3] = Point3d(0.08900, -0.04614, 0.07950);
-    object_points[4] = Point3d(0, 0.02113, 0.15202);
-	object_points[5] = Point3d(-0.04729, 0.08931, 0.08804);
-	object_points[6] = Point3d(0.04729, 0.08931, 0.08804);
+	object_points[0] = Point3d(-0.03387, -0.02724, -0.01198);
+	object_points[1] = Point3d(0.03387, -0.02724, -0.01198);
+	object_points[2] = Point3d(-0.08549, -0.03010, -0.02061);
+	object_points[3] = Point3d(0.08549, -0.03010, -0.02061);
+	object_points[5] = Point3d(-0.04490, 0.10590, -0.01585);
+	object_points[6] = Point3d(0.04490, 0.10590, -0.01585);
+    object_points[4] = Point3d(0, 0.06287, 0.04647);
     
 	for (int i = 0; i < object_points.size(); i++)
 	{
@@ -74,9 +74,9 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     image_points[1] = right_eye_left;
     image_points[2] = left_eye_left;
     image_points[3] = right_eye_right;
-    image_points[4] = nose;
     image_points[5] = mouth_left;
     image_points[6] = mouth_right;
+    image_points[4] = nose;
     
     Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
     intrinsics.at<float> (0, 0) = ctx.focal_length_w;
@@ -94,8 +94,14 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     rvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (0, 0) = 1.0;
     tvec.at<double> (1, 0) = 1.0;
+    
+    if (ctx.has_pose)
+    {
+        rvec = ctx.rvec.clone();
+        tvec = ctx.tvec.clone();
+    }
 
-    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, EPNP))
+    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE))
         return false;
 
 	if (ctx.config.debug && ctx.has_pose)
