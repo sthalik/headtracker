@@ -17,14 +17,16 @@ bool ht_get_image(headtracker_t& ctx) {
         cvtColor(large, large2, COLOR_BGR2GRAY);
     else
 		large2 = large;
-
+    
 #if 0
     Size newSize(large2.cols *0.5, large2.rows *0.5);
 	resize(large2, ctx.grayscale, newSize, 0, 0, CV_INTER_AREA);
 #else
 	ctx.grayscale = large2;
 #endif
-    equalizeHist(ctx.grayscale, ctx.grayscale);
+    
+    //equalizeHist(ctx.grayscale, ctx.grayscale);
+    
     return true;
 }
 
@@ -66,7 +68,7 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->ticks_last_second = ht_tickcount() / 1000;
     ctx->flandmark_model = flandmark_init("flandmark_model.dat");
     ctx->ticks_last_flandmark = -1;
-    ctx->detector = new DynamicAdaptedFeatureDetector (new FastAdjuster(20,true), ctx->config.max_keypoints*2, ctx->config.max_keypoints*6, 50);
+    ctx->detector = new DynamicAdaptedFeatureDetector (new FastAdjuster(20,true), ctx->config.max_keypoints*2, ctx->config.max_keypoints*3, 100);
     return ctx;
 }
 
