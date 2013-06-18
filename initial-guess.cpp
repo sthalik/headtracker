@@ -55,13 +55,13 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     vector<Point2f> image_points(7);
     vector<Point3f> object_points(7);
 
-	object_points[0] = Point3d(-0.03387, -0.02724, -0.01198);
-	object_points[1] = Point3d(0.03387, -0.02724, -0.01198);
-	object_points[2] = Point3d(-0.08549, -0.03010, -0.02061);
-	object_points[3] = Point3d(0.08549, -0.03010, -0.02061);
-	object_points[5] = Point3d(-0.04490, 0.10590, -0.01585);
-	object_points[6] = Point3d(0.04490, 0.10590, -0.01585);
-    object_points[4] = Point3d(0, 0.06287, 0.04647);
+	object_points[0] = Point3d(-0.03387, -0.03985, 0.08549);
+	object_points[1] = Point3d(0.03387, -0.03985, 0.08549);
+	object_points[2] = Point3d(-0.08549, -0.04124, 0.07650);
+	object_points[3] = Point3d(0.08549, -0.04124, 0.07650);
+	object_points[5] = Point3d(-0.04490, 0.09209, 0.10374);
+	object_points[6] = Point3d(0.04490, 0.09209, 0.10374);
+    object_points[4] = Point3d(0, 0.03932, 0.15806);
     
 	for (int i = 0; i < object_points.size(); i++)
 	{
@@ -101,7 +101,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
         tvec = ctx.tvec.clone();
     }
 
-    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE))
+    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, !ctx.has_pose ? EPNP : HT_PNP_TYPE))
         return false;
 
 	if (ctx.config.debug && ctx.has_pose)
