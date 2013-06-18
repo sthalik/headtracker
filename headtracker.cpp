@@ -81,7 +81,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (ctx.has_pose)
     {
         ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 24 || res.roty > 35 || fabs(res.rotz) > 14)
+        if (fabs(res.rotx) > 27 || res.roty > 35 || fabs(res.rotz) > 14)
         {
             extreme = true;
         }
@@ -138,8 +138,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ht_project_model(*ctx, rvec, tvec, ctx->model) &&
             ht_project_model(*ctx, rvec, tvec, ctx->bbox))
 		{
-            ht_draw_model(*ctx, ctx->model);
-			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.3 / tvec.at<double>(2));
+            //ht_draw_model(*ctx, ctx->model);
+			ctx->zoom_ratio = fabs(ctx->focal_length_w * 0.25 / tvec.at<double>(2));
 			Rect roi = ht_get_bounds(*ctx, ctx->bbox);
 			if (roi.width > 5 && roi.height > 5)
 			{
@@ -165,7 +165,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 			ht_track_features(*ctx);
 
             if (ht_ransac_best_indices(*ctx, error, rvec, tvec) &&
-                (ctx->zoom_ratio = ctx->focal_length_w * 0.3 / tvec.at<double>(2)) > 0 &&
+                (ctx->zoom_ratio = ctx->focal_length_w * 0.25 / tvec.at<double>(2)) > 0 &&
                 error < ctx->config.ransac_max_mean_error * ctx->zoom_ratio &&
                 error < ctx->config.ransac_abs_max_mean_error &&
                 ht_project_model(*ctx, rvec, tvec, ctx->model) &&
@@ -214,7 +214,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
 				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
-				//euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
+				euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {
 			if (ctx->config.debug)
 				fprintf(stderr, "bad roi %d %d; err=%f\n", roi.width, roi.height, error);
