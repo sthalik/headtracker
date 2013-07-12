@@ -100,9 +100,16 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
         rvec = ctx.rvec.clone();
         tvec = ctx.tvec.clone();
     }
-
-    if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, !ctx.has_pose ? EPNP : HT_PNP_TYPE))
-        return false;
+    
+    if (ctx.has_pose) {
+        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
+            return false;        
+    } else {
+        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, EPNP))
+            return false;
+        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
+            return false;
+    }
 
 	if (ctx.config.debug && ctx.has_pose)
 	{
