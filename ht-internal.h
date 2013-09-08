@@ -73,7 +73,7 @@ typedef struct ht_context {
     int ticks_last_flandmark;
 	Mat rvec, tvec;
 	bool has_pose;
-    Ptr<FeatureDetector> detector;
+    FeatureDetector* detector;
 } headtracker_t;
 
 model_t ht_load_model(const char* filename);
