@@ -8,10 +8,10 @@ using namespace cv;
 bool ht_get_image(headtracker_t& ctx) {
     Mat large, large2;
 
-    if (!ctx.camera.read(large))
-        return false;
+    while (!ctx.camera.read(large))
+        ;;
 
-	ctx.color = large;
+    ctx.color = large;
 
     if (large.channels() == 3)
         cvtColor(large, large2, COLOR_BGR2GRAY);
