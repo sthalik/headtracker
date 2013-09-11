@@ -8,6 +8,9 @@ using namespace cv;
 bool ht_get_image(headtracker_t& ctx) {
     Mat large, large2;
 
+    if (!ctx.camera.isOpened())
+        return false;
+
     while (!ctx.camera.read(large))
         ;;
 
