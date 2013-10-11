@@ -3,10 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 FIND_PACKAGE( OpenCV REQUIRED )
 
-if(OpenCV_FOUND)
-	include_directories("${OpenCV_DIR}/include")
-	include_directories("${OpenCV_CONFIG_PATH}/include")
-endif()
+include_directories(${OpenCV2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/bounding-box.raw ${CMAKE_BINARY_DIR} COPYONLY)
