@@ -91,15 +91,28 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     //fast->detect(img, corners);
     //GridAdaptedFeatureDetector detector(fast, ctx.config.max_keypoints, 4, 2);
 	//detector.detect(img, corners);
-    
-    ctx.detector->detect(img, corners);
+start:
+    FASTX(img, corners, ctx.fast_state, true, FastFeatureDetector::TYPE_9_16);
+    if (corners.size() < ctx.config.max_keypoints*1.5 && ctx.fast_state > 5)
+    {
+        corners.clear();
+        ctx.fast_state--;
+        goto start;
+    }
+    if (corners.size() > ctx.config.max_keypoints*3.0 && ctx.fast_state < 50)
+    {
+        corners.clear();
+        ctx.fast_state++;
+        goto start;
+    }
+    //ctx.detector->detect(img, corners);
     if (ctx.config.debug)
         fprintf(stderr, "new keypoints: %d\n", corners.size());
     int cnt = corners.size();
     int no_triangle = 0, overlapped = 0;
 
     int kpidx = 0;
-    
+
     for (int i = 0; i < cnt; i++) {
         Point2f kp = corners[i].pt;
         kp.x += roi.x;
