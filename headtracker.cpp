@@ -213,8 +213,8 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_get_next_features(*ctx, roi);
                 *euler = ht_matrix_to_euler(rvec, tvec);
                 euler->filled = true;
-				euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
-				euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
+                //euler->rotx -= atan(euler->tx / euler->tz) * 180 / HT_PI;
+                //euler->roty += atan(euler->ty / euler->tz) * 180 / HT_PI;
         } else {
 			if (ctx->config.debug)
 				fprintf(stderr, "bad roi %d %d; err=%f\n", roi.width, roi.height, error);
