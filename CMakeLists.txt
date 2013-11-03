@@ -74,6 +74,6 @@ file(GLOB headtracker-ftnoir-SRC
 
 add_executable(headtracker-ftnoir ${headtracker-ftnoir-SRC})
 target_link_libraries(headtracker-ftnoir headtracker)
-if(NOT WIN32)
+if(NOT WIN32 AND NOT APPLE)
 	target_link_libraries(headtracker-ftnoir rt)
 endif()
