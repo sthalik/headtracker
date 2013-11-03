@@ -8,6 +8,8 @@
 #include "compat.h"
 #include <stdio.h>
 #include <limits.h>
+#include <string>
+#include <sstream>
 
 #ifndef NAME_MAX
 #	include <stdio.h>
@@ -51,17 +53,17 @@ void PortableLockedShm::unlock()
 }
 
 #else
+#define SSTR( x ) static_cast< std::ostringstream & >( \
+( std::ostringstream() << std::dec << x ) ).str()
 PortableLockedShm::PortableLockedShm(const char *shmName, const char *mutexName, int mapSize) : size(mapSize)
 {
-    char shm_filename[NAME_MAX];
-    shm_filename[0] = '/';
-    strncpy(shm_filename+1, shmName, NAME_MAX-2);
-    shm_filename[NAME_MAX-1] = '\0';
-    sprintf(shm_filename + strlen(shm_filename), "%ld\n", (long) getuid());
-
+    std::string filename;
+    char shm_filename[128];
+    filename.append("/");
+    filename.append(shmName);
     //(void) shm_unlink(shm_filename);
 
-    fd = shm_open(shm_filename, O_RDWR | O_CREAT, 0600);
+    fd = shm_open(filename.c_str(), O_RDWR | O_CREAT, 0600);
     if (ftruncate(fd, mapSize) == 0)
         mem = mmap(NULL, mapSize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
     else
