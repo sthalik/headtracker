@@ -50,10 +50,12 @@ if(APPLE)
     set(HT_PREFIX lib)
 endif(APPLE)
 
+link_directories(${CMAKE_BINARY_DIR})
+
 if(FLANDMARK_STATIC)
-	target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/${HT_PREFIX}flandmark_static.${HT_OBJNAME})
+	target_link_libraries(headtracker ${OpenCV_LIBS} flandmark_static)
 else()
-	target_link_libraries(headtracker ${OpenCV_LIBS} ${CMAKE_BINARY_DIR}/${HT_PREFIX}flandmark_shared.${HT_SONAME})
+	target_link_libraries(headtracker ${OpenCV_LIBS} flandmark_shared)
 endif()
 file(GLOB headtracker-demo-SRC
     "demo/*.cpp"
