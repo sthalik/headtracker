@@ -92,7 +92,7 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     //GridAdaptedFeatureDetector detector(fast, ctx.config.max_keypoints, 4, 2);
 	//detector.detect(img, corners);
 start:
-    FASTX(img, corners, ctx.fast_state, true, FastFeatureDetector::TYPE_9_16);
+    FAST(img, corners, ctx.fast_state, true);
     if (corners.size() < ctx.config.max_keypoints*1.75 && ctx.fast_state > 5)
     {
         corners.clear();
