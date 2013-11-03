@@ -10,6 +10,7 @@
 #include <limits.h>
 #include <string>
 #include <sstream>
+#include <errno.h>
 
 #ifndef NAME_MAX
 #	include <stdio.h>
@@ -64,10 +65,15 @@ PortableLockedShm::PortableLockedShm(const char *shmName, const char *mutexName,
     //(void) shm_unlink(shm_filename);
 
     fd = shm_open(filename.c_str(), O_RDWR | O_CREAT, 0600);
-    if (ftruncate(fd, mapSize) == 0)
-        mem = mmap(NULL, mapSize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
-    else
-        mem = (void*) -1;
+    if (ftruncate(fd, mapSize) == 0) { ;; }
+    else {
+	fprintf(stderr, "oh, bother, ftruncate: %s\n", strerror(errno));
+        //mem = (void*) -1;
+    }
+    mem = mmap(NULL, mapSize, PROT_READ|PROT_WRITE, MAP_SHARED, fd, (off_t)0);
+    if (mem == (void*)-1) {
+	fprintf(stderr, "oh, bother, mmap: %s\n", strerror(errno));
+    }
 }
 
 PortableLockedShm::~PortableLockedShm()

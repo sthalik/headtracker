@@ -19,7 +19,7 @@ int main(void)
 	ht_shm_t* shm;
 	PortableLockedShm lck_shm(HT_SHM_NAME, HT_MUTEX_NAME, sizeof(ht_shm_t));
 	
-	if ((shm = (ht_shm_t*) lck_shm.mem) == NULL)
+	if ((shm = (ht_shm_t*) lck_shm.mem) == NULL || shm == (void*) -1)
 	{
 		fprintf(stderr, "Oh, bother\n");
 		return 1;
