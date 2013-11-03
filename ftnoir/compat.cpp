@@ -59,7 +59,6 @@ void PortableLockedShm::unlock()
 PortableLockedShm::PortableLockedShm(const char *shmName, const char *mutexName, int mapSize) : size(mapSize)
 {
     std::string filename;
-    char shm_filename[128];
     filename.append("/");
     filename.append(shmName);
     //(void) shm_unlink(shm_filename);
