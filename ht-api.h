@@ -14,6 +14,7 @@
 #if !defined(_WIN32) && !defined(_isnan)
 #  define _isnan isnan
 #endif
+#include <opencv2/core/core.hpp>
 struct ht_context;
 typedef struct ht_context headtracker_t;
 
@@ -46,13 +47,8 @@ typedef struct {
 	bool filled;
 } ht_result_t;
 
-typedef struct {
-    int rows, cols, channels;
-    unsigned char* data;
-} ht_frame_t;
-
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename);
 HT_API(void) ht_free_context(headtracker_t* ctx);
-HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret);
+HT_API(const cv::Mat) ht_get_bgr_frame(headtracker_t* ctx);
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
 HT_API(void) ht_reset(headtracker_t* ctx);

@@ -90,13 +90,8 @@ int main(int argc, char** argv)
             break;
         }
         frameno++;
-        ht_frame_t frame;
-        ht_get_bgr_frame(ctx, &frame);
-        if (frame.data) {
-            Mat foo(frame.rows, frame.cols, CV_8UC3, frame.data);
-            imshow("capture", foo);
-            delete[] frame.data;
-        }
+        const cv::Mat& frame = ht_get_bgr_frame(ctx);
+        imshow("capture", frame);
         waitKey(1);
     }
 

@@ -91,15 +91,6 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
     delete ctx;
 }
 
-HT_API(void) ht_get_bgr_frame(headtracker_t* ctx, ht_frame_t* ret) {
-    ret->cols = ctx->color.cols;
-    ret->rows = ctx->color.rows;
-    ret->channels = ctx->color.channels();
-
-    if (ret->cols > 0) {
-        ret->data = new unsigned char[ret->cols * ret->rows * ret->channels];
-        memcpy(ret->data, ctx->color.data, ret->cols * ret->rows * ret->channels);
-    } else {
-        ret->data = NULL;
-    }
+HT_API(const Mat) ht_get_bgr_frame(headtracker_t* ctx) {
+    return ctx->color;
 }

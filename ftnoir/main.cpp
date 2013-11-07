@@ -29,7 +29,6 @@ int main(void)
 
     ht_result_t result;
     headtracker_t* ctx = ht_make_context(&shm->config, NULL);
-    ht_frame_t frame;
 
     while (shm->timer++ < 200 && !shm->terminate)
     {
@@ -42,17 +41,29 @@ int main(void)
             break;
         lck_shm.lock();
 		shm->result = result;
-		ht_get_bgr_frame(ctx, &frame);
-		if (frame.cols <= HT_MAX_VIDEO_WIDTH && frame.rows <= HT_MAX_VIDEO_HEIGHT && frame.channels <= HT_MAX_VIDEO_CHANNELS)
+        const cv::Mat frame = ht_get_bgr_frame(ctx);
+        if (frame.cols <= HT_MAX_VIDEO_WIDTH && frame.rows <= HT_MAX_VIDEO_HEIGHT && frame.channels() <= HT_MAX_VIDEO_CHANNELS)
 		{
-			memcpy(shm->frame.frame, frame.data, frame.cols * frame.rows * frame.channels);
-			shm->frame.channels = frame.channels;
+            const int cols = frame.cols;
+            const int rows = frame.rows;
+            const int pitch = cols * 3;
+            for (int y = 0; y < rows; y++)
+            {
+                for (int x = 0; x < cols; x++)
+                {
+                    unsigned char* dest = &shm->frame.frame[y * pitch + 3 * x];
+                    const cv::Vec3b& elt = frame.at<cv::Vec3b>(y, x);
+                    const CvScalar elt2 = elt;
+                    dest[0] = elt2.val[0];
+                    dest[1] = elt2.val[1];
+                    dest[2] = elt2.val[2];
+                }
+            }
+            shm->frame.channels = frame.channels();
 			shm->frame.width = frame.cols;
 			shm->frame.height = frame.rows;
 		}
 		lck_shm.unlock();
-		if (frame.data)
-			delete[] frame.data;
     }
 
     shm->running = false;
