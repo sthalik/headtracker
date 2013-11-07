@@ -107,7 +107,7 @@ start:
     }
     //ctx.detector->detect(img, corners);
     if (ctx.config.debug)
-        fprintf(stderr, "new keypoints: %d\n", corners.size());
+        fprintf(stderr, "new keypoints: %d\n", (int) corners.size());
     int cnt = corners.size();
     int no_triangle = 0, overlapped = 0;
 
