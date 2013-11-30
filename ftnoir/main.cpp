@@ -53,7 +53,7 @@ int main(void)
                 {
                     unsigned char* dest = &shm->frame.frame[y * pitch + 3 * x];
                     const cv::Vec3b& elt = frame.at<cv::Vec3b>(y, x);
-                    const cv::Scalar elt2 = elt;
+                    const cv::Scalar elt2 = static_cast<cv::Scalar>(elt);
                     dest[0] = elt2.val[0];
                     dest[1] = elt2.val[1];
                     dest[2] = elt2.val[2];
