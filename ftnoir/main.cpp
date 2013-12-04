@@ -8,6 +8,10 @@
 #include <windows.h>
 #endif
 
+#ifdef _MSC_VER
+#    pragma comment(linker, "/subsystem:console /ENTRY:mainCRTStartup")
+#endif
+
 int main(void)
 {
 #ifdef _WIN32
