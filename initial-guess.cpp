@@ -1,5 +1,6 @@
 #include "ht-api.h"
 #include "ht-internal.h"
+#include <algorithm>
 using namespace std;
 using namespace cv;
 
@@ -23,8 +24,15 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
     bbox[0] = roi.x;
     bbox[1] = roi.y;
-    bbox[2] = roi.width + roi.x;
-    bbox[3] = roi.height + roi.y;
+    bbox[2] = max(roi.width, roi.height) + roi.x;
+    bbox[3] = max(roi.width, roi.height) + roi.y;
+
+    if (bbox[0] + bbox[2] > frame.cols)
+        bbox[2] = bbox[3] = frame.cols - bbox[0];
+
+    if (bbox[1] + bbox[1] > frame.rows)
+        bbox[2] = bbox[3] = frame.rows - bbox[1];
+
     IplImage c_image = frame;
 
     double landmarks[fl_count * 2];
