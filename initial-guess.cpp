@@ -24,6 +24,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
     bbox[0] = roi.x;
     bbox[1] = roi.y;
+#if 0
     bbox[2] = max(roi.width, roi.height) + roi.x;
     bbox[3] = max(roi.width, roi.height) + roi.y;
 
@@ -32,6 +33,10 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
     if (bbox[1] + bbox[1] > frame.rows)
         bbox[2] = bbox[3] = frame.rows - bbox[1];
+#else
+    bbox[2] = roi.width  + roi.x;
+    bbox[3] = roi.height + roi.y;
+#endif
 
     IplImage c_image = frame;
 
