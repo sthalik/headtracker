@@ -91,7 +91,9 @@ int main(int argc, char** argv)
         }
         frameno++;
         const cv::Mat& frame = ht_get_bgr_frame(ctx);
-        imshow("capture", frame);
+        cv::Mat channels[3];
+        cv::split(frame, channels);
+        imshow("capture", channels[2]);
         waitKey(1);
     }
 

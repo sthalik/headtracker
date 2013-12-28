@@ -17,7 +17,12 @@ bool ht_get_image(headtracker_t& ctx) {
     ctx.color = large;
 
     if (large.channels() == 3)
-        cvtColor(large, large2, COLOR_BGR2GRAY);
+        //cvtColor(large, large2, COLOR_BGR2GRAY);
+    {
+        cv::Mat channels[3];
+        cv::split(large, channels);
+        large2 = channels[2];
+    }
     else
 		large2 = large;
     
