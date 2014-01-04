@@ -96,14 +96,14 @@ bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t&
 void ht_draw_model(headtracker_t& ctx, model_t& model) {
 	int sz = model.count;
 
-	float mult = ctx.color.cols / (float)ctx.grayscale.cols;
+    const int scale = ctx.grayscale.cols > 480 ? 2 : 1;
 
 	for (int i = 0; i < sz; i++) {
 		triangle2d_t& t = model.projection[i];
 
-        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
-        line(ctx.color, mult * Point(t.p1.x, t.p1.y), mult * Point(t.p3.x, t.p3.y), Scalar(255, 0, 0), 2);
-        line(ctx.color, mult * Point(t.p3.x, t.p3.y), mult * Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), 2);
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), scale);
+        line(ctx.color, Point(t.p1.x, t.p1.y), Point(t.p3.x, t.p3.y), Scalar(255, 0, 0), scale);
+        line(ctx.color, Point(t.p3.x, t.p3.y), Point(t.p2.x, t.p2.y), Scalar(255, 0, 0), scale);
 	}
 }
 

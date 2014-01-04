@@ -190,14 +190,15 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                     ctx->hz = 0;
                 }
                 if (ctx->hz_last_second != -1) {
+                    const double scale = ctx->grayscale.cols > 480 ? 1 : 0.5;
                     string buf;
                     buf.append("Hz: ");
                     buf.append(SSTR(ctx->hz_last_second));
-                    putText(ctx->color, buf, Point(10, 30), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+                    putText(ctx->color, buf, Point(10, 30), FONT_HERSHEY_PLAIN, scale * 2.56, Scalar(0, 255, 0), 2);
 					buf.clear();
 					buf.append("Error: ");
 					buf.append(SSTR(error));
-					putText(ctx->color, buf, Point(10, 60), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+					putText(ctx->color, buf, Point(10, 60), FONT_HERSHEY_PLAIN, scale * 2.56, Scalar(0, 255, 0), 2);
 					buf.clear();
                     buf.append("Keypoints: ");
 					int cnt = 0;
@@ -205,7 +206,7 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 						if (ctx->keypoints[i].idx != -1)
 							cnt++;
 					buf.append(SSTR(cnt));
-					putText(ctx->color, buf, Point(10, 90), FONT_HERSHEY_PLAIN, 2.56, Scalar(0, 255, 0), 2);
+					putText(ctx->color, buf, Point(10, 90), FONT_HERSHEY_PLAIN, scale * 2.56, Scalar(0, 255, 0), 2);
                 }
 				ctx->has_pose = true;
 				ctx->rvec = rvec.clone();
