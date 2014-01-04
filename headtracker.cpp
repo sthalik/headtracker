@@ -125,9 +125,9 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = 0.5 * ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
+            ctx->focal_length_w = 0.5 * ctx->grayscale.cols / tan(ctx->config.field_of_view * HT_PI / 180);
             //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = 0.5 * ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
+            ctx->focal_length_h = 0.5 * ctx->grayscale.rows / tan(ctx->config.field_of_view
                 * ctx->grayscale.rows / ctx->grayscale.cols
                 * HT_PI / 180.0);
             if (ctx->config.debug)
