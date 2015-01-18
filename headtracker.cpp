@@ -112,7 +112,7 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
             return;
         }
         
-        fprintf(stderr, "DIFF OK %f\n", diff_);
+        //fprintf(stderr, "DIFF OK %f\n", diff_);
     }
     
     ctx.ticks_last_flandmark = ticks;
