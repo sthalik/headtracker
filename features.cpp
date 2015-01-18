@@ -93,13 +93,13 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
 	//detector.detect(img, corners);
 start:
     FAST(img, corners, ctx.fast_state, true);
-    if (corners.size() < ctx.config.max_keypoints*1.75 && ctx.fast_state > 5)
+    if (corners.size() < ctx.config.max_keypoints*1.5 && ctx.fast_state > 5)
     {
         corners.clear();
         ctx.fast_state--;
         goto start;
     }
-    if (corners.size() > ctx.config.max_keypoints*3.5 && ctx.fast_state < 60)
+    if (corners.size() > ctx.config.max_keypoints*2.5 && ctx.fast_state < 60)
     {
         corners.clear();
         ctx.fast_state++;
