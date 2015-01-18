@@ -56,11 +56,11 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
     ht_result_t ret;
     Mat rotation_matrix = Mat::zeros(3, 3, CV_64FC1);
     
-    Mat junk1(3, 3, CV_64FC1), junk2(3, 3, CV_64FC1);
+    Mat m_R(3, 3, CV_64FC1), m_Q(3, 3, CV_64FC1);
 
     Rodrigues(rvec, rotation_matrix);
 
-    Vec3d foo = cv::RQDecomp3x3(rotation_matrix, junk1, junk2);
+    Vec3d foo = cv::RQDecomp3x3(rotation_matrix, m_R, m_Q);
     
     ret.rotx = foo[1];
     ret.roty = foo[0];
@@ -76,38 +76,46 @@ static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
 
 static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
 {
-    bool extreme = false;
- 
-    if (ctx.has_pose)
-    {
-        ht_result_t res = ht_matrix_to_euler(ctx.rvec, ctx.tvec);
-        if (fabs(res.rotx) > 27 || res.roty > 35 || fabs(res.rotz) > 14)
-        {
-            extreme = true;
-        }
-    }
-
     Mat rvec, tvec;
     model_t tmp_model;
     tmp_model.triangles = ctx.model.triangles;
     tmp_model.count = ctx.model.count;
     
-    if (!extreme)
+    int ticks = ht_tickcount() / ctx.config.flandmark_delay;
+
+    if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
+        return;
+
+    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
+        return;
+    
+    if (ctx.has_pose)
     {
-        int ticks = ht_tickcount() / ctx.config.flandmark_delay;
-    
-        if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
+        // if flandmark differs too much from our state, discard its result.
+        // the detector has no distinction between failure and success, poisoning the state.
+        Matx33d rmat1, rmat2;
+        Rodrigues(rvec, rmat1);
+        Rodrigues(ctx.rvec, rmat2);
+        
+        Matx33d diff = rmat2 * rmat1.t();
+        Matx33d m_R, m_Q;
+        
+        Vec3d euler = RQDecomp3x3(diff, m_R, m_Q);
+        
+        const float max_diff = 17.0;
+        
+        float diff_ = fabs(euler[0]) + fabs(euler[1]) + fabs(euler[2]);
+        
+        if (diff_ > max_diff)
+        {
+            //fprintf(stderr, "DIFF HIGH %f\n", diff_);
             return;
+        }
+        
+        fprintf(stderr, "DIFF OK %f\n", diff_);
+    }
     
-        ctx.ticks_last_flandmark = ticks;
-        if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
-            return;
-    }
-    else {
-        //return;
-        rvec = ctx.rvec.clone();
-        tvec = ctx.tvec.clone();
-    }
+    ctx.ticks_last_flandmark = ticks;
     
     tmp_model.projection = new triangle2d_t[ctx.model.count];
 
