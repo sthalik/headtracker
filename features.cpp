@@ -1,5 +1,6 @@
 #include "ht-api.h"
 #include "ht-internal.h"
+#include <algorithm>
 using namespace std;
 using namespace cv;
 
@@ -18,6 +19,11 @@ void ht_draw_features(headtracker_t& ctx) {
     }
     if (ctx.config.debug)
         fprintf(stderr, "%d features\n", j);
+}
+
+static bool sort_keypoint_response(const KeyPoint& p1, const KeyPoint& p2)
+{
+    return p2.response > p1.response;
 }
 
 void ht_track_features(headtracker_t& ctx) {
@@ -105,10 +111,11 @@ start:
         ctx.fast_state++;
         goto start;
     }
+    std::sort(corners.begin(), corners.end(), sort_keypoint_response);
     //ctx.detector->detect(img, corners);
     if (ctx.config.debug)
         fprintf(stderr, "new keypoints: %d\n", (int) corners.size());
-    int cnt = corners.size();
+    int cnt = std::min<int>(ctx.config.max_keypoints/5, corners.size());
     int no_triangle = 0, overlapped = 0;
 
     int kpidx = 0;
