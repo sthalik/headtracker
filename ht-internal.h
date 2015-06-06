@@ -13,7 +13,7 @@ using namespace std;
 using namespace cv;
 #define HT_PI 3.1415926535
 
-#define HT_PNP_TYPE ITERATIVE
+#define HT_PNP_TYPE SOLVEPNP_ITERATIVE
 
 typedef enum {
 	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus

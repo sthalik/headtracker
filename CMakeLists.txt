@@ -1,7 +1,7 @@
 project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
-FIND_PACKAGE( OpenCV REQUIRED )
+FIND_PACKAGE( OpenCV 3.0 REQUIRED )
 
 include_directories(${OpenCV2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 

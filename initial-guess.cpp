@@ -118,7 +118,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
         if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
             return false;
     } else {
-        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, EPNP))
+        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, cv::SOLVEPNP_EPNP))
             return false;
         if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
             return false;

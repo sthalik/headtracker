@@ -47,7 +47,7 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 					   ctx.has_pose,
                        ctx.config.ransac_num_iters,
                        ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
-                       object_points.size() * ctx.config.ransac_min_features,
+                       ctx.config.ransac_min_features,
                        noArray(),
                        HT_PNP_TYPE);
 
