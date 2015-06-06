@@ -180,9 +180,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
                 ht_project_model(*ctx, rvec, tvec, ctx->bbox) &&
                 ((roi = ht_get_bounds(*ctx, ctx->bbox)), (roi.width > 5 && roi.height > 5)))
             {
-                if (ctx->config.debug) {
-    				printf("zoom_ratio = %f\n", ctx->zoom_ratio);
-                }
                 ht_draw_model(*ctx, ctx->model);
                 if (ctx->config.debug)
                 {

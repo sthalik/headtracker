@@ -17,8 +17,6 @@ void ht_draw_features(headtracker_t& ctx) {
             j++;
         }
     }
-    if (ctx.config.debug)
-        fprintf(stderr, "%d features\n", j);
 }
 
 static bool sort_keypoint_response(const KeyPoint& p1, const KeyPoint& p2)
@@ -89,7 +87,6 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     
     float max_dist = ctx.config.keypoint_distance * ctx.zoom_ratio;
     max_dist *= max_dist;
-    vector<KeyPoint> corners;
 	Mat img = ctx.grayscale(roi);
     //ORB foo(2000, 1.2, 8, 2, 0, 2, ORB::HARRIS_SCORE, 2);
     //foo.detect(img, corners);
@@ -98,8 +95,9 @@ void ht_get_features(headtracker_t& ctx, model_t& model) {
     //GridAdaptedFeatureDetector detector(fast, ctx.config.max_keypoints, 4, 2);
 	//detector.detect(img, corners);
 start:
+    vector<KeyPoint> corners;
     FAST(img, corners, ctx.fast_state, true);
-    if (corners.size() < ctx.config.max_keypoints*1.5 && ctx.fast_state > 5)
+    if (corners.size() < ctx.config.max_keypoints*0.5 && ctx.fast_state > 5)
     {
         corners.clear();
         ctx.fast_state--;
@@ -113,8 +111,7 @@ start:
     }
     std::sort(corners.begin(), corners.end(), sort_keypoint_response);
     //ctx.detector->detect(img, corners);
-    if (ctx.config.debug)
-        fprintf(stderr, "new keypoints: %d\n", (int) corners.size());
+
     int cnt = std::min<int>(ctx.config.max_keypoints/5, corners.size());
     int no_triangle = 0, overlapped = 0;
 
@@ -164,5 +161,7 @@ start:
             break;
     }
     if (ctx.config.debug)
-        fprintf(stderr, "no-triangle=%d, overlapped=%d\n", no_triangle, overlapped);
+        fprintf(stderr,
+                "no-triangle=%d, overlapped=%d, good=%d, FAST=%d\n",
+                no_triangle, overlapped, cnt - no_triangle - overlapped, ctx.fast_state);
 }
