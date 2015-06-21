@@ -38,18 +38,19 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
 			rvec = ctx.rvec.clone();
 			tvec = ctx.tvec.clone();
 		}
-        solvePnPRansac(object_points,
-                       image_points,
-                       intrinsics,
-                       dist_coeffs,
-                       rvec,
-                       tvec,
-					   ctx.has_pose,
-                       ctx.config.ransac_num_iters,
-                       ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
-                       ctx.config.ransac_min_features,
-                       noArray(),
-                       HT_PNP_TYPE);
+        if (!solvePnPRansac(object_points,
+                            image_points,
+                            intrinsics,
+                            dist_coeffs,
+                            rvec,
+                            tvec,
+                            ctx.has_pose,
+                            ctx.config.ransac_num_iters,
+                            ctx.config.ransac_max_inlier_error * ctx.zoom_ratio,
+                            ctx.config.ransac_min_features,
+                            noArray(),
+                            HT_PNP_TYPE))
+            return false;
 
 		vector<Point2f> projected;
 
@@ -110,7 +111,8 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
                 tvec = ctx.tvec.clone();
             }
             
-            solvePnP(final_3d, final_2d, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE);
+            if (!solvePnP(final_3d, final_2d, intrinsics, dist_coeffs, rvec, tvec, ctx.has_pose, HT_PNP_TYPE))
+                return false;
             
             rvec_ = rvec.clone();
             tvec_ = tvec.clone();
