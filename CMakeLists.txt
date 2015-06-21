@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 FIND_PACKAGE( OpenCV 3.0 REQUIRED )
 
-include_directories(${OpenCV2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
 
 configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/bounding-box.raw ${CMAKE_BINARY_DIR} COPYONLY)
