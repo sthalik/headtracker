@@ -112,7 +112,7 @@ start:
     std::sort(corners.begin(), corners.end(), sort_keypoint_response);
     //ctx.detector->detect(img, corners);
 
-    int cnt = std::min<int>(ctx.config.max_keypoints/5, corners.size());
+    int cnt = corners.size();
     int no_triangle = 0, overlapped = 0;
 
     int kpidx = 0;
