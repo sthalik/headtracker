@@ -7,10 +7,13 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include <opencv2/highgui.hpp>
 
 #ifdef _MSC_VER
 #    pragma comment(linker, "/subsystem:console /ENTRY:mainCRTStartup")
 #endif
+
+void process_event_loop();
 
 int main(void)
 {
@@ -20,6 +23,10 @@ int main(void)
         (void) SetProcessAffinityMask(GetCurrentProcess(), mask);
     }
 #endif
+
+    process_event_loop();    
+    cv::setNumThreads(0);
+    
 	ht_shm_t* shm;
 	PortableLockedShm lck_shm(HT_SHM_NAME, HT_MUTEX_NAME, sizeof(ht_shm_t));
 	
@@ -33,9 +40,11 @@ int main(void)
 
     ht_result_t result;
     headtracker_t* ctx = ht_make_context(&shm->config, NULL);
-
+    
     while (shm->timer++ < 200 && !shm->terminate)
     {
+        process_event_loop();
+        
         if (shm->pause)
         {
             ht_reset(ctx);
