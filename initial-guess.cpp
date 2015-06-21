@@ -76,7 +76,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 	object_points[6] = Point3d(0.04472, 0.08171, 0.16372);
     object_points[4] = Point3d(0, 0.0335, 0.21822);
     
-	for (int i = 0; i < object_points.size(); i++)
+	for (unsigned i = 0; i < object_points.size(); i++)
 	{
 		object_points[i].x *= 100;
 		object_points[i].y *= 100;
@@ -131,7 +131,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 		Scalar color(0, 0, 255);
 		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 		Scalar color2(255, 255, 255);
-		for (int i = 0; i < image_points.size(); i++)
+		for (unsigned i = 0; i < image_points.size(); i++)
 		{
 			line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 7);
 			circle(ctx.color, image_points[i] * mult, 5, color2, -1);
