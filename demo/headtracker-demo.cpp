@@ -37,21 +37,21 @@ int main(int argc, char** argv)
 
     config.classification_delay = 500;
     config.field_of_view = 56;
-    config.pyrlk_pyramids = 3;
-    config.pyrlk_win_size_w = config.pyrlk_win_size_h = 29;
-    config.max_keypoints = 300;
+    config.pyrlk_pyramids = 0;
+    config.pyrlk_win_size_w = config.pyrlk_win_size_h = 21;
+    config.max_keypoints = 150;
     config.keypoint_distance = 3.5;
     config.force_width = 640;
     config.force_height = 480;
     config.force_fps = 30;
     config.camera_index = 0;
     config.ransac_num_iters = 100;
-    config.ransac_max_reprojection_error = 5.8;
-    config.ransac_max_inlier_error = 6;
-    config.ransac_max_mean_error = 4.5;
-    config.ransac_abs_max_mean_error = 8;
-    config.debug = 0;
-    config.ransac_min_features = 0.85;
+    config.ransac_max_reprojection_error = 10;
+    config.ransac_max_inlier_error = 10;
+    config.ransac_max_mean_error = 8;
+    config.ransac_abs_max_mean_error = 14;
+    config.debug = 1;
+    config.ransac_min_features = 0.8;
     config.flandmark_delay = 200;
     for (int i = 0; i < 5; i++)
     	config.dist_coeffs[i] = 0;
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
             pose.pitch = result.roty;
             pose.roll = result.rotz;
             //sock.writeDatagram((const char*) &pose, sizeof(THeadPoseData), addr, 5550);
-#if 1
+#if 0
             printf("POSE %.2f %.2f %.2f | %.2f %.2f %.2f\n",
                    pose.yaw, pose.pitch, pose.roll,
                    pose.x, pose.y, pose.z);
