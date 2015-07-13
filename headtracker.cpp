@@ -107,11 +107,13 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
         if (!(ctx->focal_length_w > 0)) {
-            ctx->focal_length_w = 0.5 * ctx->grayscale.cols / tan(0.5 * ctx->config.field_of_view * HT_PI / 180);
+            // fov to horizontal
+            const int w = ctx->grayscale.cols, h = ctx->grayscale.rows;
+            const double diag = sqrt(w * w + h * h)/w, diag_fov = ctx->config.field_of_view;
+            const double fov = 2.*atan(tan(diag_fov*HT_PI/180./2.)/sqrt(1. + diag*diag));
+            ctx->focal_length_w = .5 * ctx->grayscale.cols * tan(.5 * fov);
             //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = 0.5 * ctx->grayscale.rows / tan(0.5 * ctx->config.field_of_view
-                * ctx->grayscale.rows / ctx->grayscale.cols
-                * HT_PI / 180.0);
+            ctx->focal_length_h = ctx->focal_length_w;
             if (ctx->config.debug)
                 fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
         }
