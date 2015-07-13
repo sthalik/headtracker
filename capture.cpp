@@ -94,3 +94,8 @@ HT_API(void) ht_free_context(headtracker_t* ctx) {
 HT_API(const Mat) ht_get_bgr_frame(headtracker_t* ctx) {
     return ctx->color;
 }
+
+HT_API(cv::VideoCapture*) ht_capture(headtracker_t* ctx)
+{
+    return &ctx->camera;
+}
