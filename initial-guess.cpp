@@ -124,19 +124,48 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
             return false;
     }
 
-	if (ctx.config.debug && ctx.has_pose)
+    if (ctx.has_pose)
 	{
 		vector<Point2f> image_points2;
 		projectPoints(object_points, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points2);
 		Scalar color(0, 0, 255);
 		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
 		Scalar color2(255, 255, 255);
+
+        float error = 0;
+        static const float error_weights[7] = {
+            0.1,
+            0.1,
+            0.3,
+            0.3,
+            1.,
+            0.2,
+            0.2,
+        };
+
 		for (unsigned i = 0; i < image_points.size(); i++)
 		{
-			line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 7);
-			circle(ctx.color, image_points[i] * mult, 5, color2, -1);
+            float tmp1 = image_points[i].x - image_points2[i].x;
+            float tmp2 = image_points[i].y - image_points2[i].y;
+            error += error_weights[i] * (tmp1 * tmp1 + tmp2 * tmp2);
 		}
-	}
+
+        error /= ctx.zoom_ratio;
+
+        const float max_error = 80.;
+        if (error > max_error)
+            return false;
+
+        if (ctx.config.debug)
+        {
+            for (unsigned i = 0; i < image_points.size(); i++)
+            {
+                line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 7);
+                circle(ctx.color, image_points[i] * mult, 5, color2, -1);
+
+            }
+        }
+    }
 
 	rvec_ = rvec.clone();
     tvec_ = tvec.clone();

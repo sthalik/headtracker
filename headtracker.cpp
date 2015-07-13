@@ -89,32 +89,6 @@ static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
     if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
         return;
     
-    if (ctx.has_pose)
-    {
-        // if flandmark differs too much from our state, discard its result.
-        // the detector has no distinction between failure and success, poisoning the state.
-        Matx33d rmat1, rmat2;
-        Rodrigues(rvec, rmat1);
-        Rodrigues(ctx.rvec, rmat2);
-        
-        Matx33d diff = rmat2 * rmat1.t();
-        Matx33d m_R, m_Q;
-        
-        Vec3d euler = RQDecomp3x3(diff, m_R, m_Q);
-        
-        const float max_diff = 17.0;
-        
-        float diff_ = fabs(euler[0]) + fabs(euler[1]) + fabs(euler[2]);
-        
-        if (diff_ > max_diff)
-        {
-            //fprintf(stderr, "DIFF HIGH %f\n", diff_);
-            return;
-        }
-        
-        //fprintf(stderr, "DIFF OK %f\n", diff_);
-    }
-    
     ctx.ticks_last_flandmark = ticks;
     
     tmp_model.projection = new triangle2d_t[ctx.model.count];
