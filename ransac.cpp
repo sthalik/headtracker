@@ -122,8 +122,11 @@ bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec_, M
     }
 
     if (ctx.config.debug)
+    {
         fprintf(stderr, "ransac failed maxerr=%f zoom-ratio=%f cur=%d\n",
                 ctx.config.ransac_max_inlier_error, ctx.zoom_ratio, (int) object_points.size());
+        fflush(stderr);
+    }
 
     return false;
 }

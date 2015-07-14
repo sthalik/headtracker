@@ -114,8 +114,10 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
             ctx->focal_length_w = .5 * ctx->grayscale.cols * tan(.5 * fov);
             //ctx->focal_length_h = ctx->focal_length_w;
             ctx->focal_length_h = ctx->focal_length_w;
+#if 0
             if (ctx->config.debug)
                 fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
+#endif
         }
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec) &&

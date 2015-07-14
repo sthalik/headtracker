@@ -72,9 +72,9 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 	object_points[1] = Point3d(0.03387, -0.03985, 0.14169);
 	object_points[2] = Point3d(-0.08307, -0.04124, 0.1327);
 	object_points[3] = Point3d(0.08307, -0.04124, 0.1327);
-	object_points[5] = Point3d(-0.04472, 0.08171, 0.16372);
-	object_points[6] = Point3d(0.04472, 0.08171, 0.16372);
-    object_points[4] = Point3d(0, 0.0335, 0.21822);
+    object_points[5] = Point3d(-0.04472, 0.08171, 0.15877);
+    object_points[6] = Point3d(0.04472, 0.08171, 0.15877);
+    object_points[4] = Point3d(0, 0.0335, 0.19386);
     
 	for (unsigned i = 0; i < object_points.size(); i++)
 	{
@@ -136,8 +136,8 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
         static const float error_weights[7] = {
             0.1,
             0.1,
-            0.3,
-            0.3,
+            1,
+            1,
             1.,
             0.2,
             0.2,
@@ -152,7 +152,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
         error /= ctx.zoom_ratio;
 
-        const float max_error = 80.;
+        const float max_error = 45.;
         if (error > max_error)
             return false;
 
@@ -164,6 +164,8 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
                 circle(ctx.color, image_points[i] * mult, 5, color2, -1);
 
             }
+            fprintf(stderr, "flandmark error %f\n", error);
+            fflush(stderr);
         }
     }
 

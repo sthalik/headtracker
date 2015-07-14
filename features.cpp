@@ -160,8 +160,13 @@ start:
         if (kpidx == ctx.config.max_keypoints)
             break;
     }
+#if 0
     if (ctx.config.debug)
+    {
         fprintf(stderr,
                 "no-triangle=%d, overlapped=%d, good=%d, FAST=%d\n",
                 no_triangle, overlapped, cnt - no_triangle - overlapped, ctx.fast_state);
+        fflush(stderr);
+    }
+#endif
 }
