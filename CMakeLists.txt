@@ -68,12 +68,3 @@ if(ENABLE_DEMO)
     target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
 endif()
 
-file(GLOB headtracker-ftnoir-SRC
-	"ftnoir/*.cpp"
-)
-
-add_executable(headtracker-ftnoir ${headtracker-ftnoir-SRC})
-target_link_libraries(headtracker-ftnoir headtracker ${OpenCV_LIBS})
-if(NOT WIN32 AND NOT APPLE)
-	target_link_libraries(headtracker-ftnoir rt)
-endif()
