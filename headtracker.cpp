@@ -14,9 +14,8 @@ HT_API(void) ht_reset(headtracker_t* ctx) {
 
 static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec);
 
-Rect ht_get_bounds(headtracker_t& ctx, model_t& model)
+Rect ht_get_bounds(const headtracker_t& ctx, const model_t& model)
 {
-    Rect rect(65535, 65535, 0, 0);
 	float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
 	float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
 
@@ -38,7 +37,7 @@ Rect ht_get_bounds(headtracker_t& ctx, model_t& model)
 	int width = max_x - min_x;
 	int height = max_y - min_y;
 
-	rect = Rect(min_x, min_y, width, height);
+	Rect rect = Rect(min_x, min_y, width, height);
 
     if (rect.x < 0)
         rect.x = 0;
