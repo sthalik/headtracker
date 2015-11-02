@@ -1,106 +1,100 @@
-// todo do away with leaks if initialization fails
 #pragma once
-#include <vector>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <math.h>
-#include <opencv2/opencv.hpp>
-#include <opencv/highgui.h>
+
+#ifdef HT_API
+#   error "wrong include order"
+#endif
+
+#if defined(_WIN32) && !defined(__GNUC__)
+#  define HT_API(t) __declspec(dllexport) t __stdcall
+#else
+#    if defined(_WIN32)
+#        define HT_DECLSPEC __declspec(dllexport)
+#    else
+#        define HT_DECLSPEC
+#    endif
+# define HT_API(t) __attribute__ ((visibility ("default"))) HT_DECLSPEC t
+#endif
+
 #include "ht-api.h"
+
+#include <string>
+#include <vector>
+#include <cmath>
+
+#include <opencv2/core.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/objdetect.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include "flandmark_detector.h"
-using namespace std;
-using namespace cv;
-#define HT_PI 3.1415926535
+#include "timer.hpp"
 
-#define HT_PNP_TYPE SOLVEPNP_ITERATIVE
+#include <memory>
 
-typedef enum {
-	HT_STATE_INITIALIZING = 0, // waiting for RANSAC consensus
-	HT_STATE_TRACKING = 1, // ransac consensus established
-    HT_STATE_LOST = 2 // consensus lost; fall back to initializing
-} state_t;
+using dist_coeffs = cv::Matx<float, 5, 1>;
 
-typedef struct {
-    Point3f p1;
-    Point3f p2;
-    Point3f p3;
-} triangle_t;
+struct triangle
+{
+    cv::Vec3f ps[3];
+    triangle() : ps { cv::Vec3f(0,0,0), cv::Vec3f(0,0,0), cv::Vec3f(0,0,0) } {}
+    triangle(const cv::Vec3f& p1, const cv::Vec3f& p2, const cv::Vec3f& p3) : ps { p1, p2, p3 } {}
+};
 
-typedef struct {
-    Point2f p1;
-    Point2f p2;
-    Point2f p3;
-} triangle2d_t;
+struct triangle2d
+{
+    cv::Vec2f ps[3];
+    triangle2d() : ps { cv::Vec2f(0,0), cv::Vec2f(0,0), cv::Vec2f(0,0) } {}
+    triangle2d(const cv::Vec2f& p1, const cv::Vec2f& p2, const cv::Vec2f& p3) : ps { p1, p2, p3 } {}
+};
 
-typedef struct {
-	triangle_t* triangles;
-	triangle2d_t* projection;
-	int count;
-} model_t;
+struct projection
+{
+    triangle t;
+    triangle2d projection;
+};
 
-static __inline int ht_tickcount(void) {
-	return (int) (cv::getTickCount() * 1000 / cv::getTickFrequency());
-}
+struct model {
+    std::vector<projection> triangles_and_projections;
+    
+    model(const std::string& filename);
+    void draw(model& model, cv::Mat& color, float scale);
+};
 
-typedef struct {
-	int idx;
-    Point2f position;
-} ht_keypoint;
+struct classifier
+{
+    cv::CascadeClassifier head_cascade;
+    
+    classifier() : head_cascade("haarcascade_frontalface_alt2.xml") {}
+    bool classify(const cv::Mat& frame, cv::Rect& ret);
+};
 
-typedef struct ht_context {
-    float focal_length_w;
-    float focal_length_h;
-    VideoCapture camera;
-    Mat grayscale, color;
-    CascadeClassifier head_classifier;
-	int ticks_last_classification;
-	int ticks_last_features;
-	model_t model;
-	model_t bbox;
-	state_t state;
-    vector<Mat>* pyr_a;
-    vector<Mat>* pyr_b;
-	bool restarted;
-	float zoom_ratio;
-	ht_config_t config;
-	ht_keypoint* keypoints;
-    Point3f* keypoint_uv;
-    int ticks_last_second;
-    int hz;
-    int hz_last_second;
+struct context
+{
+    enum state_t
+    {
+        STATE_INITIALIZING = 0, // waiting for RANSAC consensus
+        STATE_TRACKING = 1, // ransac consensus established
+        STATE_LOST = 2, // consensus lost; fall back to initializing
+    };
+    
+    ht_config config;
+    cv::VideoCapture camera;
+    Timer timer_classify, timer_iter;
+    model model, bbox;
+    state_t state;
+    float hz, iter_time;
     FLANDMARK_Model* flandmark_model;
-    int ticks_last_flandmark;
-	Mat rvec, tvec;
-	bool has_pose;
-    int fast_state;
-} headtracker_t;
+    cv::Matx33f intrins;
+    dist_coeffs dist;
+    
+    static constexpr double pi = 3.1415926535;
+    
+    context(const ht_config& conf);
+    ht_result emit_result(const cv::Matx31d& rvec, const cv::Matx31d& tvec);
+    bool estimate(cv::Mat& frame, const cv::Rect roi, cv::Matx31d& rvec_, cv::Matx31d& tvec_);
+    bool get_image(cv::Mat& frame, cv::Mat& color);
+    bool initial_guess(const cv::Rect rect_, cv::Mat& frame, cv::Matx31d& rvec_, cv::Matx31d& tvec_);
+};
 
-model_t ht_load_model(const char* filename);
-bool ht_point_inside_triangle_2d(const Point2d p1, const Point2d p2, const Point2d p3, const Point2d px, Point2f& uv);
-
-bool ht_classify(CascadeClassifier& classifier, Mat& frame, Rect& ret);
-
-bool ht_get_image(headtracker_t& ctx);
-
-bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat &rvec, Mat &tvec);
-bool ht_project_model(headtracker_t& ctx,
-                      const Mat& rvec,
-                      const Mat& tvec,
-                      model_t& model);
-bool ht_triangle_at(const Point2f pos, triangle_t* ret, int* idx, const model_t& model, Point2f &uv);
-void ht_draw_model(headtracker_t& ctx, model_t& model);
-void ht_get_features(headtracker_t& ctx, model_t& model);
-void ht_track_features(headtracker_t& ctx);
-void ht_draw_features(headtracker_t& ctx);
-
-static __inline float ht_distance2d_squared(const Point2f p1, const Point2f p2) {
-	float x = p1.x - p2.x;
-	float y = p1.y - p2.y;
-	return x * x + y * y;
-}
-
-bool ht_ransac_best_indices(headtracker_t& ctx, float& mean_error, Mat& rvec, Mat& tvec);
-Point3f ht_get_triangle_pos(const Point2f uv, const triangle_t& t);
-Rect ht_get_bounds(const headtracker_t &ctx, const model_t &model);
-bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_);

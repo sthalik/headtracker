@@ -1,4 +1,3 @@
-#include "ht-api.h"
 #include "ht-internal.h"
 #include <algorithm>
 using namespace std;
@@ -18,7 +17,7 @@ typedef enum {
     fl_count = 8
 } fl_indices;
 
-bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, Mat& tvec_)
+bool context::estimate(cv::Mat& frame, const cv::Rect roi, cv::Matx31d& rvec_, cv::Matx31d& tvec_)
 {
     int bbox[4];
 
@@ -42,7 +41,7 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 
     double landmarks[fl_count * 2];
 
-    if (flandmark_detect(&c_image, bbox, ctx.flandmark_model, landmarks))
+    if (flandmark_detect(&c_image, bbox, flandmark_model, landmarks))
         return false;
 
     Point2f left_eye_right = Point2f(
@@ -65,9 +64,10 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
 			landmarks[2 * fl_mouth_right],
 			landmarks[2 * fl_mouth_right + 1]);
 
-    vector<Point2f> image_points(7);
-    vector<Point3f> object_points(7);
+    std::vector<Point2f> image_points(7);
+    std::vector<Point3f> object_points(7);
 
+    // XXX TODO numbers still porked
 	object_points[0] = Point3d(-0.03387, -0.03985, 0.14169);
 	object_points[1] = Point3d(0.03387, -0.03985, 0.14169);
 	object_points[2] = Point3d(-0.08307, -0.04124, 0.1327);
@@ -91,114 +91,36 @@ bool ht_fl_estimate(headtracker_t& ctx, Mat& frame, const Rect roi, Mat& rvec_, 
     image_points[6] = mouth_right;
     image_points[4] = nose;
     
-    Mat intrinsics = Mat::eye(3, 3, CV_32FC1);
-    intrinsics.at<float> (0, 0) = ctx.focal_length_w;
-    intrinsics.at<float> (1, 1) = ctx.focal_length_h;
-    intrinsics.at<float> (0, 2) = ctx.grayscale.cols/2;
-    intrinsics.at<float> (1, 2) = ctx.grayscale.rows/2;
-
-    Mat dist_coeffs = Mat::zeros(5, 1, CV_32FC1);
-    Mat rvec = Mat::zeros(3, 1, CV_64FC1);
-    Mat tvec = Mat::zeros(3, 1, CV_64FC1);
+    cv::Matx31d rvec, tvec;
     
-    for (int i = 0; i < 5; i++)
-        dist_coeffs.at<float>(i) = ctx.config.dist_coeffs[i];
-
-    rvec.at<double> (0, 0) = 1.0;
-    tvec.at<double> (0, 0) = 1.0;
-    tvec.at<double> (1, 0) = 1.0;
+    if (!cv::solvePnP(object_points, image_points, intrins, dist, rvec, tvec, false, cv::SOLVEPNP_EPNP))
+        return false;
+    if (!cv::solvePnP(object_points, image_points, intrins, dist, rvec, tvec, true, cv::SOLVEPNP_ITERATIVE))
+        return false;
     
-    if (ctx.has_pose)
-    {
-        rvec = ctx.rvec.clone();
-        tvec = ctx.tvec.clone();
-    }
-    
-    if (ctx.has_pose) {
-        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
-            return false;
-    } else {
-        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, false, cv::SOLVEPNP_EPNP))
-            return false;
-        if (!solvePnP(object_points, image_points, intrinsics, dist_coeffs, rvec, tvec, true, HT_PNP_TYPE))
-            return false;
-    }
+    // XXX TODO flandmark ground truth check
 
-    if (ctx.has_pose)
-	{
-		vector<Point2f> image_points2;
-		projectPoints(object_points, ctx.rvec, ctx.tvec, intrinsics, dist_coeffs, image_points2);
-		Scalar color(0, 0, 255);
-		float mult = ctx.color.cols / (float)ctx.grayscale.cols;
-		Scalar color2(255, 255, 255);
-
-        float error = 0;
-        static const float error_weights[7] = {
-            0.1,
-            0.1,
-            1,
-            1,
-            1.,
-            0.2,
-            0.2,
-        };
-
-		for (unsigned i = 0; i < image_points.size(); i++)
-		{
-            float tmp1 = image_points[i].x - image_points2[i].x;
-            float tmp2 = image_points[i].y - image_points2[i].y;
-            error += error_weights[i] * (tmp1 * tmp1 + tmp2 * tmp2);
-		}
-
-        error /= ctx.zoom_ratio;
-
-        const float max_error = 45.;
-        if (error > max_error)
-            return false;
-
-        if (ctx.config.debug)
-        {
-            for (unsigned i = 0; i < image_points.size(); i++)
-            {
-                line(ctx.color, image_points[i] * mult , image_points2[i] * mult, color, 7);
-                circle(ctx.color, image_points[i] * mult, 5, color2, -1);
-
-            }
-            fprintf(stderr, "flandmark error %f\n", error);
-            fflush(stderr);
-        }
-    }
-
-	rvec_ = rvec.clone();
-    tvec_ = tvec.clone();
+	rvec_ = rvec;
+    tvec_ = tvec;
 
     return true;
 }
 
-bool ht_initial_guess(headtracker_t& ctx, Mat& frame, Mat& rvec_, Mat& tvec_) {
-	int ticks = ht_tickcount();
-
-	if (ctx.ticks_last_classification / ctx.config.classification_delay == ticks / ctx.config.classification_delay)
-		return false;
-
-	ctx.ticks_last_classification = ticks;
-
-    Rect face_rect;
-
-	if (!ht_classify(ctx.head_classifier, ctx.grayscale, face_rect))
-        return false;
+bool context::initial_guess(const cv::Rect rect_, cv::Mat& frame, cv::Matx31d& rvec_, cv::Matx31d& tvec_) {
+    Rect rect = rect_;
+    if (rect.x < 0)
+        rect.x = 0;
+    if (rect.y < 0)
+        rect.y = 0;
+    if (rect.width + rect.x > frame.cols)
+        rect.width = frame.cols - rect.x;
+    if (rect.height + rect.y > frame.rows)
+        rect.height = frame.rows - rect.y;
     
-    if (face_rect.x < 0)
-        face_rect.x = 0;
-    if (face_rect.y < 0)
-        face_rect.y = 0;
-    if (face_rect.width + face_rect.x > ctx.grayscale.cols)
-        face_rect.width = ctx.grayscale.cols - face_rect.x;
-    if (face_rect.height + face_rect.y > ctx.grayscale.rows)
-        face_rect.height = ctx.grayscale.rows - face_rect.y;
+    constexpr int min_size = 30;
     
-    if (face_rect.width < 10 && face_rect.height < 10)
+    if (rect.width < min_size && rect.height < min_size)
         return false;
 
-    return ht_fl_estimate(ctx, frame, face_rect, rvec_, tvec_);
+    return estimate(frame, rect, rvec_, tvec_);
 }

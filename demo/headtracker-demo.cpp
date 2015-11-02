@@ -27,6 +27,7 @@ struct THeadPoseData {
 
 int main(int argc, char** argv)
 {
+#if 0
     bool start = false;
 #ifdef __unix
     (void) signal(SIGTERM, ht_quit_handler);
@@ -98,6 +99,7 @@ int main(int argc, char** argv)
     }
 
     ht_free_context(ctx);
-	return 0;
+#endif
+    return 0;
 }
 

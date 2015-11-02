@@ -1,38 +1,38 @@
-#include "ht-api.h"
 #include "ht-internal.h"
-#include <opencv2/opencv.hpp>
+#include "sleep.hpp"
 
-using namespace std;
-using namespace cv;
+bool context::get_image(cv::Mat& frame, cv::Mat& color) {
+    cv::Mat frame_, frame__;
 
-bool ht_get_image(headtracker_t& ctx) {
-    Mat large, large2;
+    {
+        bool ok = false;
+        for (int i = 0; i < 100; i++)
+        {
+            if (!camera.read(frame_))
+            {
+                portable::sleep(5);
+                continue;
+            }
+            ok = true;
+            break;
+        }
+        if (!ok)
+            return false;
+    }
 
-    if (!ctx.camera.isOpened())
-        return false;
+    color = frame_.clone();
 
-    while (!ctx.camera.read(large))
-        ;;
-
-    ctx.color = large;
-
-    if (large.channels() == 3)
-        cvtColor(large, large2, COLOR_BGR2GRAY);
+    if (frame_.channels() == 3)
+        cv::cvtColor(frame_, frame__, cv::COLOR_BGR2GRAY);
     else
-		large2 = large;
+		frame__ = frame_;
     
-#if 0
-    Size newSize(large2.cols *0.5, large2.rows *0.5);
-	resize(large2, ctx.grayscale, newSize, 0, 0, CV_INTER_AREA);
-#else
-	ctx.grayscale = large2;
-#endif
-    
-    //equalizeHist(ctx.grayscale, ctx.grayscale);
+    frame = frame__.clone();
     
     return true;
 }
 
+#if 0
 HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename)
 {
     headtracker_t* ctx = new headtracker_t;
@@ -74,7 +74,9 @@ HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* fi
     ctx->fast_state = 20;
     return ctx;
 }
+#endif
 
+#if 0
 HT_API(void) ht_free_context(headtracker_t* ctx) {
 	ctx->camera.release();
 	if (ctx->keypoint_uv)
@@ -99,3 +101,4 @@ HT_API(cv::VideoCapture*) ht_capture(headtracker_t* ctx)
 {
     return &ctx->camera;
 }
+#endif

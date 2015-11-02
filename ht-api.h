@@ -1,51 +1,43 @@
 #pragma once
 #ifndef HT_API
-#   if defined(_WIN32) && !defined(MINGW)
+#   if defined(_WIN32) && !defined(__MINGW32__)
 #     define HT_API(t) __declspec(dllexport) t __stdcall
 #   else
-#    define HT_API(t) t
+#       if defined(_WIN32)
+#           define HT_DECLSPEC __declspec(dllexport)
+#       else
+#           define HT_DECLSPEC
+#       endif
+#    define HT_API(t) __attribute__ ((visibility ("default"))) HT_DECLSPEC t
 #   endif
 #endif
-#if !defined(_WIN32) && !defined(_isnan)
-#  define _isnan isnan
+
+#if defined(_MSC_VER)
+#  define isnan _isnan
 #endif
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-struct ht_context;
-typedef struct ht_context headtracker_t;
 
-typedef struct ht_config {
-	float field_of_view;
-	float classification_delay;
-	int   pyrlk_pyramids;
-	int   pyrlk_win_size_w;
-	int   pyrlk_win_size_h;
-    float ransac_max_inlier_error;
-    float ransac_max_reprojection_error;
-	int   max_keypoints;
-	float keypoint_distance;
+struct ht_config
+{
+    float field_of_view;
+    float classification_delay;
     int   force_width;
-	int   force_height;
-	int   force_fps;
-	int   camera_index;
-	bool  debug;
-    int   ransac_num_iters;
-    float ransac_min_features;
-    float ransac_max_mean_error;
-    float ransac_abs_max_mean_error;
-    float flandmark_delay;
+    int   force_height;
+    int   force_fps;
+    int   camera_index;
+    bool  debug;
     double dist_coeffs[5];
-} ht_config_t;
+    
+    ht_config()
+        : field_of_view(69), classification_delay(2000), force_width(0), force_height(0),
+          camera_index(0), debug(true), dist_coeffs { 0, 0, 0, 0, 0 }
+    {}
+};
 
-typedef struct {
+struct ht_result
+{
     double rotx, roty, rotz;
     double tx, ty, tz;
-	bool filled;
-} ht_result_t;
-
-HT_API(headtracker_t*) ht_make_context(const ht_config_t* config, const char* filename);
-HT_API(void) ht_free_context(headtracker_t* ctx);
-HT_API(const cv::Mat) ht_get_bgr_frame(headtracker_t* ctx);
-HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler);
-HT_API(void) ht_reset(headtracker_t* ctx);
-HT_API(cv::VideoCapture*) ht_capture(headtracker_t* ctx);
+    bool filled;
+    
+    ht_result() : rotx(0), roty(0), rotz(0), tx(0), ty(0), tz(0), filled(false) {}
+};

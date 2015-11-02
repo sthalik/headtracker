@@ -1,102 +1,86 @@
-#include "ht-api.h"
+#undef NDEBUG
+#include <cassert>
 #include "ht-internal.h"
-using namespace std;
-using namespace cv;
-
+#include "sleep.hpp"
 #include <string>
 
 #define SSTR( x ) ((std::ostringstream &) ( \
         ( std::ostringstream() << std::dec << x ) )).str()
 
-HT_API(void) ht_reset(headtracker_t* ctx) {
-    ctx->state = HT_STATE_LOST;
-}
-
-static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec);
-
-Rect ht_get_bounds(const headtracker_t& ctx, const model_t& model)
+context::context(const ht_config& conf) :
+    config(conf), camera(conf.camera_index), model("head.raw"), bbox("bounding-box.raw"),
+    state(STATE_LOST), hz(0), iter_time(0), flandmark_model(nullptr)
 {
-	float min_x = (float) ctx.grayscale.cols, max_x = 0.0f;
-	float min_y = (float) ctx.grayscale.rows, max_y = 0.0f;
-
-	for (int i = 0; i < model.count; i++) {
-		float minx = min(model.projection[i].p1.x, min(model.projection[i].p2.x, model.projection[i].p3.x));
-		float maxx = max(model.projection[i].p1.x, max(model.projection[i].p2.x, model.projection[i].p3.x));
-		float miny = min(model.projection[i].p1.y, min(model.projection[i].p2.y, model.projection[i].p3.y));
-		float maxy = max(model.projection[i].p1.y, max(model.projection[i].p2.y, model.projection[i].p3.y));
-		if (maxx > max_x)
-			max_x = maxx;
-		if (minx < min_x)
-			min_x = minx;
-		if (maxy > max_y)
-			max_y = maxy;
-		if (miny < min_y)
-			min_y = miny;
-	}
-
-	int width = max_x - min_x;
-	int height = max_y - min_y;
-
-	Rect rect = Rect(min_x, min_y, width, height);
-
-    if (rect.x < 0)
-        rect.x = 0;
-    if (rect.y < 0)
-        rect.y = 0;
-    if (rect.width + rect.x > ctx.grayscale.cols)
-        rect.width = ctx.grayscale.cols - rect.x;
-    if (rect.height + rect.y > ctx.grayscale.rows)
-        rect.height = ctx.grayscale.rows - rect.y;
+    if (conf.force_width)
+        camera.set(CV_CAP_PROP_FRAME_WIDTH, conf.force_width);
+    if (conf.force_height)
+        camera.set(CV_CAP_PROP_FRAME_HEIGHT, conf.force_height);
+    if (conf.force_fps)
+        camera.set(CV_CAP_PROP_FPS, conf.force_fps);
     
-    return rect;
+    flandmark_model = flandmark_init("flandmark_model.dat");
+    
+    if (!flandmark_model)
+        assert(!"flandmark model missing/corrupt");
+    
+    if (!camera.isOpened())
+        assert(!"can't open camera");
+    
+    int w, h;
+    
+    {
+        bool ok = false;
+        for (int i = 0; i < 100; i++)
+        {
+            cv::Mat frame;
+            if (!camera.retrieve(frame))
+            {
+                portable::sleep(5);
+                continue;
+            }
+            ok = true;
+            w = frame.cols;
+            h = frame.rows;
+            break;
+        }
+        
+        if (!ok)
+            assert(!"can't open camera");
+    }
+    
+    {
+        const double diag = sqrt(w * w + h * h)/w, diag_fov = conf.field_of_view;
+        const double fov_w = 2.*atan(tan(diag_fov/2.)/sqrt(1. + h/(double)w * h/(double)w));
+        const double fov_h = 2.*atan(tan(diag_fov/2.)/sqrt(1. + w/(double)h * w/(double)h));
+        
+        intrins = cv::Matx33f::eye();
+        intrins(0, 0) = .5 * w / tan(.5 * fov_w); // fx
+        intrins(1, 1) = .5 * h / tan(.5 * fov_h); // fy
+        intrins(0, 2) = w/2.;
+        intrins(1, 2) = h/2.;
+    }
 }
 
-static ht_result_t ht_matrix_to_euler(const Mat& rvec, const Mat& tvec) {
-    ht_result_t ret;
-    Mat rotation_matrix = Mat::zeros(3, 3, CV_64FC1);
+ht_result context::emit_result(const cv::Matx31d& rvec, const cv::Matx31d& tvec)
+{
+    ht_result ret;
     
-    Mat m_R(3, 3, CV_64FC1), m_Q(3, 3, CV_64FC1);
-
-    Rodrigues(rvec, rotation_matrix);
-
-    Vec3d foo = cv::RQDecomp3x3(rotation_matrix, m_R, m_Q);
+    cv::Matx33d m_R, m_Q, rmat;
+    cv::Rodrigues(rvec, rmat);
+    cv::Vec3d foo = cv::RQDecomp3x3(rmat, m_R, m_Q);
     
     ret.rotx = foo[1];
     ret.roty = foo[0];
     ret.rotz = foo[2];
-    ret.tx = tvec.at<double>(0, 0);
-    ret.ty = tvec.at<double>(0, 1);
-    ret.tz = tvec.at<double>(0, 2);
-
+    ret.tx = tvec(0, 0);
+    ret.ty = tvec(0, 1);
+    ret.tz = tvec(0, 2);
 	ret.filled = true;
 
     return ret;
 }
 
-static void ht_get_next_features(headtracker_t& ctx, const Rect roi)
-{
-    Mat rvec, tvec;
-    model_t tmp_model;
-    tmp_model.triangles = ctx.model.triangles;
-    tmp_model.count = ctx.model.count;
-    
-    int ticks = ht_tickcount() / ctx.config.flandmark_delay;
-
-    if (ctx.state == HT_STATE_TRACKING && ticks == ctx.ticks_last_flandmark)
-        return;
-
-    if (!ht_fl_estimate(ctx, ctx.grayscale, roi, rvec, tvec))
-        return;
-    
-    ctx.ticks_last_flandmark = ticks;
-    
-    tmp_model.projection = new triangle2d_t[ctx.model.count];
-
-    if (ht_project_model(ctx, rvec, tvec, tmp_model))
-        ht_get_features(ctx, tmp_model);
-    delete[] tmp_model.projection;
-}
-
+#if 0
 HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
     euler->filled = false;
 
@@ -105,19 +89,6 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 
     switch (ctx->state) {
 	case HT_STATE_INITIALIZING: {
-        if (!(ctx->focal_length_w > 0)) {
-            // fov to horizontal
-            const int w = ctx->grayscale.cols, h = ctx->grayscale.rows;
-            const double diag = sqrt(w * w + h * h)/w, diag_fov = ctx->config.field_of_view;
-            const double fov = 2.*atan(tan(diag_fov*HT_PI/180./2.)/sqrt(1. + diag*diag));
-            ctx->focal_length_w = .5 * ctx->grayscale.cols * tan(.5 * fov);
-            //ctx->focal_length_h = ctx->focal_length_w;
-            ctx->focal_length_h = ctx->focal_length_w;
-#if 0
-            if (ctx->config.debug)
-                fprintf(stderr, "focal length = %f\n", ctx->focal_length_w);
-#endif
-        }
         Mat rvec, tvec;
         if (ht_initial_guess(*ctx, ctx->grayscale, rvec, tvec) &&
             ht_project_model(*ctx, rvec, tvec, ctx->model) &&
@@ -221,3 +192,4 @@ HT_API(bool) ht_cycle(headtracker_t* ctx, ht_result_t* euler) {
 
 	return true;
 }
+#endif

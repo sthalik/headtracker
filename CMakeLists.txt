@@ -1,61 +1,59 @@
 project(headtracker)
 cmake_minimum_required(VERSION 2.8)
 
-FIND_PACKAGE( OpenCV 3.0 REQUIRED )
+find_package(OpenCV 3.0 REQUIRED)
 
 include_directories(SYSTEM ${OpenCV_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR})
+link_directories(${CMAKE_BINARY_DIR})
 
 configure_file(${CMAKE_SOURCE_DIR}/data/head.raw ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/bounding-box.raw ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/haarcascade_frontalface_alt2.xml ${CMAKE_BINARY_DIR} COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/data/flandmark_model.dat ${CMAKE_BINARY_DIR} COPYONLY)
 
-SET(FLANDMARK_STATIC TRUE CACHE BOOL "Whether flandmark static library is used")
-SET(LIBHEADTRACKER_STATIC TRUE CACHE BOOL "Whether flandmark static library is used")
-
-if(LIBHEADTRACKER_STATIC)
-	SET(HT_TYPE STATIC)
-else()
-	SET(HT_TYPE DYNAMIC)
+if(CMAKE_COMPILER_IS_GNUCXX OR APPLE)
+    set(inlines "-fvisibility=hidden -fvisibility-inlines-hidden")
+    set(CMAKE_CXX_FLAGS " -std=c++11 ${CMAKE_CXX_FLAGS} ${inlines} ")
+    set(CMAKE_C_FLAGS " ${CMAKE_C_FLAGS} ${inlines} ")
 endif()
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH OFF)
+    set(apple-frameworks "-stdlib=libc++ -framework Cocoa -framework CoreFoundation -lobjc -lz -framework Carbon")
+    set(CMAKE_SHARED_LINKER_FLAGS " ${apple-frameworks} ${CMAKE_SHARED_LINKER_FLAGS}")
+    #set(CMAKE_STATIC_LINKER_FLAGS " ${apple-frameworks} ${CMAKE_STATIC_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS " ${apple-frameworks} ${CMAKE_EXE_LINKER_FLAGS}")
+    set(CMAKE_MODULE_LINKER_FLAGS " ${apple-frameworks} ${CMAKE_MODULE_LINKER_FLAGS}")
+    set(CMAKE_CXX_FLAGS " -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
+endif()
+
+# nix -rdynamic passed from Linux-GNU.cmake
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(__LINUX_COMPILER_GNU 1)
+    set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
+    set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+endif()
+
+set(FLANDMARK_STATIC TRUE CACHE BOOL "Whether flandmark static library is used")
+set(LIBHEADTRACKER_STATIC TRUE CACHE BOOL "Whether flandmark static library is used")
+
+if(LIBHEADTRACKER_STATIC)
+    set(HT_TYPE STATIC)
+else()
+    set(HT_TYPE DYNAMIC)
+endif()
 
 file(GLOB headtracker-SRC
-    "*.h"
-    "*.cpp"
+    "*.[ch]"
+    "*.[ch]pp"
 )
 add_library(${PROJECT_NAME} ${HT_TYPE} ${headtracker-SRC})
 
-if(WIN32)
-    set(HT_SONAME dll)
-    set(HT_OBJNAME lib)
-    set(HT_PREFIX "")
-endif(WIN32)
-
-if(MINGW)
-    set(HT_OBJNAME a)
-    set(HT_PREFIX lib)
-endif()
-
-if(UNIX)
-    set(HT_SONAME so)
-    set(HT_OBJNAME a)
-    set(HT_PREFIX lib)
-endif(UNIX)
-
-if(APPLE)
-    set(HT_SONAME dylib)
-    set(HT_OBJNAME a)
-    set(HT_PREFIX lib)
-endif(APPLE)
-
-link_directories(${CMAKE_BINARY_DIR})
-
 if(FLANDMARK_STATIC)
-	target_link_libraries(headtracker ${OpenCV_LIBS} flandmark_static)
+	target_link_libraries(headtracker flandmark_static ${OpenCV_LIBS})
 else()
-	target_link_libraries(headtracker ${OpenCV_LIBS} flandmark_shared)
+	target_link_libraries(headtracker flandmark_shared ${OpenCV_LIBS})
 endif()
 file(GLOB headtracker-demo-SRC
     "demo/*.cpp"
@@ -67,4 +65,3 @@ if(ENABLE_DEMO)
     add_executable(headtracker-demo ${headtracker-demo-SRC})
     target_link_libraries(headtracker-demo headtracker ${OpenCV_LIBS})
 endif()
-
